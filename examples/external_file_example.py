@@ -5,7 +5,7 @@ https://github.com/apache/airflow/blob/master/airflow/example_dags/tutorial.py
 from airflow import DAG
 from airflow.operators.python_operator import PythonVirtualenvOperator
 from datetime import datetime, timedelta
-from external_file_example.my_package import some_complicated_stuff
+from examples.external_file_example.my_package import some_complicated_stuff
 
 
 default_args = {
