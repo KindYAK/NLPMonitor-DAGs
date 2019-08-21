@@ -1,8 +1,11 @@
 .python-version
 __pycache__
+venv
 
 .idea
 *.log
 *.pot
 *.pyc
 *.sqlite3
+
+bert_embeddings/models

@@ -1,0 +1,7 @@
+es
+venv
+
+examples/external_file_example
+
+bert_embeddings/bert
+bert_embeddings/gen_embed
