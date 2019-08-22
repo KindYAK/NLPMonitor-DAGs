@@ -26,12 +26,12 @@ default_args = {
 
 dag = DAG('Example_external_cached_venv_example', default_args=default_args, schedule_interval=timedelta(days=1))
 
-test_env_op = PythonVirtualenvCachedOperator(
-    task_id="op1",
-    python_callable=some_complicated_stuff,
-    python_version="3.6",
-    dag=dag,
-    requirements=[
-        "xlrd==1.2.0",
-    ]
-)
+with dag:
+    test_env_op = PythonVirtualenvCachedOperator(
+        task_id="op1",
+        python_callable=some_complicated_stuff,
+        python_version="3.6",
+        requirements=[
+            "xlrd==1.2.0",
+        ]
+    )

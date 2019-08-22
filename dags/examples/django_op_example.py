@@ -8,6 +8,8 @@ from airflow.operators.python_operator import PythonVirtualenvOperator, PythonOp
 from DjangoOperator import DjangoOperator
 from datetime import datetime, timedelta
 
+from dags.examples.external_file_example.my_package import test
+
 
 default_args = {
     'owner': 'airflow',
@@ -26,72 +28,9 @@ default_args = {
 
 dag = DAG('Example_django_op_example', default_args=default_args, schedule_interval=timedelta(days=1))
 
-# t1, t2 and t3 are examples of tasks created by instantiating operators
-t1 = BashOperator(
-    task_id='print_date',
-    bash_command='date',
-    dag=dag)
 
-t2 = BashOperator(
-    task_id='sleep',
-    bash_command='sleep 5',
-    retries=3,
-    dag=dag)
-
-templated_command = """
-    {% for i in range(5) %}
-        echo "{{ ds }}"
-        echo "{{ macros.ds_add(ds, 7)}}"
-        echo "{{ params.my_param }}"
-    {% endfor %}
-"""
-
-t3 = BashOperator(
-    task_id='templated',
-    bash_command=templated_command,
-    params={'my_param': 'Parameter I passed in'},
-    dag=dag)
-
-
-def test():
-    from mainapp.models import Corpus
-    import random
-    Corpus.objects.create(name="Delte Later" + str(random.randint(0, 10000000)))
-    import xlrd
-    print(xlrd.__version__)
-    return xlrd.__version__
-
-
-django_op = DjangoOperator(
-    task_id="test_corpus_create",
-    python_callable=test,
-    dag=dag
-)
-
-
-def test_env_op_callable():
-    import xlrd
-    print(xlrd.__version__)
-    return xlrd.__version__
-
-
-test_env_op = PythonVirtualenvOperator(
-    task_id="test_env_op",
-    python_callable=test_env_op_callable,
-    python_version="3.6",
-    dag=dag,
-    requirements=[
-        "xlrd==1.2.0",
-    ]
-)
-
-def python_test():
-    return 5 / 253345
-
-python_op = PythonOperator(
-    task_id="python_op",
-    python_callable=python_test,
-    dag=dag,
-)
-
-python_op >> test_env_op >> django_op >> t1 >> [t2, t3]
+with dag:
+    django_op = DjangoOperator(
+        task_id="test_corpus_create",
+        python_callable=test,
+    )
