@@ -1,4 +1,4 @@
-from es.service import search, update_instance
+from util.service_es import search
 from util.constants import BASE_DAG_DIR
 
 import datetime
@@ -10,7 +10,6 @@ import subprocess
 
 TOKEN_EMBEDDING_NAME = "Bert_Token_Embedding_rubert_cased_L_12_H_768_A_12_v1"
 def init_token_embedding_index():
-    from elasticsearch import Elasticsearch
     from elasticsearch_dsl import Search
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT

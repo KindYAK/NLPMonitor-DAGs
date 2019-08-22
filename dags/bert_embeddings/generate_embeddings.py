@@ -2,8 +2,7 @@ from airflow import DAG
 from datetime import datetime, timedelta
 from DjangoOperator import DjangoOperator
 
-from bert_embeddings.gen_embed.services import init_token_embedding_index, generate_token_embeddings, persist_token_embeddings
-
+from dags.bert_embeddings.gen_embed.services import init_token_embedding_index, generate_token_embeddings, persist_token_embeddings
 
 default_args = {
     'owner': 'airflow',
@@ -16,7 +15,7 @@ default_args = {
     'retry_delay': timedelta(minutes=60),
 }
 
-dag = DAG('generate_bert_embeddings', default_args=default_args, schedule_interval=None)
+dag = DAG('NLPMonitor_generate_bert_embeddings', default_args=default_args, schedule_interval=None)
 
 with dag:
     init_index = DjangoOperator(

@@ -1,7 +1,8 @@
-es
+# Keep updated, please.
+util
 venv
 
-examples/external_file_example
+dags/examples/external_file_example
 
-bert_embeddings/bert
-bert_embeddings/gen_embed
+dags/bert_embeddings/bert
+dags/bert_embeddings/gen_embed

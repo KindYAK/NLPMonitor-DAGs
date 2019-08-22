@@ -8,4 +8,4 @@ venv
 *.pyc
 *.sqlite3
 
-bert_embeddings/models
+dags/bert_embeddings/bert/models
