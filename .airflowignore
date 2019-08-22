@@ -1,6 +1,6 @@
 # Keep updated, please.
-util
-venv
+util/
+venv/
 
 dags/examples/external_file_example
 
