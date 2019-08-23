@@ -9,7 +9,7 @@ def some_complicated_stuff():
 def test():
     from mainapp.models import Corpus
     import random
-    Corpus.objects.create(name="Delte Later" + str(random.randint(0, 10000000)))
+    Corpus.objects.create(name="Delete Later" + str(random.randint(0, 10000000)))
     import xlrd
     print(xlrd.__version__)
     return xlrd.__version__
