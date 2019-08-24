@@ -26,7 +26,7 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('Example_django_op_example', default_args=default_args, schedule_interval=timedelta(days=1))
+dag = DAG('Example_django_op_example', default_args=default_args, schedule_interval=None)
 
 
 with dag:
