@@ -6,11 +6,13 @@ def es_filter_term(search, key, value):
     return search.filter(query, **{key: value})
 
 
-def search(client, index, query, start=None, end=None):
+def search(client, index, query, start=None, end=None, source=None):
     from elasticsearch_dsl import Search
     s = Search(using=client, index=index)
     for key, value in query.items():
         s = es_filter_term(s, key, value)
+    if source:
+        s = s.source(include=source)
     s = s[start:end]
     return s.execute()
 
