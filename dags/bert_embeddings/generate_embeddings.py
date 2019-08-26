@@ -18,8 +18,9 @@ default_args = {
 dag = DAG('NLPMonitor_generate_bert_embeddings', default_args=default_args, schedule_interval=None)
 
 with dag:
-    init_index = DjangoOperator(
-        task_id="init_index",
+    # Token
+    init_token_index = DjangoOperator(
+        task_id="init_token_index",
         python_callable=init_token_embedding_index,
     )
 
@@ -38,4 +39,73 @@ with dag:
         python_callable=persist_token_embeddings,
     )
 
-    init_index >> token_embedding_operators >> persist_token_embeddings
+    init_token_index >> token_embedding_operators >> persist_token_embeddings
+
+    # Word
+    init_word_index = DjangoOperator(
+        task_id="init_word_average_index",
+        python_callable=lambda: 0,
+    )
+
+    word_embedding_operators = []
+    concurrency = 8
+    for i in range(concurrency):
+        word_embedding_operators.append(DjangoOperator(
+            task_id=f"gen_word_average_embedding_{i}",
+            python_callable=lambda: 0,
+            op_kwargs={"start": (100 / concurrency) * i,
+                       "end": (100 / concurrency) * (i + 1)}
+        ))
+
+    persist_word_embeddings = DjangoOperator(
+        task_id="persist_word_average_embeddings",
+        python_callable=lambda: 0,
+    )
+
+    token_embedding_operators >> init_word_index >> word_embedding_operators >> persist_word_embeddings
+
+    # Sentence
+    init_sentence_index = DjangoOperator(
+        task_id="init_sentence_average_index",
+        python_callable=lambda: 0,
+    )
+
+    sentence_embedding_operators = []
+    concurrency = 8
+    for i in range(concurrency):
+        sentence_embedding_operators.append(DjangoOperator(
+            task_id=f"gen_sentence_average_embedding_{i}",
+            python_callable=lambda: 0,
+            op_kwargs={"start": (100 / concurrency) * i,
+                       "end": (100 / concurrency) * (i + 1)}
+        ))
+
+    persist_sentence_embeddings = DjangoOperator(
+        task_id="persist_sentence_average_embeddings",
+        python_callable=lambda: 0,
+    )
+
+    word_embedding_operators >> init_sentence_index >> sentence_embedding_operators >> persist_sentence_embeddings
+
+    # Text
+    init_text_index = DjangoOperator(
+        task_id="init_text_average_max_index",
+        python_callable=lambda: 0,
+    )
+
+    text_embedding_operators = []
+    concurrency = 8
+    for i in range(concurrency):
+        text_embedding_operators.append(DjangoOperator(
+            task_id=f"gen_text_average_max_embedding_{i}",
+            python_callable=lambda: 0,
+            op_kwargs={"start": (100 / concurrency) * i,
+                       "end": (100 / concurrency) * (i + 1)}
+        ))
+
+    persist_text_embeddings = DjangoOperator(
+        task_id="persist_text_average_max_embeddings",
+        python_callable=lambda: 0,
+    )
+
+    sentence_embedding_operators >> init_text_index >> text_embedding_operators >> persist_text_embeddings
