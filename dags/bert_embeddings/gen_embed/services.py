@@ -7,9 +7,14 @@ import os
 import tempfile
 import subprocess
 
+from dags.bert_embeddings.gen_embed.service_es import persist_embeddings_to_es
+
 
 TOKEN_EMBEDDING_NAME = "Bert_Token_Embedding_rubert_cased_L_12_H_768_A_12_v1"
-def init_token_embedding_index():
+WORD_EMBEDDING_NAME = "Bert_Word_Average_Embedding_rubert_cased_L_12_H_768_A_12_v1"
+SENTENCE_EMBEDDING_NAME = "Bert_Sentence_Average_Embedding_rubert_cased_L_12_H_768_A_12_v1"
+TEXT_EMBEDDING_NAME = "Bert_Text_Average_Max_Embedding_rubert_cased_L_12_H_768_A_12_v1"
+def init_embedding_index(**kwargs):
     from elasticsearch_dsl import Search
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_EMBEDDING
@@ -21,28 +26,15 @@ def init_token_embedding_index():
     # Check if already exists
     if ES_CLIENT.indices.exists(ES_INDEX_EMBEDDING):
         query = {
-            "corpus": "main",
+            "corpus": kwargs['corpus'],
+            "name": kwargs['name'],
             "number_of_documents": number_of_documents,
-            "is_ready": False,
-            "name": TOKEN_EMBEDDING_NAME,
         }
         if search(ES_CLIENT, ES_INDEX_EMBEDDING, query):
-            return("!!!", "Already exists")
+            return ("!!!", "Already exists")
 
-    index = EmbeddingIndex(**{
-        "corpus": "main",
-        "number_of_documents": number_of_documents,
-        "is_ready": False,
-        "name": TOKEN_EMBEDDING_NAME,
-        "description": "Bert token embedding using Rubert model from DeepPavlov",
-        "datetime_created": datetime.datetime.now(),
-        "by_unit": "token",
-        "algorithm": "BERT",
-        "pooling": "None",
-        "meta_parameters": {
-            "pre_trained": "rubert_cased_L-12_H-768_A-12_v1",
-        },
-    })
+    kwargs["number_of_documents"] = number_of_documents
+    index = EmbeddingIndex(**kwargs)
     index.save()
 
 
@@ -55,7 +47,7 @@ def generate_token_embeddings(**kwargs):
     # Get embedding object
     query = {
         "corpus": "main",
-        "is_ready": False,
+        # "is_ready": False, # TODO Uncomment
         "name": TOKEN_EMBEDDING_NAME.lower(),
         "by_unit": "token",
         "algorithm": "BERT".lower(),
@@ -65,17 +57,21 @@ def generate_token_embeddings(**kwargs):
     number_of_documents = embedding['number_of_documents']
 
     # Get documents
-    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, {"corpus": "main"},
+    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT,
+                       {"corpus": "main"},
                        start=int(start/100*number_of_documents),
                        end=int(end/100*number_of_documents),
-                       source=['id', 'text']
+                       source=['id', 'text'],
+                       sort=['id']
                        )
 
     # Embeddings themselves
     from textblob import TextBlob
     embeddings = []
+    documents_to_write = []
     input_file_name = f"input-{start}-{end}.txt"
     output_file_name = f"output-{start}-{end}.json"
+    batch_size = 10000
     with tempfile.TemporaryDirectory() as tmpdir:
         for document in documents:
             # Write to input.txt
@@ -103,103 +99,106 @@ def generate_token_embeddings(**kwargs):
                     embedding = json.loads(line)
                     document_embeddings.append(embedding['features'])
             embeddings.append(document_embeddings)
-
-    # Write to ES
-    from elasticsearch.helpers import streaming_bulk
-
-    def update_generator(documents, embeddings):
-        for document, embedding in zip(documents, embeddings):
-            yield {
-                "_index": ES_INDEX_DOCUMENT,
-                "_op_type": "update",
-                "_id": document.meta.id,
-                "doc": {TOKEN_EMBEDDING_NAME: embedding},
-            }
-
-    for ok, result in streaming_bulk(ES_CLIENT, update_generator(documents, embeddings), index=ES_INDEX_DOCUMENT,
-                                     chunk_size=1000, raise_on_error=True, max_retries=10):
-        pass
+            documents_to_write.append(document)
+            if len(embeddings) >= batch_size:
+                persist_embeddings_to_es(ES_CLIENT, ES_INDEX_DOCUMENT, documents_to_write, embeddings, TOKEN_EMBEDDING_NAME)
+                embeddings = []
+                documents_to_write = []
+        persist_embeddings_to_es(ES_CLIENT, ES_INDEX_DOCUMENT, documents_to_write, embeddings, TOKEN_EMBEDDING_NAME)
 
 
-def persist_token_embeddings():
+def persist_embeddings(**kwargs):
+    print("!!!", "new2")
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_EMBEDDING
     from mainapp.models import Corpus, Document
     from preprocessing.models import ProcessedCorpus, ProcessedDocument, AnalysisUnit
 
     from elasticsearch_dsl import Search
 
-    # Get embedding object
+    corpus = kwargs['corpus']
+    embedding_name = kwargs['embedding_name']
+    by_unit = kwargs['by_unit']
+    type_unit_int = kwargs['type_unit_int']
+    algorithm = kwargs['algorithm']
+    pooling = kwargs['pooling']
+    description = kwargs['description']
+
+    # Update embedding object to is_ready
     query = {
-        "corpus": "main",
+        "corpus": corpus.lower(),
+        "name": embedding_name.lower(),
+        "by_unit": by_unit.lower(),
+        "algorithm": algorithm.lower(),
+        "pooling": pooling.lower(),
         # "is_ready": False,  # TODO uncomment
-        "name": TOKEN_EMBEDDING_NAME.lower(),
-        "by_unit": "token",
-        "algorithm": "BERT".lower(),
-        "pooling": "None".lower(),
     }
     embedding = search(ES_CLIENT, ES_INDEX_EMBEDDING, query)[-1]
-    # Update to is_ready
     ES_CLIENT.update(index=ES_INDEX_EMBEDDING, id=embedding.meta.id, body={"doc": {"is_ready": True}})
 
     # Init processedCorpus
-    pcs = ProcessedCorpus.objects.filter(corpus=Corpus.objects.get(name="main"), name=TOKEN_EMBEDDING_NAME)
+    pcs = ProcessedCorpus.objects.filter(corpus=Corpus.objects.get(name=corpus), name=TOKEN_EMBEDDING_NAME)
     if pcs.exists():
         for pc in pcs:
             pc.delete()
-    pc = ProcessedCorpus.objects.create(corpus=Corpus.objects.get(name="main"),
-                                        name=TOKEN_EMBEDDING_NAME,
-                                        description="Bert token embedding using Rubert model from DeepPavlov")
+    pc = ProcessedCorpus.objects.create(corpus=Corpus.objects.get(name=corpus),
+                                        name=embedding_name,
+                                        description=description)
 
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).source(['id', TOKEN_EMBEDDING_NAME]).filter("term", corpus="main")
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).source(['id', embedding_name]).filter("term", corpus=corpus)
+    print("!!!", s.count())
 
-    def persist(batch_docs, batch_units):
+    def persist(batch_docs, batch_units, type):
         batch_docs = ProcessedDocument.objects.bulk_create(batch_docs)
         batch_units_objs = []
         batch_size = 10000
-        i = 0
         for doc, embs in zip(batch_docs, batch_units):
             ind = 0
             for emb in embs:
-                batch_units_objs.append(AnalysisUnit(type=0,
+                batch_units_objs.append(AnalysisUnit(type=type,
                                                      processed_document=doc,
                                                      value=emb['token'],
                                                      index=ind,
                                                      embedding=emb['values']
                                                      )
                                         )
-                print(i, len(emb['token']))
-                i += 1
                 ind += 1
-            if i >= batch_size:
+            if len(batch_units_objs) >= batch_size:
                 AnalysisUnit.objects.bulk_create(batch_units_objs)
                 batch_units_objs = []
-        print("!!!", len(batch_units_objs))
         AnalysisUnit.objects.bulk_create(batch_units_objs)
 
     batch_size = 10000
     batch_docs = []
     batch_units = []
     for document in s.scan():
-        batch_docs.append(ProcessedDocument(processed_corpus=pc, original_document_id=document.id))
-        if TOKEN_EMBEDDING_NAME not in document:
+        if embedding_name not in document:
             print("!!!", document.meta.id, document.id, "Skipped")
             continue
         else:
             print("!!!", "OK")
-        embeddings = document[TOKEN_EMBEDDING_NAME]
+        batch_docs.append(ProcessedDocument(processed_corpus=pc, original_document_id=document.id))
+        embeddings = document[embedding_name]
         document_embeddings = []
-        for sent in embeddings:
-            for token in sent:
+        if type_unit_int in [0, 1, 2]:
+            for sent in embeddings:
+                for token in sent:
+                    document_embeddings.append(
+                        {
+                            by_unit: token[by_unit],
+                            "values": token.layers[0].values
+                        }
+                    )
+        else:
+            for elem in embeddings:
                 document_embeddings.append(
                     {
-                        "token": token.token,
-                        "values": token.layers[0].values
+                        by_unit: elem[by_unit],
+                        "values": elem.layers[0].values
                     }
                 )
         batch_units.append(document_embeddings)
-
         if len(batch_docs) >= batch_size:
-            persist(batch_docs, batch_units)
+            persist(batch_docs, batch_units, type_unit_int)
             batch_docs = []
             batch_units = []
-    persist(batch_docs, batch_units)
+    persist(batch_docs, batch_units, type=type_unit_int)

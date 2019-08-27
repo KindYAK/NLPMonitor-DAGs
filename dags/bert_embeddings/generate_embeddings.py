@@ -2,7 +2,13 @@ from airflow import DAG
 from datetime import datetime, timedelta
 from DjangoOperator import DjangoOperator
 
-from dags.bert_embeddings.gen_embed.services import init_token_embedding_index, generate_token_embeddings, persist_token_embeddings
+from util.util import not_implemented
+from dags.bert_embeddings.gen_embed.services import (init_embedding_index,
+                                                     generate_token_embeddings,
+                                                     persist_embeddings,
+                                                     TOKEN_EMBEDDING_NAME, WORD_EMBEDDING_NAME, SENTENCE_EMBEDDING_NAME, TEXT_EMBEDDING_NAME
+                                                     )
+
 
 default_args = {
     'owner': 'airflow',
@@ -21,7 +27,20 @@ with dag:
     # Token
     init_token_index = DjangoOperator(
         task_id="init_token_index",
-        python_callable=init_token_embedding_index,
+        python_callable=init_embedding_index,
+        op_kwargs={
+            "corpus": "main",
+            "is_ready": False,
+            "name": TOKEN_EMBEDDING_NAME,
+            "description": "Bert token embedding using Rubert model from DeepPavlov",
+            "datetime_created": datetime.now(),
+            "by_unit": "token",
+            "algorithm": "BERT",
+            "pooling": "None",
+            "meta_parameters": {
+                "pre_trained": "rubert_cased_L-12_H-768_A-12_v1",
+            },
+        }
     )
 
     token_embedding_operators = []
@@ -30,24 +49,45 @@ with dag:
         token_embedding_operators.append(DjangoOperator(
             task_id=f"gen_token_embedding_{i}",
             python_callable=generate_token_embeddings,
-            op_kwargs={"start": (100/concurrency)*i,
-                       "end": (100/concurrency)*(i+1)}
+            op_kwargs={
+                "start": (100 / concurrency) * i,
+                "end": (100 / concurrency) * (i + 1)
+            }
         ))
 
     persist_token_embeddings = DjangoOperator(
         task_id="persist_token_embeddings",
-        python_callable=persist_token_embeddings,
+        python_callable=persist_embeddings,
+        op_kwargs={
+            "corpus": "main",
+            "embedding_name": TOKEN_EMBEDDING_NAME,
+            "by_unit": "token",
+            "type_unit_int": 0,
+            "algorithm": "bert",
+            "pooling": "None",
+            "description": "Bert token embedding using Rubert model from DeepPavlov"
+        }
     )
 
     init_token_index >> token_embedding_operators >> persist_token_embeddings
 
-    def not_implemented():
-        raise Exception("Not implemented")
-
     # Word
     init_word_index = DjangoOperator(
         task_id="init_word_average_index",
-        python_callable=not_implemented,
+        python_callable=init_embedding_index,
+        op_kwargs={
+            "corpus": "main",
+            "is_ready": False,
+            "name": WORD_EMBEDDING_NAME,
+            "description": "Bert word average pooling embedding using Rubert model from DeepPavlov",
+            "datetime_created": datetime.now(),
+            "by_unit": "word",
+            "algorithm": "BERT",
+            "pooling": "Average",
+            "meta_parameters": {
+                "pre_trained": "rubert_cased_L-12_H-768_A-12_v1",
+            },
+        }
     )
 
     word_embedding_operators = []
@@ -62,7 +102,16 @@ with dag:
 
     persist_word_embeddings = DjangoOperator(
         task_id="persist_word_average_embeddings",
-        python_callable=not_implemented,
+        python_callable=persist_embeddings,
+        op_kwargs={
+            "corpus": "main",
+            "embedding_name": WORD_EMBEDDING_NAME,
+            "by_unit": "word",
+            "type_unit_int": 1,
+            "algorithm": "bert",
+            "pooling": "Average",
+            "description": "Bert word average pooling embedding using Rubert model from DeepPavlov"
+        }
     )
 
     token_embedding_operators >> init_word_index >> word_embedding_operators >> persist_word_embeddings
@@ -70,7 +119,20 @@ with dag:
     # Sentence
     init_sentence_index = DjangoOperator(
         task_id="init_sentence_average_index",
-        python_callable=not_implemented,
+        python_callable=init_embedding_index,
+        op_kwargs={
+            "corpus": "main",
+            "is_ready": False,
+            "name": SENTENCE_EMBEDDING_NAME,
+            "description": "Bert sentence average pooling embedding using Rubert model from DeepPavlov",
+            "datetime_created": datetime.now(),
+            "by_unit": "sentence",
+            "algorithm": "BERT",
+            "pooling": "Average",
+            "meta_parameters": {
+                "pre_trained": "rubert_cased_L-12_H-768_A-12_v1",
+            },
+        }
     )
 
     sentence_embedding_operators = []
@@ -85,7 +147,16 @@ with dag:
 
     persist_sentence_embeddings = DjangoOperator(
         task_id="persist_sentence_average_embeddings",
-        python_callable=not_implemented,
+        python_callable=persist_embeddings,
+        op_kwargs={
+            "corpus": "main",
+            "embedding_name": SENTENCE_EMBEDDING_NAME,
+            "by_unit": "sentence",
+            "type_unit_int": 3,
+            "algorithm": "bert",
+            "pooling": "Average",
+            "description": "Bert sentence average pooling embedding using Rubert model from DeepPavlov"
+        }
     )
 
     word_embedding_operators >> init_sentence_index >> sentence_embedding_operators >> persist_sentence_embeddings
@@ -93,7 +164,20 @@ with dag:
     # Text
     init_text_index = DjangoOperator(
         task_id="init_text_average_max_index",
-        python_callable=not_implemented,
+        python_callable=init_embedding_index,
+        op_kwargs={
+            "corpus": "main",
+            "is_ready": False,
+            "name": TEXT_EMBEDDING_NAME,
+            "description": "Bert text average+max pooling embedding using Rubert model from DeepPavlov",
+            "datetime_created": datetime.now(),
+            "by_unit": "text",
+            "algorithm": "BERT",
+            "pooling": "Average+Max",
+            "meta_parameters": {
+                "pre_trained": "rubert_cased_L-12_H-768_A-12_v1",
+            },
+        }
     )
 
     text_embedding_operators = []
@@ -108,7 +192,16 @@ with dag:
 
     persist_text_embeddings = DjangoOperator(
         task_id="persist_text_average_max_embeddings",
-        python_callable=not_implemented,
+        python_callable=persist_embeddings,
+        op_kwargs={
+            "corpus": "main",
+            "embedding_name": TEXT_EMBEDDING_NAME,
+            "by_unit": "text",
+            "type_unit_int": 5,
+            "algorithm": "bert",
+            "pooling": "Average+max",
+            "description": "Bert text average+max pooling embedding using Rubert model from DeepPavlov"
+        }
     )
 
     sentence_embedding_operators >> init_text_index >> text_embedding_operators >> persist_text_embeddings
