@@ -126,9 +126,6 @@ def persist_embeddings(**kwargs):
     query = {
         "corpus": corpus.lower(),
         "name": embedding_name.lower(),
-        "by_unit": by_unit.lower(),
-        "algorithm": algorithm.lower(),
-        "pooling": pooling.lower(),
         # "is_ready": False,  # TODO uncomment
     }
     embedding = search(ES_CLIENT, ES_INDEX_EMBEDDING, query)[-1]
@@ -181,7 +178,7 @@ def persist_embeddings(**kwargs):
                             "values": token.layers[0].values
                         }
                     )
-        else:
+        elif type_unit_int in [3, 4]:
             for elem in embeddings:
                 document_embeddings.append(
                     {
@@ -189,6 +186,15 @@ def persist_embeddings(**kwargs):
                         "values": elem.layers[0].values
                     }
                 )
+        elif type_unit_int in [5]:
+            document_embeddings.append(
+                {
+                    by_unit: embeddings[by_unit],
+                    "values": embeddings.layers[0].values
+                }
+            )
+        else:
+            raise Exception("Unknown Unit_by type")
         batch_units.append(document_embeddings)
         if len(batch_docs) >= batch_size:
             persist(batch_docs, batch_units, type_unit_int)
