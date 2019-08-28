@@ -108,7 +108,6 @@ def generate_token_embeddings(**kwargs):
 
 
 def persist_embeddings(**kwargs):
-    print("!!!", "new2")
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_EMBEDDING
     from mainapp.models import Corpus, Document
     from preprocessing.models import ProcessedCorpus, ProcessedDocument, AnalysisUnit
@@ -136,7 +135,7 @@ def persist_embeddings(**kwargs):
     ES_CLIENT.update(index=ES_INDEX_EMBEDDING, id=embedding.meta.id, body={"doc": {"is_ready": True}})
 
     # Init processedCorpus
-    pcs = ProcessedCorpus.objects.filter(corpus=Corpus.objects.get(name=corpus), name=TOKEN_EMBEDDING_NAME)
+    pcs = ProcessedCorpus.objects.filter(corpus=Corpus.objects.get(name=corpus), name=embedding_name)
     if pcs.exists():
         for pc in pcs:
             pc.delete()
@@ -145,7 +144,6 @@ def persist_embeddings(**kwargs):
                                         description=description)
 
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).source(['id', embedding_name]).filter("term", corpus=corpus)
-    print("!!!", s.count())
 
     def persist(batch_docs, batch_units, type):
         batch_docs = ProcessedDocument.objects.bulk_create(batch_docs)
@@ -156,7 +154,7 @@ def persist_embeddings(**kwargs):
             for emb in embs:
                 batch_units_objs.append(AnalysisUnit(type=type,
                                                      processed_document=doc,
-                                                     value=emb['token'],
+                                                     value=emb[by_unit],
                                                      index=ind,
                                                      embedding=emb['values']
                                                      )
@@ -171,11 +169,6 @@ def persist_embeddings(**kwargs):
     batch_docs = []
     batch_units = []
     for document in s.scan():
-        if embedding_name not in document:
-            print("!!!", document.meta.id, document.id, "Skipped")
-            continue
-        else:
-            print("!!!", "OK")
         batch_docs.append(ProcessedDocument(processed_corpus=pc, original_document_id=document.id))
         embeddings = document[embedding_name]
         document_embeddings = []
@@ -202,3 +195,170 @@ def persist_embeddings(**kwargs):
             batch_docs = []
             batch_units = []
     persist(batch_docs, batch_units, type=type_unit_int)
+
+
+def pool_vectors(cur_embed, pooling):
+    import numpy as np
+
+    data = np.array(cur_embed)
+    if pooling == "Average":
+        return list(np.average(data, axis=0))
+    elif pooling == "Max":
+        return list(np.max(data, axis=0))
+    elif pooling == "Average+Max":
+        return list(np.average(data, axis=0)) + list(np.max(data, axis=0))
+    raise Exception("Unknown pooling")
+
+
+def pool_token_to_word(document, embeddings_to_write, documents_to_write, from_embedding_name, from_embedding_by_unit, to_embedding_by_unit, pooling):
+    embeddings = document[from_embedding_name]
+    for sent in embeddings:
+        embeddings_to_write[-1].append([])
+        cur_token = ""
+        cur_embed = []
+
+        for token in sent[1:-1]:
+            token_str = token[from_embedding_by_unit]
+            token_emb = token['layers'][0]['values']
+            if not cur_token and not cur_embed:
+                cur_token = token_str
+                cur_embed.append(token_emb)
+            elif "##" in token_str:
+                cur_token += token_str.replace("##", "")
+                cur_embed.append(token_emb)
+            else:
+                cur_embed = pool_vectors(cur_embed, pooling)
+                embeddings_to_write[-1][-1].append(
+                    {
+                        "layers": [
+                            {
+                                "values": cur_embed,
+                                "index": -2
+                            }
+                        ],
+                        to_embedding_by_unit: cur_token
+                    }
+                )
+                cur_token = token_str
+                cur_embed = [token_emb]
+        if cur_token and cur_embed:
+            cur_embed = pool_vectors(cur_embed, pooling)
+            embeddings_to_write[-1][-1].append(
+                {
+                    "layers": [
+                        {
+                            "values": cur_embed,
+                            "index": -2
+                        }
+                    ],
+                    to_embedding_by_unit: cur_token
+                }
+            )
+    documents_to_write.append(document)
+
+
+def pool_word_to_sentence(document, embeddings_to_write, documents_to_write, from_embedding_name, from_embedding_by_unit, to_embedding_by_unit, pooling):
+    embeddings = document[from_embedding_name]
+    for sent in embeddings:
+        cur_sent = ""
+        cur_embed = []
+
+        for token in sent[1:-1]:
+            token_str = token[from_embedding_by_unit]
+            token_emb = token['layers'][0]['values']
+
+            cur_embed.append(token_emb)
+            cur_sent += token_str.replace("##", "") + " "
+
+        cur_embed = pool_vectors(cur_embed, pooling)
+        embeddings_to_write[-1].append(
+            {
+                "layers": [
+                    {
+                        "values": cur_embed,
+                        "index": -2
+                    }
+                ],
+                to_embedding_by_unit: cur_sent
+            }
+        )
+    documents_to_write.append(document)
+
+
+def pool_sentence_to_text(document, embeddings_to_write, documents_to_write, from_embedding_name, from_embedding_by_unit, to_embedding_by_unit, pooling):
+    embeddings = document[from_embedding_name]
+    cur_text = ""
+    cur_embed = []
+    for sent in embeddings:
+        token_str = sent[from_embedding_by_unit]
+        token_emb = sent['layers'][0]['values']
+
+        cur_embed.append(token_emb)
+        cur_text += token_str.replace("##", "") + " "
+
+    cur_embed = pool_vectors(cur_embed, pooling)
+    embeddings_to_write[-1] = \
+        {
+            "layers": [
+                {
+                    "values": cur_embed,
+                    "index": -2
+                }
+            ],
+            to_embedding_by_unit: cur_text
+        }
+    documents_to_write.append(document)
+
+
+def pool_document(document, embeddings_to_write, documents_to_write, from_embedding_name, to_embedding_by_unit, from_embedding_by_unit, pooling):
+    if from_embedding_by_unit.lower() == "token":
+        pool_token_to_word(document, embeddings_to_write, documents_to_write, from_embedding_name, from_embedding_by_unit, to_embedding_by_unit, pooling)
+    elif from_embedding_by_unit.lower() == "word":
+        pool_word_to_sentence(document, embeddings_to_write, documents_to_write, from_embedding_name, from_embedding_by_unit, to_embedding_by_unit, pooling)
+    elif from_embedding_by_unit.lower() == "sentence":
+        pool_sentence_to_text(document, embeddings_to_write, documents_to_write, from_embedding_name, from_embedding_by_unit, to_embedding_by_unit, pooling)
+
+
+def pool_embeddings(**kwargs):
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_EMBEDDING
+
+    start = kwargs['start']
+    end = kwargs['end']
+    corpus = kwargs['corpus']
+    from_embedding_name = kwargs['from_embedding_name']
+    from_embedding_by_unit = kwargs['from_embedding_by_unit']
+    to_embedding_name = kwargs['to_embedding_name']
+    to_embedding_by_unit = kwargs['to_embedding_by_unit']
+    pooling = kwargs['pooling']
+
+    # Get embedding object
+    query = {
+        "corpus": corpus.lower(),
+        # "is_ready": False, # TODO Uncomment
+        "name": to_embedding_name.lower(),
+    }
+    embedding = search(ES_CLIENT, ES_INDEX_EMBEDDING, query)[-1]
+    number_of_documents = embedding['number_of_documents']
+
+    # Get documents
+    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT,
+                       {"corpus": corpus.lower()},
+                       start=int(start / 100 * number_of_documents),
+                       end=int(end / 100 * number_of_documents),
+                       source=['id', from_embedding_name],
+                       sort=['id']
+                       )
+
+    embeddings_to_write = []
+    documents_to_write = []
+    batch_size = 10000
+    # Pooling
+    for document in documents:
+        embeddings_to_write.append([])
+        pool_document(document, embeddings_to_write, documents_to_write, from_embedding_name, to_embedding_by_unit, from_embedding_by_unit, pooling)
+        # Update to ES
+        if len(embeddings_to_write) >= batch_size:
+            persist_embeddings_to_es(ES_CLIENT, ES_INDEX_DOCUMENT, documents_to_write, embeddings_to_write, to_embedding_name)
+            embeddings_to_write = []
+            documents_to_write = []
+    persist_embeddings_to_es(ES_CLIENT, ES_INDEX_DOCUMENT, documents_to_write, embeddings_to_write, to_embedding_name)

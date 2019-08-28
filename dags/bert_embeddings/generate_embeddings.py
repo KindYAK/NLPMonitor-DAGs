@@ -6,6 +6,7 @@ from util.util import not_implemented
 from dags.bert_embeddings.gen_embed.services import (init_embedding_index,
                                                      generate_token_embeddings,
                                                      persist_embeddings,
+                                                     pool_embeddings,
                                                      TOKEN_EMBEDDING_NAME, WORD_EMBEDDING_NAME, SENTENCE_EMBEDDING_NAME, TEXT_EMBEDDING_NAME
                                                      )
 
@@ -95,9 +96,16 @@ with dag:
     for i in range(concurrency):
         word_embedding_operators.append(DjangoOperator(
             task_id=f"gen_word_average_embedding_{i}",
-            python_callable=not_implemented,
+            python_callable=pool_embeddings,
             op_kwargs={"start": (100 / concurrency) * i,
-                       "end": (100 / concurrency) * (i + 1)}
+                       "end": (100 / concurrency) * (i + 1),
+                       "corpus": "main",
+                       "from_embedding_name": TOKEN_EMBEDDING_NAME,
+                       "from_embedding_by_unit": "token",
+                       "to_embedding_name": WORD_EMBEDDING_NAME,
+                       "to_embedding_by_unit": "word",
+                       "pooling": "Average",
+                       }
         ))
 
     persist_word_embeddings = DjangoOperator(
@@ -140,9 +148,16 @@ with dag:
     for i in range(concurrency):
         sentence_embedding_operators.append(DjangoOperator(
             task_id=f"gen_sentence_average_embedding_{i}",
-            python_callable=not_implemented,
+            python_callable=pool_embeddings,
             op_kwargs={"start": (100 / concurrency) * i,
-                       "end": (100 / concurrency) * (i + 1)}
+                       "end": (100 / concurrency) * (i + 1),
+                       "corpus": "main",
+                       "from_embedding_name": WORD_EMBEDDING_NAME,
+                       "from_embedding_by_unit": "word",
+                       "to_embedding_name": SENTENCE_EMBEDDING_NAME,
+                       "to_embedding_by_unit": "sentence",
+                       "pooling": "Average",
+                       }
         ))
 
     persist_sentence_embeddings = DjangoOperator(
@@ -185,9 +200,16 @@ with dag:
     for i in range(concurrency):
         text_embedding_operators.append(DjangoOperator(
             task_id=f"gen_text_average_max_embedding_{i}",
-            python_callable=not_implemented,
+            python_callable=pool_embeddings,
             op_kwargs={"start": (100 / concurrency) * i,
-                       "end": (100 / concurrency) * (i + 1)}
+                       "end": (100 / concurrency) * (i + 1),
+                       "corpus": "main",
+                       "from_embedding_name": SENTENCE_EMBEDDING_NAME,
+                       "from_embedding_by_unit": "sentence",
+                       "to_embedding_name": TEXT_EMBEDDING_NAME,
+                       "to_embedding_by_unit": "text",
+                       "pooling": "Average+Max",
+                       }
         ))
 
     persist_text_embeddings = DjangoOperator(
@@ -199,7 +221,7 @@ with dag:
             "by_unit": "text",
             "type_unit_int": 5,
             "algorithm": "bert",
-            "pooling": "Average+max",
+            "pooling": "Average+Max",
             "description": "Bert text average+max pooling embedding using Rubert model from DeepPavlov"
         }
     )
