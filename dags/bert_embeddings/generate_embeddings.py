@@ -45,7 +45,7 @@ with dag:
     )
 
     token_embedding_operators = []
-    concurrency = 24
+    concurrency = 128
     for i in range(concurrency):
         token_embedding_operators.append(DjangoOperator(
             task_id=f"gen_token_embedding_{i}",
@@ -92,7 +92,7 @@ with dag:
     )
 
     word_embedding_operators = []
-    concurrency = 24
+    concurrency = 64
     for i in range(concurrency):
         word_embedding_operators.append(DjangoOperator(
             task_id=f"gen_word_average_embedding_{i}",
@@ -144,7 +144,7 @@ with dag:
     )
 
     sentence_embedding_operators = []
-    concurrency = 24
+    concurrency = 32
     for i in range(concurrency):
         sentence_embedding_operators.append(DjangoOperator(
             task_id=f"gen_sentence_average_embedding_{i}",
@@ -196,7 +196,7 @@ with dag:
     )
 
     text_embedding_operators = []
-    concurrency = 24
+    concurrency = 16
     for i in range(concurrency):
         text_embedding_operators.append(DjangoOperator(
             task_id=f"gen_text_average_max_embedding_{i}",
