@@ -45,7 +45,7 @@ with dag:
     )
 
     token_embedding_operators = []
-    concurrency = 256
+    concurrency = 512
     for i in range(concurrency):
         token_embedding_operators.append(DjangoOperator(
             task_id=f"gen_token_embedding_{i}",
