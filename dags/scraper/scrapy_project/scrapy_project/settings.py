@@ -9,7 +9,7 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-# LOG_LEVEL = "ERROR"
+LOG_LEVEL = "ERROR"
 
 BOT_NAME = 'scrapy_project'
 

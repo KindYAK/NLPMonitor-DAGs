@@ -1,11 +1,9 @@
 import scrapy
-import os, sys
 import datetime
 import dateparser
 
 from scrapy.exceptions import CloseSpider
 from scrapy.linkextractors import LinkExtractor
-from bs4 import BeautifulSoup
 
 
 class TheSpider(scrapy.spiders.CrawlSpider):
@@ -37,19 +35,17 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 continue
             html = response.css(getattr(self, field) + " ::text").extract()
             html = "\n".join(html)
-            soup = BeautifulSoup(html)
-            parse_result = soup.get_text().strip()
+            parse_result = html.strip()
 
             if field == "text" and (not parse_result or len(parse_result) < 10):
                 return None
-            if field == "text":
-                result["html"] = html
             if field == "datetime":
                 parse_result = dateparser.parse(parse_result, languages=['ru'])
                 if parse_result < self.latest_date and response.meta['depth'] < self.last_depth:
                     self.last_depth = response.meta['depth']
             result[field] = parse_result
         result['url'] = response.request.url
+        result['html'] = "\n".join(response.css(self.text).extract())
         result['datetime_created'] = datetime.datetime.now()
 
         yield result
