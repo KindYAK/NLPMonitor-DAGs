@@ -2,7 +2,11 @@
 util/
 venv/
 
-dags/examples/external_file_example
+dags/examples/external_file_example/
 
-dags/bert_embeddings/bert
-dags/bert_embeddings/gen_embed
+dags/bert_embeddings/bert/
+dags/bert_embeddings/gen_embed/
+
+dags/scraper/scrapy_project/
+dags/scraper/scrap/
+dags/scraper/init_sources/

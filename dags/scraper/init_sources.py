@@ -8,7 +8,7 @@ from airflow.operators.python_operator import PythonVirtualenvOperator, PythonOp
 from DjangoOperator import DjangoOperator
 from datetime import datetime, timedelta
 
-from dags.scraper.init_sources.service import init_sources, test
+from dags.scraper.init_sources.service import init_sources
 
 
 default_args = {

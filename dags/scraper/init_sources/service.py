@@ -3,7 +3,7 @@ def init_sources(**kwargs):
     from mainapp.models import Source
     import json
 
-    ss = Source.objects.all()
+    ss = Source.objects.filter(corpus="main")
     Variable.set("sources",
                      json.dumps(
                          [{
@@ -15,11 +15,11 @@ def init_sources(**kwargs):
                  )
 
 
-def test(**kwargs):
-    import json
-    from airflow.models import Variable
-
-    ss = json.loads(Variable.get('sources'))
-    print(ss)
-
-    return len(ss)
+# def test(**kwargs):
+#     import json
+#     from airflow.models import Variable
+#
+#     ss = json.loads(Variable.get('sources'))
+#     print(ss)
+#
+#     return len(ss)

@@ -1,0 +1,50 @@
+def scrap(**kwargs):
+    import os
+    import subprocess
+    import datetime
+    import json
+
+    from util.constants import BASE_DAG_DIR
+    from django.db import IntegrityError
+
+    from mainapp.models import ScrapRules, Document, Source, Author
+
+    source_url = kwargs['source_url']
+    source_id = kwargs['source_id']
+    source = Source.objects.get(id=source_id)
+    rules = ScrapRules.objects.filter(source=source)
+    if not rules.exists() or not rules.filter(type=1).exists():
+        return "No rules - no parse"
+
+    os.chdir("/opt/bitnami/airflow/dags/dags/scraper/scrapy_project/")
+
+    safe_source_url = source_url.replace('https://', '').replace('http://', '').replace('/', '')
+    filename = f"{safe_source_url}_{str(datetime.datetime.now()).replace(':', '-')}.json"
+    run_args = ["scrapy", "crawl", "spider", "-o", filename]
+    for rule in rules:
+        run_args.append("-a")
+        run_args.append(f"{dict(ScrapRules.TYPES)[rule.type]}={rule.selector}")
+    run_args.append("-a")
+    run_args.append(f"url={source_url}")
+    latest_date = Document.objects.exclude(datetime=None).latest('datetime').datetime - datetime.timedelta(days=30)
+    run_args.append("-a")
+    run_args.append(f"latest_date={latest_date.isoformat()}")
+
+    subprocess.run(run_args)
+
+    filename = os.path.join(BASE_DAG_DIR, "dags", "scraper", "scrapy_project", filename)
+    with open(filename, "r", encoding='utf-8') as f:
+        news = json.loads(f.read())
+        for new in news:
+            new['source'] = source
+            if Author.objects.filter(name=new['author']).exists():
+                new['author'] = Author.objects.get(name=new['author'], corpus=source.corpus)
+            else:
+                new['author'] = Author.objects.create(name=new['author'], corpus=source.corpus)
+            try:
+                Document.objects.create(**new)
+            except IntegrityError:
+                pass
+
+    os.remove(filename)
+    return "Parse complete"
