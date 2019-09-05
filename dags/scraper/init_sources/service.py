@@ -3,7 +3,7 @@ def init_sources(**kwargs):
     from mainapp.models import Source
     import json
 
-    ss = Source.objects.filter(corpus="main")
+    ss = Source.objects.filter(corpus__name="main")
     Variable.set("sources",
                      json.dumps(
                          [{
