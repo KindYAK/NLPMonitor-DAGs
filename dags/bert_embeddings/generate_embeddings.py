@@ -20,6 +20,7 @@ default_args = {
     'email_on_retry': True,
     'retries': 3,
     'retry_delay': timedelta(minutes=60),
+    'pool': 'long_tasks',
 }
 
 dag = DAG('NLPMonitor_generate_bert_embeddings', default_args=default_args, schedule_interval=None)

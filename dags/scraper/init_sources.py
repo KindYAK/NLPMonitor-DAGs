@@ -20,9 +20,9 @@ default_args = {
     'email_on_retry': False,
     'retries': 5,
     'retry_delay': timedelta(minutes=15),
-    'priority_weight': 75
+    'priority_weight': 75,
+
     # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
     # 'priority_weight': 10,
     # 'end_date': datetime(2016, 1, 1),
 }

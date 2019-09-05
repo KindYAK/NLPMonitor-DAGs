@@ -21,11 +21,8 @@ default_args = {
     'email_on_retry': False,
     'retries': 3,
     'retry_delay': timedelta(minutes=30),
-    'priority_weight': 50
-    # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
-    # 'priority_weight': 10,
-    # 'end_date': datetime(2016, 1, 1),
+    'priority_weight': 50,
+    'pool': 'short_tasks',
 }
 
 dag = DAG('Scrapers_scrap', default_args=default_args, schedule_interval='0 1 * * *')

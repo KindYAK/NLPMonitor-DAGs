@@ -20,10 +20,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
-    # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
-    # 'priority_weight': 10,
-    # 'end_date': datetime(2016, 1, 1),
+    'pool': 'short_tasks',
 }
 
 dag = DAG('Example_es_io', default_args=default_args, schedule_interval=None)
