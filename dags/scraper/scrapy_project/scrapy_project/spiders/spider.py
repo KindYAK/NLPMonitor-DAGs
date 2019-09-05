@@ -36,12 +36,14 @@ class TheSpider(scrapy.spiders.CrawlSpider):
             if not hasattr(self, field):
                 continue
             html = response.css(getattr(self, field) + " ::text").extract()
-
-            soup = BeautifulSoup("\n".join(html))
+            html = "\n".join(html)
+            soup = BeautifulSoup(html)
             parse_result = soup.get_text().strip()
 
             if field == "text" and (not parse_result or len(parse_result) < 10):
                 return None
+            if field == "text":
+                result["html"] = html
             if field == "datetime":
                 parse_result = dateparser.parse(parse_result, languages=['ru'])
                 if parse_result < self.latest_date and response.meta['depth'] < self.last_depth:
