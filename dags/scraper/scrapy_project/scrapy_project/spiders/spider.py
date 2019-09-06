@@ -23,6 +23,10 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         self.last_depth = 50 # change to value from custom_settings
 
     def parse_item(self, response):
+        # if not hasattr(self, "i"):
+        #     self.i = 0
+        # if self.i > 4:
+        #     raise CloseSpider('No more new stuff')
         if response.meta['depth'] > self.last_depth:
             raise CloseSpider('No more new stuff')
 
@@ -47,5 +51,5 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         result['url'] = response.request.url
         result['html'] = "\n".join(response.css(self.text).extract())
         result['datetime_created'] = datetime.datetime.now()
-
+        # self.i += 1
         yield result
