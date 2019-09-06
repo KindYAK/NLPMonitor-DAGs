@@ -27,7 +27,7 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('Scrapers_init_sources', default_args=default_args, schedule_interval='0 20 * * *')
+dag = DAG('Scrapers_init_sources', default_args=default_args, schedule_interval='0 14 * * *')
 
 
 with dag:

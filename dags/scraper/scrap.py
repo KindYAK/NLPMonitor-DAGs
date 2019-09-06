@@ -25,7 +25,7 @@ default_args = {
     'pool': 'short_tasks',
 }
 
-dag = DAG('Scrapers_scrap', default_args=default_args, schedule_interval='0 1 * * *')
+dag = DAG('Scrapers_scrap', default_args=default_args, schedule_interval='0 19 * * *')
 
 
 with dag:
