@@ -1,5 +1,6 @@
 import scrapy
 import datetime
+import pytz
 import dateparser
 
 from scrapy.exceptions import CloseSpider
@@ -19,15 +20,23 @@ class TheSpider(scrapy.spiders.CrawlSpider):
 
         self.start_urls = [kw['url'],]
         self.allowed_domains = [kw['url'].replace("https://", "").replace("http://", "").replace("/", "")]
-        self.latest_date = datetime.datetime.strptime(kw['latest_date'][:-6], "%Y-%m-%dT%H:%M:%S")
-        self.last_depth = 50 # change to value from custom_settings
+        self.latest_date = datetime.datetime.strptime(kw['latest_date'][:-6], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
+        self.last_depth = None
+        self.depth_history = []
+        self.depth_history_depth = 1
 
     def parse_item(self, response):
         # if not hasattr(self, "i"):
         #     self.i = 0
         # if self.i > 4:
         #     raise CloseSpider('No more new stuff')
-        if response.meta['depth'] > self.last_depth:
+        if self.depth_history_depth < response.meta['depth']:
+            fails_ratio = sum(self.depth_history) / len(self.depth_history)
+            if fails_ratio > 0.95 and not self.last_depth:
+                self.last_depth = response.meta['depth'] + 1
+            self.depth_history_depth = response.meta['depth']
+            self.depth_history = []
+        if self.last_depth and response.meta['depth'] > self.last_depth:
             raise CloseSpider('No more new stuff')
 
         simple_fields = ("text", "title", "author", "datetime", "num_views", "num_likes", "num_comments", "num_shares", )
@@ -44,12 +53,16 @@ class TheSpider(scrapy.spiders.CrawlSpider):
             if field == "text" and (not parse_result or len(parse_result) < 10):
                 return None
             if field == "datetime":
-                parse_result = dateparser.parse(parse_result, languages=['ru'])
-                if parse_result < self.latest_date and response.meta['depth'] < self.last_depth:
-                    self.last_depth = response.meta['depth']
+                parse_result = dateparser.parse(parse_result, languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
+                if parse_result < self.latest_date:
+                    self.depth_history.append(1)
+                else:
+                    self.depth_history.append(0)
             result[field] = parse_result
         result['url'] = response.request.url
         result['html'] = "\n".join(response.css(self.text).extract())
         result['datetime_created'] = datetime.datetime.now()
         # self.i += 1
+        # print("!!!", self.i, response.meta['depth'])
+        # print(result['datetime'], self.latest_date, self.last_depth)
         yield result
