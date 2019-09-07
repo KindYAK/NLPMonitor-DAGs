@@ -61,7 +61,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
             result[field] = parse_result
         result['url'] = response.request.url
         result['html'] = "\n".join(response.css(self.text).extract())
-        result['datetime_created'] = datetime.datetime.now()
+        result['datetime_created'] = datetime.datetime.now().replace(tzinfo=pytz.timezone('Asia/Almaty'))
         # self.i += 1
         # print("!!!", self.i, response.meta['depth'])
         # print(result['datetime'], self.latest_date, self.last_depth)
