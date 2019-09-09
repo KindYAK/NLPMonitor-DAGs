@@ -13,8 +13,9 @@ def postgres_etl(**kwargs):
     corp = Corpus.objects.create(name="Delete Later " + str(random.randint(0, 10000000)))
     source = Source.objects.create(name=f"New source - {stuff}", corpus=corp)
     for document in documents:
-        document.num_views += 1
-        document.source = source
+        pass
+        # document.num_views += 1
+        # document.source = source
 
     # Load
     Document.objects.bulk_update(documents, ['num_views', 'source'])

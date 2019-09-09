@@ -16,8 +16,8 @@ def es_etl(**kwargs):
 
     # Transform
     for document in documents:
-        if 'num_views' in document:
-            document.num_views += 1
+        # if 'num_views' in document:
+        #     document.num_views += 1
         document.any_stuff = stuff
         document.literally_any_stuff = {
             "literally": [{"any_stuff": [1, 2, 3, 4, 5, 6]}]
