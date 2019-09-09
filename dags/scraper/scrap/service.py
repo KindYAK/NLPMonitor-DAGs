@@ -55,6 +55,8 @@ def scrap(**kwargs):
                 Document.objects.create(**new)
             except IntegrityError:
                 pass
+        if len(news) <= 3:
+            raise Exception("Seems like parser is broken - less than 3 news")
 
     os.remove(filename)
     return "Parse complete"
