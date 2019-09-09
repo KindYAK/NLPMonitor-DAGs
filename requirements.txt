@@ -27,5 +27,6 @@ gensim==3.8.0
 scrapy==1.7.3
 bs4==0.0.1
 dateparser>=0.7.1
+scrapy-splash==0.7.2
 
 tensorflow >= 1.11.0

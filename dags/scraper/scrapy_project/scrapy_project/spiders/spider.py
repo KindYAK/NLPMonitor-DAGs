@@ -5,6 +5,7 @@ import dateparser
 
 from scrapy.exceptions import CloseSpider
 from scrapy.linkextractors import LinkExtractor
+from scrapy_splash import SplashRequest
 
 
 class TheSpider(scrapy.spiders.CrawlSpider):
@@ -13,12 +14,20 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         'DEPTH_LIMIT': 50,
         'DEPTH_PRIORITY': 1
     }
-    rules = (scrapy.spiders.Rule(LinkExtractor(), callback="parse_item", follow=True), )
+    rules = (scrapy.spiders.Rule(LinkExtractor(),
+                                 callback="parse_item",
+                                 follow=True,
+                                 process_request="splash_request"
+                                 ),
+             )
+
+    def splash_request(self, request):
+        return SplashRequest(request.url, self.parse_item, endpoint="render.html", args={'wait': 3}, meta={'real_url': request.url})
 
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
 
-        self.start_urls = [kw['url'],]
+        self.start_urls = [kw['url']]
         self.allowed_domains = [kw['url'].replace("https://", "").replace("http://", "").replace("/", "")]
         self.latest_date = datetime.datetime.strptime(kw['latest_date'][:-6], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
         self.last_depth = None
@@ -58,8 +67,10 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                     self.depth_history.append(1)
                 else:
                     self.depth_history.append(0)
+            if field.startswith("num_"):
+                parse_result = int(parse_result)
             result[field] = parse_result
-        result['url'] = response.request.url
+        result['url'] = response.meta['real_url']
         result['html'] = "\n".join(response.css(self.text).extract())
         result['datetime_created'] = datetime.datetime.now().replace(tzinfo=pytz.timezone('Asia/Almaty'))
         # self.i += 1
