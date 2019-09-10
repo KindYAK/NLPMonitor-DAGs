@@ -30,6 +30,7 @@ with dag:
     init_word_index = DjangoOperator(
         task_id="init_word_index",
         python_callable=init_embedding_index,
+        pool="short_tasks",
         op_kwargs={
             "corpus": "main",
             "is_ready": False,
@@ -77,6 +78,7 @@ with dag:
     init_sentence_index = DjangoOperator(
         task_id="init_sentence_average_index",
         python_callable=init_embedding_index,
+        pool="short_tasks",
         op_kwargs={
             "corpus": "main",
             "is_ready": False,
@@ -129,6 +131,7 @@ with dag:
     init_text_index = DjangoOperator(
         task_id="init_text_average_max_index",
         python_callable=init_embedding_index,
+        pool="short_tasks",
         op_kwargs={
             "corpus": "main",
             "is_ready": False,
