@@ -4,10 +4,10 @@ from DjangoOperator import DjangoOperator
 
 from util.util import not_implemented
 from dags.bert_embeddings.gen_embed.services import (init_embedding_index,
-                                                     generate_token_embeddings,
+                                                     generate_word_embeddings,
                                                      persist_embeddings,
                                                      pool_embeddings,
-                                                     TOKEN_EMBEDDING_NAME, WORD_EMBEDDING_NAME, SENTENCE_EMBEDDING_NAME, TEXT_EMBEDDING_NAME
+                                                     WORD_EMBEDDING_NAME, SENTENCE_EMBEDDING_NAME, TEXT_EMBEDDING_NAME
                                                      )
 
 
@@ -26,66 +26,19 @@ default_args = {
 dag = DAG('NLPMonitor_generate_bert_embeddings', default_args=default_args, schedule_interval=None)
 
 with dag:
-    # Token
-    init_token_index = DjangoOperator(
-        task_id="init_token_index",
-        python_callable=init_embedding_index,
-        op_kwargs={
-            "corpus": "main",
-            "is_ready": False,
-            "name": TOKEN_EMBEDDING_NAME,
-            "description": "Bert token embedding using Rubert model from DeepPavlov",
-            "datetime_created": datetime.now(),
-            "by_unit": "token",
-            "algorithm": "BERT",
-            "pooling": "None",
-            "meta_parameters": {
-                "pre_trained": "rubert_cased_L-12_H-768_A-12_v1",
-            },
-        }
-    )
-
-    token_embedding_operators = []
-    concurrency = 512
-    for i in range(concurrency):
-        token_embedding_operators.append(DjangoOperator(
-            task_id=f"gen_token_embedding_{i}",
-            python_callable=generate_token_embeddings,
-            op_kwargs={
-                "start": (100 / concurrency) * i,
-                "end": (100 / concurrency) * (i + 1)
-            }
-        ))
-
-    persist_token_embeddings = DjangoOperator(
-        task_id="persist_token_embeddings",
-        python_callable=persist_embeddings,
-        op_kwargs={
-            "corpus": "main",
-            "embedding_name": TOKEN_EMBEDDING_NAME,
-            "by_unit": "token",
-            "type_unit_int": 0,
-            "algorithm": "bert",
-            "pooling": "None",
-            "description": "Bert token embedding using Rubert model from DeepPavlov"
-        }
-    )
-
-    init_token_index >> token_embedding_operators >> persist_token_embeddings
-
     # Word
     init_word_index = DjangoOperator(
-        task_id="init_word_average_index",
+        task_id="init_word_index",
         python_callable=init_embedding_index,
         op_kwargs={
             "corpus": "main",
             "is_ready": False,
             "name": WORD_EMBEDDING_NAME,
-            "description": "Bert word average pooling embedding using Rubert model from DeepPavlov",
+            "description": "Bert word embedding using Rubert model from DeepPavlov",
             "datetime_created": datetime.now(),
             "by_unit": "word",
             "algorithm": "BERT",
-            "pooling": "Average",
+            "pooling": "None",
             "meta_parameters": {
                 "pre_trained": "rubert_cased_L-12_H-768_A-12_v1",
             },
@@ -93,37 +46,32 @@ with dag:
     )
 
     word_embedding_operators = []
-    concurrency = 64
+    concurrency = 512
     for i in range(concurrency):
         word_embedding_operators.append(DjangoOperator(
-            task_id=f"gen_word_average_embedding_{i}",
-            python_callable=pool_embeddings,
-            op_kwargs={"start": (100 / concurrency) * i,
-                       "end": (100 / concurrency) * (i + 1),
-                       "corpus": "main",
-                       "from_embedding_name": TOKEN_EMBEDDING_NAME,
-                       "from_embedding_by_unit": "token",
-                       "to_embedding_name": WORD_EMBEDDING_NAME,
-                       "to_embedding_by_unit": "word",
-                       "pooling": "Average",
-                       }
+            task_id=f"gen_word_embedding_{i}",
+            python_callable=generate_word_embeddings,
+            op_kwargs={
+                "start": (100 / concurrency) * i,
+                "end": (100 / concurrency) * (i + 1)
+            }
         ))
 
     persist_word_embeddings = DjangoOperator(
-        task_id="persist_word_average_embeddings",
+        task_id="persist_word_embeddings",
         python_callable=persist_embeddings,
         op_kwargs={
             "corpus": "main",
             "embedding_name": WORD_EMBEDDING_NAME,
             "by_unit": "word",
-            "type_unit_int": 1,
+            "type_unit_int": 0,
             "algorithm": "bert",
-            "pooling": "Average",
-            "description": "Bert word average pooling embedding using Rubert model from DeepPavlov"
+            "pooling": "None",
+            "description": "Bert word embedding using Rubert model from DeepPavlov"
         }
     )
 
-    token_embedding_operators >> init_word_index >> word_embedding_operators >> persist_word_embeddings
+    init_word_index >> word_embedding_operators >> persist_word_embeddings
 
     # Sentence
     init_sentence_index = DjangoOperator(
@@ -145,7 +93,7 @@ with dag:
     )
 
     sentence_embedding_operators = []
-    concurrency = 32
+    concurrency = 64
     for i in range(concurrency):
         sentence_embedding_operators.append(DjangoOperator(
             task_id=f"gen_sentence_average_embedding_{i}",
@@ -197,7 +145,7 @@ with dag:
     )
 
     text_embedding_operators = []
-    concurrency = 16
+    concurrency = 32
     for i in range(concurrency):
         text_embedding_operators.append(DjangoOperator(
             task_id=f"gen_text_average_max_embedding_{i}",
