@@ -68,7 +68,10 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 else:
                     self.depth_history.append(0)
             if field.startswith("num_"):
-                parse_result = int(parse_result)
+                try:
+                    parse_result = int(parse_result)
+                except:
+                    parse_result = 0
             result[field] = parse_result
         result['url'] = response.meta['real_url']
         result['html'] = "\n".join(response.css(self.text).extract())
