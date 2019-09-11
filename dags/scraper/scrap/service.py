@@ -28,8 +28,6 @@ def scrap(**kwargs):
         run_args.append(f"{dict(ScrapRules.TYPES)[rule.type]}={rule.selector}")
     run_args.append("-a")
     run_args.append(f"url={source_url}")
-    print("!!!", run_args)
-    return 0
     ds_w_date = Document.objects.exclude(datetime=None).filter(source__id=source_id)
     latest_date = None
     if ds_w_date.exists():
