@@ -99,7 +99,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 except:
                     parse_result = 0
             result[field] = parse_result
-        result['url'] = response.meta['real_url']
+        result['url'] = response.request.url
         result['html'] = "\n".join(response.css(self.text).extract())
         result['datetime_created'] = datetime.datetime.now().replace(tzinfo=pytz.timezone('Asia/Almaty'))
         # self.i += 1
