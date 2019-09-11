@@ -41,8 +41,8 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         #     raise CloseSpider('No more new stuff')
         if self.depth_history_depth < response.meta['depth']:
             fails_ratio = sum(self.depth_history) / len(self.depth_history)
-            if fails_ratio > 0.95 and not self.last_depth:
-                self.last_depth = response.meta['depth'] + 1
+            if fails_ratio > 0.98 and not self.last_depth:
+                self.last_depth = response.meta['depth'] + 3
             self.depth_history_depth = response.meta['depth']
             self.depth_history = []
         if self.last_depth and response.meta['depth'] > self.last_depth:

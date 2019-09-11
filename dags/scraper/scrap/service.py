@@ -35,7 +35,7 @@ def scrap(**kwargs):
     if not latest_date:
         latest_date = datetime.datetime.now() - datetime.timedelta(days=365)
     else:
-        latest_date -= datetime.timedelta(days=30)
+        latest_date -= datetime.timedelta(days=90)
     run_args.append("-a")
     run_args.append(f"latest_date={latest_date.isoformat()}")
     subprocess.run(run_args)
