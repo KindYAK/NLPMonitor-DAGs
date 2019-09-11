@@ -12,7 +12,7 @@ from scrapy_splash import SplashJsonResponse, SplashTextResponse
 class TheSpider(scrapy.spiders.CrawlSpider):
     name = "spider"
     custom_settings = {
-        'DEPTH_LIMIT': 500,
+        'DEPTH_LIMIT': 100,
         'DEPTH_PRIORITY': 1
     }
     rules = (scrapy.spiders.Rule(LinkExtractor(),
@@ -64,8 +64,8 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         #     raise CloseSpider('No more new stuff')
         if self.depth_history_depth < response.meta['depth']:
             fails_ratio = sum(self.depth_history) / len(self.depth_history)
-            if fails_ratio > 0.95 and not self.last_depth:
-                self.last_depth = response.meta['depth'] + 2
+            if fails_ratio > 0.9 and not self.last_depth:
+                self.last_depth = response.meta['depth'] + 1
             self.depth_history_depth = response.meta['depth']
             self.depth_history = []
         if self.last_depth and response.meta['depth'] > self.last_depth:
