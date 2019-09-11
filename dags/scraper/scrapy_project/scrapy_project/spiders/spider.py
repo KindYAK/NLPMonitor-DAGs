@@ -29,7 +29,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
 
         self.start_urls = [kw['url']]
         self.allowed_domains = [kw['url'].replace("https://", "").replace("http://", "").replace("/", "")]
-        self.latest_date = datetime.datetime.strptime(kw['latest_date'][:-6], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
+        self.latest_date = datetime.datetime.strptime(kw['latest_date'][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
         self.last_depth = None
         self.depth_history = []
         self.depth_history_depth = 1
