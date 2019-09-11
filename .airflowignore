@@ -10,3 +10,5 @@ dags/bert_embeddings/gen_embed/
 dags/scraper/scrapy_project/
 dags/scraper/scrap/
 dags/scraper/init_sources/
+
+dags/elastic_sender/sender/

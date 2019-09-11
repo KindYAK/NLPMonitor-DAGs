@@ -62,7 +62,10 @@ class TheSpider(scrapy.spiders.CrawlSpider):
             if field == "text" and (not parse_result or len(parse_result) < 10):
                 return None
             if field == "datetime":
-                parse_result = dateparser.parse(parse_result, languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
+                try:
+                    parse_result = dateparser.parse(parse_result, languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
+                except:
+                    return None
                 if parse_result < self.latest_date:
                     self.depth_history.append(1)
                 else:
