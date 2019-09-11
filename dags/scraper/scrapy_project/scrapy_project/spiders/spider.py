@@ -4,14 +4,15 @@ import pytz
 import dateparser
 
 from scrapy.exceptions import CloseSpider
+from scrapy.http import HtmlResponse
 from scrapy.linkextractors import LinkExtractor
-from scrapy_splash import SplashRequest
+from scrapy_splash import SplashJsonResponse, SplashTextResponse
 
 
 class TheSpider(scrapy.spiders.CrawlSpider):
     name = "spider"
     custom_settings = {
-        'DEPTH_LIMIT': 50,
+        'DEPTH_LIMIT': 500,
         'DEPTH_PRIORITY': 1
     }
     rules = (scrapy.spiders.Rule(LinkExtractor(),
@@ -22,7 +23,29 @@ class TheSpider(scrapy.spiders.CrawlSpider):
              )
 
     def splash_request(self, request):
-        return SplashRequest(request.url, self.parse_item, endpoint="render.html", args={'wait': 3}, meta={'real_url': request.url})
+        request.meta.update(splash={
+            'args': {
+                'wait': 1,
+            },
+            'endpoint': 'render.html',
+        })
+        return request
+
+    def _requests_to_follow(self, response):
+        if not isinstance(
+                response,
+                (HtmlResponse, SplashJsonResponse, SplashTextResponse)):
+            return
+        seen = set()
+        for n, rule in enumerate(self._rules):
+            links = [lnk for lnk in rule.link_extractor.extract_links(response)
+                     if lnk not in seen]
+            if links and rule.process_links:
+                links = rule.process_links(links)
+            for link in links:
+                seen.add(link)
+                r = self._build_request(n, link)
+                yield rule.process_request(r)
 
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
@@ -41,8 +64,8 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         #     raise CloseSpider('No more new stuff')
         if self.depth_history_depth < response.meta['depth']:
             fails_ratio = sum(self.depth_history) / len(self.depth_history)
-            if fails_ratio > 0.98 and not self.last_depth:
-                self.last_depth = response.meta['depth'] + 3
+            if fails_ratio > 0.95 and not self.last_depth:
+                self.last_depth = response.meta['depth'] + 2
             self.depth_history_depth = response.meta['depth']
             self.depth_history = []
         if self.last_depth and response.meta['depth'] > self.last_depth:

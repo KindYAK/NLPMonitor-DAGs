@@ -10,7 +10,7 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 SPLASH_URL = 'http://splash:8050'
-LOG_LEVEL = "ERROR"
+# LOG_LEVEL = "ERROR"
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy_splash.SplashCookiesMiddleware': 723,
