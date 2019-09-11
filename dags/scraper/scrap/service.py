@@ -28,7 +28,10 @@ def scrap(**kwargs):
         run_args.append(f"{dict(ScrapRules.TYPES)[rule.type]}={rule.selector}")
     run_args.append("-a")
     run_args.append(f"url={source_url}")
-    latest_date = Document.objects.exclude(datetime=None).filter(source__id=source_id).latest('datetime').datetime
+    ds_w_date = Document.objects.exclude(datetime=None).filter(source__id=source_id)
+    latest_date = None
+    if ds_w_date.exists():
+        latest_date = ds_w_date.latest('datetime').datetime
     if not latest_date:
         latest_date = datetime.datetime.now() - datetime.timedelta(days=365)
     else:
