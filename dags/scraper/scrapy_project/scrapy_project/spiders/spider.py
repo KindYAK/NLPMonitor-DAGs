@@ -31,21 +31,21 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         })
         return request
 
-    def _requests_to_follow(self, response):
-        if not isinstance(
-                response,
-                (HtmlResponse, SplashJsonResponse, SplashTextResponse)):
-            return
-        seen = set()
-        for n, rule in enumerate(self._rules):
-            links = [lnk for lnk in rule.link_extractor.extract_links(response)
-                     if lnk not in seen]
-            if links and rule.process_links:
-                links = rule.process_links(links)
-            for link in links:
-                seen.add(link)
-                r = self._build_request(n, link)
-                yield rule.process_request(r)
+    # def _requests_to_follow(self, response):
+    #     if not isinstance(
+    #             response,
+    #             (HtmlResponse, SplashJsonResponse, SplashTextResponse)):
+    #         return
+    #     seen = set()
+    #     for n, rule in enumerate(self._rules):
+    #         links = [lnk for lnk in rule.link_extractor.extract_links(response)
+    #                  if lnk not in seen]
+    #         if links and rule.process_links:
+    #             links = rule.process_links(links)
+    #         for link in links:
+    #             seen.add(link)
+    #             r = self._build_request(n, link)
+    #             yield rule.process_request(r)
 
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
