@@ -18,7 +18,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
     rules = (scrapy.spiders.Rule(LinkExtractor(),
                                  callback="parse_item",
                                  follow=True,
-                                 process_request="splash_request"
+                                 # process_request="splash_request"
                                  ),
              )
 
