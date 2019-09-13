@@ -28,5 +28,6 @@ scrapy==1.7.3
 bs4==0.0.1
 dateparser>=0.7.1
 scrapy-splash==0.7.2
+pymorphy2==0.8
 
 tensorflow >= 1.11.0
