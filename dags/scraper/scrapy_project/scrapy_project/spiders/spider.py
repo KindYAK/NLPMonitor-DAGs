@@ -58,6 +58,8 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         self.depth_history_depth = 1
 
     def parse_item(self, response):
+        if not "text" in response.headers['Content-Type'].decode('utf-8'):
+            return None
         # if not hasattr(self, "i"):
         #     self.i = 0
         # if self.i > 4:
