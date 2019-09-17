@@ -12,6 +12,11 @@
 SPLASH_URL = 'http://splash:8050'
 LOG_LEVEL = "ERROR"
 
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'
+
+# Obey robots.txt rules
+ROBOTSTXT_OBEY = True
+
 DOWNLOADER_MIDDLEWARES = {
     'scrapy_splash.SplashCookiesMiddleware': 723,
     'scrapy_splash.SplashMiddleware': 725,
@@ -36,9 +41,6 @@ NEWSPIDER_MODULE = 'scrapy_project.spiders'
 #USER_AGENT = 'scrapy_project (+http://www.yourdomain.com)'
 
 FEED_EXPORT_ENCODING = 'utf-8'
-
-# Obey robots.txt rules
-ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 CONCURRENT_REQUESTS = 32
