@@ -71,7 +71,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 self.last_depth = response.meta['depth'] + 1
             self.depth_history_depth = response.meta['depth']
             self.depth_history = []
-        if self.last_depth and response.meta['depth'] > self.last_depth or (datetime.datetime.now() - self.start_time).seconds > 48*60*60:
+        if self.last_depth and response.meta['depth'] > self.last_depth or (datetime.datetime.now() - self.start_time).seconds > 24*60*60:
             raise CloseSpider('No more new stuff')
 
         simple_fields = ("text", "title", "author", "datetime", "num_views", "num_likes", "num_comments", "num_shares", )
