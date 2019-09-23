@@ -42,24 +42,25 @@ def scrap(**kwargs):
 
     # Write to DB
     filename = os.path.join(BASE_DAG_DIR, "dags", "scraper", "scrapy_project", filename)
-    with open(filename, "r", encoding='utf-8') as f:
-        news = json.loads(f.read())
-        for new in news:
-            new['source'] = source
-            if 'author' in new:
-                new['author'] = new['author'][:Author._meta.get_field('name').max_length]
-                if Author.objects.filter(name=new['author']).exists():
-                    new['author'] = Author.objects.get(name=new['author'], corpus=source.corpus)
-                else:
-                    new['author'] = Author.objects.create(name=new['author'], corpus=source.corpus)
-            if 'datetime' in new:
-                new['datetime'] = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
-            try:
-                Document.objects.create(**new)
-            except IntegrityError:
-                pass
-        if len(news) <= 3:
-            raise Exception("Seems like parser is broken - less than 3 news")
-
-    os.remove(filename)
+    try:
+        with open(filename, "r", encoding='utf-8') as f:
+            news = json.loads(f.read())
+            for new in news:
+                new['source'] = source
+                if 'author' in new:
+                    new['author'] = new['author'][:Author._meta.get_field('name').max_length]
+                    if Author.objects.filter(name=new['author']).exists():
+                        new['author'] = Author.objects.get(name=new['author'], corpus=source.corpus)
+                    else:
+                        new['author'] = Author.objects.create(name=new['author'], corpus=source.corpus)
+                if 'datetime' in new:
+                    new['datetime'] = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
+                try:
+                    Document.objects.create(**new)
+                except IntegrityError:
+                    pass
+            if len(news) <= 3:
+                raise Exception("Seems like parser is broken - less than 3 news")
+    finally:
+        os.remove(filename)
     return "Parse complete"
