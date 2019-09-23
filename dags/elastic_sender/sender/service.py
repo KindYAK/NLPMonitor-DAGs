@@ -3,7 +3,7 @@ def send_elastic(**kwargs):
     from mainapp.management.commands.build_search import Command
     from mainapp.models import Document
 
-    from_id = Variable.get("send_elatic_from_id", default_var=0)
+    from_id = Variable.get("send_elastic_from_id", default_var=0)
     to_id = Document.objects.latest('id').id
 
     # Send_elastic call
