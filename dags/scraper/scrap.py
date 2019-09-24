@@ -29,7 +29,7 @@ dag = DAG('Scrapers_scrap', default_args=default_args, schedule_interval='0 19 *
 
 
 with dag:
-    sources = json.loads(Variable.get('sources'))
+    sources = json.loads(Variable.get('sources', default_var="[]"))
     scrapers = []
     for source in sources:
         filtered_name = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
