@@ -12,3 +12,5 @@ dags/scraper/scrap/
 dags/scraper/init_sources/
 
 dags/elastic_sender/sender/
+
+#dags/bigartm/bigartm/

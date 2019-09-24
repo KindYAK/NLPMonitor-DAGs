@@ -20,6 +20,7 @@ default_args = {
     'email_on_retry': True,
     'retries': 3,
     'retry_delay': timedelta(minutes=60),
+    'priority_weight': 40,
     'pool': 'long_tasks',
 }
 

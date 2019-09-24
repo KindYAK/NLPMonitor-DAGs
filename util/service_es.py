@@ -42,3 +42,8 @@ def update_generator(index, documents, body=None):
             "_id": document.meta.id,
             "doc": body if body else document.to_dict(),
         }
+
+
+def get_count(client, index):
+    from elasticsearch_dsl import Search
+    return Search(using=client, index=index).count()
