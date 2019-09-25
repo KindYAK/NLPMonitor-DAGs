@@ -9,3 +9,4 @@ venv
 *.sqlite3
 
 dags/bert_embeddings/bert/models
+bigartm_temp

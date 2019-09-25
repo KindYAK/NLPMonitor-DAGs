@@ -30,12 +30,19 @@ default_args = {
 dag = DAG('NLPmonitor_BigARTM', default_args=default_args, schedule_interval=None)
 
 with dag:
+    name = "bigartm_test"
     dataset_prepare = DjangoOperator(
         task_id="dataset_prepare",
         python_callable=dataset_prepare,
+        op_kwargs={
+            "name": name
+        }
     )
     topic_modelling = DjangoOperator(
         task_id="topic_modelling",
         python_callable=topic_modelling,
+        op_kwargs={
+            "name": name
+        }
     )
     dataset_prepare >> topic_modelling
