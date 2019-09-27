@@ -1,6 +1,9 @@
 def lemmatizer_func(sentence):
     import pymorphy2
     from textblob import TextBlob
+    from nltk.corpus import stopwords
+
+    stopwords = stopwords.words('russian')
 
     morph = pymorphy2.MorphAnalyzer()
     sentence = sentence.replace(',', '')\
@@ -8,22 +11,18 @@ def lemmatizer_func(sentence):
         .replace('(', '').replace(':', '')\
         .replace('/', '').replace('\\', '')\
         .replace('?', '').replace('!', '')\
-        .replace(';', '').replace('-', '')
-    return [morph.parse(w)[0].normal_form for w in TextBlob(sentence).words]
+        .replace(';', '').replace('-', '').replace('|', '')\
+        .replace(']', '').replace('[', '')\
+        .replace("'", '').replace('"', '')
+    return [morph.parse(w)[0].normal_form.lower() for w in TextBlob(sentence).words if morph.parse(w)[0].normal_form.lower() not in stopwords]
 
 
-def return_cleaned_array(array):  # комбинирует наши веhхние функции выдает очищенный массив
-    import re
-    array1 = []
-    for i in array:
+def return_cleaned_array(documents):  # комбинирует наши веhхние функции выдает очищенный массив
+    array = []
+    for i in documents:
         lemma = lemmatizer_func(i)
-        Lemma = [word.lower() for word in lemma]
-        array1.append(Lemma)
-    # *********************************************
-    array2 = []
-    for i in array1:
-        array2.append(str(i).replace(']', '').replace('[', '').replace("'", '').replace(',', ''))
-    return array2
+        array.append(" ".join(lemma))
+    return array
 
 
 def txt_writer(data, filename):  # ЗАПИСЫВАЕТ НАШИ МАССИВЫ В TXT FILE

@@ -35,14 +35,26 @@ with dag:
         task_id="dataset_prepare",
         python_callable=dataset_prepare,
         op_kwargs={
-            "name": name
+            "name": name,
+            "corpus": "main",
+            "is_ready": False,
+            "description": "Simple BigARTM TM",
+            "datetime_created": datetime.now(),
+            "algorithm": "BigARTM",
+            "meta_parameters": {
+
+            },
+            "hierarchical": False,
+            "number_of_topics": 10
         }
     )
     topic_modelling = DjangoOperator(
         task_id="topic_modelling",
         python_callable=topic_modelling,
         op_kwargs={
-            "name": name
+            "name": name,
+            "corpus": "main",
+            "number_of_topics": 10
         }
     )
     dataset_prepare >> topic_modelling
