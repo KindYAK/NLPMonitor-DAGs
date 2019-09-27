@@ -139,4 +139,4 @@ def topic_modelling(**kwargs):
                                      chunk_size=1000, raise_on_error=True, max_retries=10):
         print(ok, result)
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=emb_index_id, body={"doc": {"is_ready": True}})
-    return "Topic Modelling complete"s
+    return "Topic Modelling complete"
