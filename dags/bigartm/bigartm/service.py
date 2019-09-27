@@ -138,5 +138,5 @@ def topic_modelling(**kwargs):
     for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents), index=ES_INDEX_DOCUMENT,
                                      chunk_size=1000, raise_on_error=True, max_retries=10):
         print(ok, result)
-    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=emb_index_id, body={"doc": {"is_ready": True}})
+    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"is_ready": True}})
     return "Topic Modelling complete"
