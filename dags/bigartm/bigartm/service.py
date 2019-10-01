@@ -13,7 +13,7 @@ def init_embedding_index(**kwargs):
             "name": kwargs['name'],
             "number_of_documents": number_of_documents,
         }
-        s = search(ES_CLIENT, ES_INDEX_TOPIC_MODELLING, query)
+        s = search(ES_CLIENT, ES_INDEX_TOPIC_MODELLING, query).execute()
         if s:
             return s[0]
 

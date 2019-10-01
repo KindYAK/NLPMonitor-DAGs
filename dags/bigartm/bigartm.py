@@ -53,8 +53,7 @@ with dag:
         python_callable=topic_modelling,
         op_kwargs={
             "name": name,
-            "corpus": "main",
-            "number_of_topics": 250
+            "corpus": "main"
         }
     )
     dataset_prepare >> topic_modelling
