@@ -26,6 +26,7 @@ def init_embedding_index(**kwargs):
 def dataset_prepare(**kwargs):
     import os
     import artm
+    from elasticsearch_dsl import Search
 
     from dags.bigartm.bigartm.cleaners import return_cleaned_array, txt_writer
     from util.constants import BASE_DAG_DIR
@@ -45,13 +46,22 @@ def dataset_prepare(**kwargs):
     query = {
         "corpus": "main",
     }
-
-    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query, end=index.number_of_documents, source=["id", "text", "title", "source", "datetime"])
-    ids = (d.meta.id for d in documents)
-    texts = return_cleaned_array((d.text for d in documents))
-    titles = return_cleaned_array((d.title for d in documents))
-    sources = return_cleaned_array((d.source for d in documents))
-    dates = return_cleaned_array((d.datetime if hasattr(d, "datetime") else "" for d in documents))
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **query).source(["id", "text", "title", "source", "datetime"])[:index.number_of_documents]
+    ids = []
+    texts = []
+    titles = []
+    sources = []
+    dates = []
+    for document in s.scan():
+        ids.append(document.meta.id)
+        texts.append(document.text)
+        titles.append(document.title)
+        sources.append(document.source)
+        dates.append(document.datetime if hasattr(document, "datetime") else "")
+    texts = return_cleaned_array(texts)
+    titles = return_cleaned_array(titles)
+    sources = return_cleaned_array(sources)
+    dates = return_cleaned_array(dates)
 
     formated_data = []
     for id, text, title, source, date in zip(ids, texts, titles, sources, dates):
@@ -137,6 +147,7 @@ def topic_modelling(**kwargs):
 
     for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents), index=ES_INDEX_DOCUMENT,
                                      chunk_size=1000, raise_on_error=True, max_retries=10):
-        print(ok, result)
+        pass
+        # print(ok, result)
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"is_ready": True}})
     return "Topic Modelling complete"
