@@ -1,19 +1,26 @@
 def init_embedding_index(**kwargs):
     from util.service_es import search, get_count
+    from elasticsearch_dsl import Search
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
     from mainapp.documents import TopicModellingIndex
 
-    number_of_documents = get_count(ES_CLIENT, ES_INDEX_DOCUMENT)
+    name = kwargs['name']
+    corpus = kwargs['corpus']
+    source = kwargs['source']
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **{"corpus": corpus})
+    if source:
+        s = s.filter("term", **{"source": source})
+    number_of_documents = s.count()
 
     # Check if already exists
     if ES_CLIENT.indices.exists(ES_INDEX_TOPIC_MODELLING):
         query = {
-            "corpus": kwargs['corpus'],
-            "name": kwargs['name'],
-            "number_of_documents": number_of_documents,
+            "name": name,
+            "corpus": corpus,
+            "source.keyword": source,
         }
-        s = search(ES_CLIENT, ES_INDEX_TOPIC_MODELLING, query).execute()
+        s = search(ES_CLIENT, ES_INDEX_TOPIC_MODELLING, query, source=["number_of_topics", "number_of_documents"])
         if s:
             return s[0]
 
@@ -42,11 +49,13 @@ def dataset_prepare(**kwargs):
     lib.ArtmConfigureLogging(lc)
 
     name = kwargs['name']
+    corpus = kwargs['corpus']
+    source = kwargs['source']
     # Extract
-    query = {
-        "corpus": "main",
-    }
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **query).source(["id", "text", "title", "source", "datetime"])[:index.number_of_documents]
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **{"corpus": corpus})
+    if source:
+        s = s.filter("term", **{"source": source})
+    s = s.source(["id", "text", "title", "source", "datetime"])[:index.number_of_documents]
     ids = []
     texts = []
     titles = []
