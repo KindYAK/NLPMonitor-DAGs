@@ -45,7 +45,7 @@ with dag:
 
             },
             "hierarchical": False,
-            "number_of_topics": 10
+            "number_of_topics": 250
         }
     )
     topic_modelling = DjangoOperator(
@@ -54,7 +54,7 @@ with dag:
         op_kwargs={
             "name": name,
             "corpus": "main",
-            "number_of_topics": 10
+            "number_of_topics": 250
         }
     )
     dataset_prepare >> topic_modelling
