@@ -25,7 +25,7 @@ def preprocessing_raw_data(**kwargs):
         raise Exception("No variable!")
 
     s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True,
-                       start=int(start/100*number_of_documents), end=int(end/100*number_of_documents)+1).filter('exists', field="text_lemmatized")
+                       start=int(start/100*number_of_documents), end=int(end/100*number_of_documents)+1).exclude('exists', field="text_lemmatized")
     documents = s.execute()
 
     stopwords = get_stop_words('ru')
@@ -40,3 +40,4 @@ def preprocessing_raw_data(**kwargs):
                                      index=ES_INDEX_DOCUMENT,
                                      chunk_size=1000, raise_on_error=True, max_retries=10):
         print(ok, result)
+    return len(documents)
