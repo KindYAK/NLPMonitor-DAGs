@@ -54,7 +54,7 @@ def dataset_prepare(**kwargs):
     corpus = kwargs['corpus']
     source = kwargs['source']
     # Extract
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **{"corpus": corpus})
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **{"corpus": corpus}).filter('exists', field="text_lemmatized")
     if source:
         s = s.filter("term", **{"source": source})
     s = s.source(["id", "text_lemmatized", "title", "source", "datetime"])[:index.number_of_documents]
