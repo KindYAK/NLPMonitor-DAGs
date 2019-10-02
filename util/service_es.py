@@ -6,7 +6,7 @@ def es_filter_term(search, key, value):
     return search.filter(query, **{key: value})
 
 
-def search(client, index, query, start=None, end=None, source=None, sort=None):
+def search(client, index, query, start=None, end=None, source=None, sort=None, get_search_obj=False):
     from elasticsearch_dsl import Search
     s = Search(using=client, index=index)
     for key, value in query.items():
@@ -16,7 +16,10 @@ def search(client, index, query, start=None, end=None, source=None, sort=None):
     if sort:
         s = s.sort(*sort)
     s = s[start:end]
-    return s.execute()
+    if get_search_obj:
+        return s
+    else:
+        return s.execute()
 
 
 def update_instance(client, index, params):

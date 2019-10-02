@@ -1,27 +1,9 @@
-def lemmatizer_func(sentence):
-    import pymorphy2
-    from textblob import TextBlob
-    from nltk.corpus import stopwords
-
-    stopwords = stopwords.words('russian')
-
-    morph = pymorphy2.MorphAnalyzer()
-    sentence = sentence.replace(',', '')\
-        .replace('.', '').replace(')', '')\
-        .replace('(', '').replace(':', '')\
-        .replace('/', '').replace('\\', '')\
-        .replace('?', '').replace('!', '')\
-        .replace(';', '').replace('-', '').replace('|', '')\
-        .replace(']', '').replace('[', '')\
-        .replace("'", '').replace('"', '')
-    return [morph.parse(w)[0].normal_form.lower() for w in TextBlob(sentence).words if morph.parse(w)[0].normal_form.lower() not in stopwords]
-
-
 def return_cleaned_array(documents):  # комбинирует наши веhхние функции выдает очищенный массив
+    import re
     array = []
-    for i in documents:
-        lemma = lemmatizer_func(i)
-        array.append(" ".join(lemma))
+    for document in documents:
+        cleaned_doc = " ".join(x.lower().strip() for x in ' '.join(re.sub('([^А-Яа-яa-zA-Z0-9 ]|[^ ]*[*][^ ]*)', ' ', document).split()).split())
+        array.append(cleaned_doc)
     return array
 
 

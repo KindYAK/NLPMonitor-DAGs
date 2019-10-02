@@ -58,8 +58,8 @@ def gen_bigartm_dag(dag, name, corpus, source, number_of_topics):
         dataset_prepare >> topic_modelling
 
 
-dag = DAG('NLPmonitor_BigARTM', default_args=default_args, schedule_interval=None)
-gen_bigartm_dag(dag=dag, name="bigartm_test", corpus="main", source=None, number_of_topics=250)
+dag1 = DAG('NLPmonitor_BigARTM', default_args=default_args, schedule_interval=None)
+gen_bigartm_dag(dag=dag1, name="bigartm_test", corpus="main", source=None, number_of_topics=250)
 
-dag = DAG('NLPmonitor_BigARTM_tengrinews', default_args=default_args, schedule_interval=None)
-gen_bigartm_dag(dag=dag, name="bigartm_tengrinews", corpus="main", source="https://tengrinews.kz/", number_of_topics=250)
+dag2 = DAG('NLPmonitor_BigARTM_tengrinews', default_args=default_args, schedule_interval=None)
+gen_bigartm_dag(dag=dag2, name="bigartm_tengrinews", corpus="main", source="https://tengrinews.kz/", number_of_topics=250)

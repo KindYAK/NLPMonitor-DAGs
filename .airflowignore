@@ -13,5 +13,7 @@ dags/scraper/init_sources/
 
 dags/elastic_sender/sender/
 
+dags/tm_preprocessing/services/
+
 dags/bigartm/bigartm/
 bigartm_temp/

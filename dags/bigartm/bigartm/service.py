@@ -18,8 +18,10 @@ def init_embedding_index(**kwargs):
         query = {
             "name": name,
             "corpus": corpus,
-            "source.keyword": source,
         }
+        if source:
+            query["source.keyword"] = source
+        print("!!!", query)
         s = search(ES_CLIENT, ES_INDEX_TOPIC_MODELLING, query, source=["number_of_topics", "number_of_documents"])
         if s:
             return s[0]
@@ -55,7 +57,7 @@ def dataset_prepare(**kwargs):
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **{"corpus": corpus})
     if source:
         s = s.filter("term", **{"source": source})
-    s = s.source(["id", "text", "title", "source", "datetime"])[:index.number_of_documents]
+    s = s.source(["id", "text_lemmatized", "title", "source", "datetime"])[:index.number_of_documents]
     ids = []
     texts = []
     titles = []
@@ -63,11 +65,10 @@ def dataset_prepare(**kwargs):
     dates = []
     for document in s.scan():
         ids.append(document.meta.id)
-        texts.append(document.text)
+        texts.append(document.text_lemmatized)
         titles.append(document.title)
         sources.append(document.source)
         dates.append(document.datetime if hasattr(document, "datetime") else "")
-    texts = return_cleaned_array(texts)
     titles = return_cleaned_array(titles)
     sources = return_cleaned_array(sources)
     dates = return_cleaned_array(dates)
