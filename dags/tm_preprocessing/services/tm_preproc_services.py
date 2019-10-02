@@ -1,6 +1,6 @@
 def preprocessing_raw_data():
 
-    from mainapp.services import search, get_count, update_generator
+    from util.service_es import search, get_count, update_generator
     from nlpmonitor.settings import ES_INDEX_DOCUMENT, ES_CLIENT
     from elasticsearch.helpers import streaming_bulk
     from stop_words import get_stop_words
