@@ -142,12 +142,13 @@ def topic_modelling(**kwargs):
     # Create topics in ES
     topics = []
     for topic in phi:
+        phi_filtered = phi[phi[topic] > 0.0001]
         topic_words = [
             {
                 "word": ind[1],
                 "weight": float(phi[topic][ind])
             }
-            for ind in phi[topic].index if float(phi[topic][ind]) > 0.0001
+            for ind in phi_filtered[topic].index
         ]
         topics.append({
             "id": topic,
@@ -161,12 +162,15 @@ def topic_modelling(**kwargs):
     for document in theta:
         es_document = ESDocument()
         es_document.meta['id'] = document
+        theta_filtered = theta[theta[document] > 0.0001]
         document_topics = [
             {
                 "topic": ind,
                 "weight": float(theta[document][ind])
-            } for ind in theta[document].index if float(theta[document][ind]) > 0.0001
+            } for ind in theta_filtered[document].index
         ]
+        theta = theta[theta.name > 0.0001]
+
         es_document[f'topics_{name}'] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
         documents.append(es_document)
 
