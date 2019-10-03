@@ -133,7 +133,7 @@ def topic_modelling(**kwargs):
 
     model_artm = artm.ARTM(num_topics=index.number_of_topics,
                            class_ids={"text": 1}, theta_columns_naming="title",
-                           reuse_theta=True, cache_theta=True)
+                           reuse_theta=True, cache_theta=True, num_processors=4)
     model_artm.initialize(dictionary)
     # fit model
     model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
