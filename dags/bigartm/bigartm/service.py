@@ -8,9 +8,15 @@ def init_embedding_index(**kwargs):
     name = kwargs['name']
     corpus = kwargs['corpus']
     source = kwargs['source']
+    datetime_from = kwargs['datetime_from']
+    datetime_to = kwargs['datetime_to']
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **{"corpus": corpus})
     if source:
-        s = s.filter("term", **{"source": source})
+        s = s.filter("term", source=source)
+    if datetime_from:
+        s = s.filter('range', datetime={'gte': datetime_from})
+    if datetime_to:
+        s = s.filter('range', datetime={'lt': datetime_to})
     number_of_documents = s.count()
 
     # Check if already exists
@@ -21,7 +27,10 @@ def init_embedding_index(**kwargs):
         }
         if source:
             query["source.keyword"] = source
-        print("!!!", query)
+        if datetime_from:
+            query['datetime_from'] = datetime_from
+        if datetime_to:
+            query['datetime_to'] = datetime_to
         s = search(ES_CLIENT, ES_INDEX_TOPIC_MODELLING, query, source=["number_of_topics", "number_of_documents"])
         if s:
             return s[-1]
@@ -53,11 +62,17 @@ def dataset_prepare(**kwargs):
     name = kwargs['name']
     corpus = kwargs['corpus']
     source = kwargs['source']
+    datetime_from = kwargs['datetime_from']
+    datetime_to = kwargs['datetime_to']
     # Extract
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **{"corpus": corpus}).filter('exists', field="text_lemmatized")
     if source:
-        s = s.filter("term", **{"source": source})
-    s = s.source(["id", "text_lemmatized", "title", "source", "datetime"])[:index.number_of_documents]
+        s = s.filter("term", source=source)
+    if datetime_from:
+        s = s.filter('range', datetime={'gte': datetime_from})
+    if datetime_to:
+        s = s.filter('range', datetime={'lt': datetime_to})
+    s = s.source(["id", "text_lemmatized", "title", "source", "datetime"]).sort(('id',))[:index.number_of_documents]
     ids = []
     texts = []
     titles = []

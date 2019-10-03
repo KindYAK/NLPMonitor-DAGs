@@ -6,7 +6,7 @@ from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonVirtualenvOperator, PythonOperator
 from DjangoOperator import DjangoOperator
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 
 default_args = {
@@ -23,7 +23,7 @@ default_args = {
 }
 
 
-def gen_bigartm_dag(dag, name, corpus, source, number_of_topics):
+def gen_bigartm_dag(dag, name, description, number_of_topics, filters, regularization_params):
     from dags.bigartm.bigartm.service import dataset_prepare, topic_modelling
 
     # if source:
@@ -34,10 +34,12 @@ def gen_bigartm_dag(dag, name, corpus, source, number_of_topics):
             python_callable=dataset_prepare,
             op_kwargs={
                 "name": name,
-                "corpus": corpus,
-                "source": source,
+                "corpus": filters['corpus'],
+                "source": filters['source'],
+                "datetime_from": filters['datetime_from'],
+                "datetime_to": filters['datetime_to'],
                 "is_ready": False,
-                "description": "Simple BigARTM TM",
+                "description": description,
                 "datetime_created": datetime.now(),
                 "algorithm": "BigARTM",
                 "meta_parameters": {
@@ -51,15 +53,41 @@ def gen_bigartm_dag(dag, name, corpus, source, number_of_topics):
             python_callable=topic_modelling,
             op_kwargs={
                 "name": name,
-                "corpus": corpus,
-                "source": source,
+                "corpus": filters['corpus'],
+                "source": filters['source'],
+                "datetime_from": filters['datetime_from'],
+                "datetime_to": filters['datetime_to'],
             }
         )
         dataset_prepare >> topic_modelling
 
 
 dag1 = DAG('NLPmonitor_BigARTM', default_args=default_args, schedule_interval=None)
-gen_bigartm_dag(dag=dag1, name="bigartm_test", corpus="main", source=None, number_of_topics=250)
+gen_bigartm_dag(dag=dag1, name="bigartm_test", description="All news", number_of_topics=250,
+                filters={
+                    "corpus": "main",
+                    "source": None,
+                    "datetime_from": date(1950, 1, 1),
+                    "datetime_to": date(2050, 1, 1),
+                },
+                regularization_params={})
 
 dag2 = DAG('NLPmonitor_BigARTM_tengrinews', default_args=default_args, schedule_interval=None)
-gen_bigartm_dag(dag=dag2, name="bigartm_tengrinews", corpus="main", source="https://tengrinews.kz/", number_of_topics=250)
+gen_bigartm_dag(dag=dag2, name="bigartm_tengrinews", description="All news from tengrinews", number_of_topics=250,
+                filters={
+                    "corpus": "main",
+                    "source": "https://tengrinews.kz/",
+                    "datetime_from": date(1950, 1, 1),
+                    "datetime_to": date(2050, 1, 1),
+                },
+                regularization_params={})
+
+dag3 = DAG('NLPmonitor_BigARTM_small_test', default_args=default_args, schedule_interval=None)
+gen_bigartm_dag(dag=dag2, name="bigartm_small_test", description="Subset of tengrinews news", number_of_topics=250,
+                filters={
+                    "corpus": "main",
+                    "source": "https://tengrinews.kz/",
+                    "datetime_from": date(1950, 1, 1),
+                    "datetime_to": date(2050, 1, 1),
+                },
+                regularization_params={})
