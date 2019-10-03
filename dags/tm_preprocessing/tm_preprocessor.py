@@ -11,7 +11,7 @@ from dags.tm_preprocessing.services.tm_preproc_services import preprocessing_raw
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2019, 9, 12),
+    'start_date': datetime(2019, 10, 3),
     'email': ['airflow@example.com'],
     'email_on_failure': False,
     'email_on_retry': False,
