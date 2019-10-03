@@ -83,7 +83,7 @@ gen_bigartm_dag(dag=dag2, name="bigartm_tengrinews", description="All news from 
                 regularization_params={})
 
 dag3 = DAG('NLPmonitor_BigARTM_small_test', default_args=default_args, schedule_interval=None)
-gen_bigartm_dag(dag=dag2, name="bigartm_small_test", description="Subset of tengrinews news", number_of_topics=250,
+gen_bigartm_dag(dag=dag3, name="bigartm_small_test", description="Subset of tengrinews news", number_of_topics=250,
                 filters={
                     "corpus": "main",
                     "source": "https://tengrinews.kz/",
