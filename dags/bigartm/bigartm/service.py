@@ -169,7 +169,6 @@ def topic_modelling(**kwargs):
                 "weight": float(theta[document][ind])
             } for ind in theta_filtered[document].index
         ]
-        theta = theta[theta.name > 0.0001]
 
         es_document[f'topics_{name}'] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
         documents.append(es_document)
