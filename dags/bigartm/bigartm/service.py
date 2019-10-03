@@ -24,7 +24,7 @@ def init_embedding_index(**kwargs):
         print("!!!", query)
         s = search(ES_CLIENT, ES_INDEX_TOPIC_MODELLING, query, source=["number_of_topics", "number_of_documents"])
         if s:
-            return s[0]
+            return s[-1]
 
     kwargs["number_of_documents"] = number_of_documents
     index = TopicModellingIndex(**kwargs)
