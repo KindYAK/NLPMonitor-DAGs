@@ -132,11 +132,11 @@ def topic_modelling(**kwargs):
                 "word": ind[1],
                 "weight": float(phi[topic][ind])
             }
-            for ind in phi[topic].index if float(phi[topic][ind]) > 0
+            for ind in phi[topic].index if float(phi[topic][ind]) > 0.0001
         ]
         topics.append({
             "id": topic,
-            "topic_words": sorted(topic_words, key=lambda k: k['weight'], reverse=True)
+            "topic_words": sorted(topic_words, key=lambda x: x['weight'], reverse=True)[:100]
         })
 
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"topics": topics}})
@@ -150,9 +150,9 @@ def topic_modelling(**kwargs):
             {
                 "topic": ind,
                 "weight": float(theta[document][ind])
-            } for ind in theta[document].index if float(theta[document][ind]) > 0
+            } for ind in theta[document].index if float(theta[document][ind]) > 0.0001
         ]
-        es_document[f'topics_{name}'] = document_topics
+        es_document[f'topics_{name}'] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
         documents.append(es_document)
 
     for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents), index=ES_INDEX_DOCUMENT,
