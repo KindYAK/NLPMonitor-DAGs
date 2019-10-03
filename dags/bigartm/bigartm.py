@@ -86,8 +86,8 @@ dag3 = DAG('NLPmonitor_BigARTM_small_test', default_args=default_args, schedule_
 gen_bigartm_dag(dag=dag3, name="bigartm_small_test", description="Subset of tengrinews news", number_of_topics=250,
                 filters={
                     "corpus": "main",
-                    "source": "https://tengrinews.kz/",
-                    "datetime_from": date(1950, 1, 1),
-                    "datetime_to": date(2050, 1, 1),
+                    "source": "https://kapital.kz/",
+                    "datetime_from": date(2019, 1, 1),
+                    "datetime_to": date(2019, 3, 1),
                 },
                 regularization_params={})
