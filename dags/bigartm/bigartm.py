@@ -57,6 +57,7 @@ def gen_bigartm_dag(dag, name, description, number_of_topics, filters, regulariz
                 "source": filters['source'],
                 "datetime_from": filters['datetime_from'],
                 "datetime_to": filters['datetime_to'],
+                "regularization_params": regularization_params,
             }
         )
         dataset_prepare >> topic_modelling
@@ -70,7 +71,12 @@ gen_bigartm_dag(dag=dag1, name="bigartm_test", description="All news", number_of
                     "datetime_from": date(1950, 1, 1),
                     "datetime_to": date(2050, 1, 1),
                 },
-                regularization_params={})
+                regularization_params={
+                    "SmoothSparseThetaRegularizer": 0.15,
+                    "SmoothSparsePhiRegularizer": 0.15,
+                    "DecorrelatorPhiRegularizer": 0.15,
+                    "ImproveCoherencePhiRegularizer": 0.15
+                })
 
 dag2 = DAG('NLPmonitor_BigARTM_tengrinews', default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag2, name="bigartm_tengrinews", description="All news from tengrinews", number_of_topics=250,
@@ -80,7 +86,12 @@ gen_bigartm_dag(dag=dag2, name="bigartm_tengrinews", description="All news from 
                     "datetime_from": date(1950, 1, 1),
                     "datetime_to": date(2050, 1, 1),
                 },
-                regularization_params={})
+                regularization_params={
+                    "SmoothSparseThetaRegularizer": 0.15,
+                    "SmoothSparsePhiRegularizer": 0.15,
+                    "DecorrelatorPhiRegularizer": 0.15,
+                    "ImproveCoherencePhiRegularizer": 0.15
+                })
 
 dag3 = DAG('NLPmonitor_BigARTM_small_test', default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag3, name="bigartm_small_test", description="Subset of tengrinews news", number_of_topics=250,
@@ -90,4 +101,9 @@ gen_bigartm_dag(dag=dag3, name="bigartm_small_test", description="Subset of teng
                     "datetime_from": date(2019, 1, 1),
                     "datetime_to": date(2019, 3, 1),
                 },
-                regularization_params={})
+                regularization_params={
+                    "SmoothSparseThetaRegularizer": 0.15,
+                    "SmoothSparsePhiRegularizer": 0.15,
+                    "DecorrelatorPhiRegularizer": 0.15,
+                    "ImproveCoherencePhiRegularizer": 0.15
+                })

@@ -123,6 +123,7 @@ def topic_modelling(**kwargs):
     from mainapp.documents import Document as ESDocument
 
     name = kwargs['name']
+    regularization_params = kwargs['regularization_params']
     index = init_embedding_index(**kwargs)
 
     data_folder = os.path.join(BASE_DAG_DIR, "bigartm_temp")
@@ -139,6 +140,16 @@ def topic_modelling(**kwargs):
     # Add scores
     model_artm.scores.add(artm.PerplexityScore(name='PerplexityScore'))
     model_artm.scores.add(artm.TopicKernelScore(name='TopicKernelScore', class_id='text', probability_mass_threshold=0.3))
+    # Regularize
+    model_artm.regularizers.add(artm.SmoothSparseThetaRegularizer(name='SparseTheta',
+                                                                  tau=regularization_params['SmoothSparseThetaRegularizer']))
+    model_artm.regularizers.add(artm.SmoothSparsePhiRegularizer(name='SparsePhi',
+                                                                tau=regularization_params['SmoothSparsePhiRegularizer']))
+    model_artm.regularizers.add(artm.DecorrelatorPhiRegularizer(name='DecorrelatorPhi',
+                                                                tau=regularization_params['DecorrelatorPhiRegularizer']))
+    model_artm.regularizers.add(artm.ImproveCoherencePhiRegularizer(name='ImproveCoherencePhi',
+                                                                    tau=regularization_params['ImproveCoherencePhiRegularizer']))
+
     # Fit model
     model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
 
@@ -172,6 +183,10 @@ def topic_modelling(**kwargs):
                                  "contrast": contrast,
                                  "coherence": coherence,
                                  "perplexity": perplexity,
+                                 "tau_smooth_sparse_theta": regularization_params['SmoothSparseThetaRegularizer'],
+                                 "tau_smooth_sparse_phi": regularization_params['SmoothSparsePhiRegularizer'],
+                                 "tau_decorrelator_phi": regularization_params['DecorrelatorPhiRegularizer'],
+                                 "tau_coherence_phi": regularization_params['ImproveCoherencePhiRegularizer'],
                              }
                          }
                      )
