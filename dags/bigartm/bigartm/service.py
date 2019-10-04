@@ -113,6 +113,7 @@ def dataset_prepare(**kwargs):
 def topic_modelling(**kwargs):
     import artm
     import os
+    import numpy as np
     from elasticsearch.helpers import streaming_bulk
 
     from util.constants import BASE_DAG_DIR
@@ -135,7 +136,10 @@ def topic_modelling(**kwargs):
                            class_ids={"text": 1}, theta_columns_naming="title",
                            reuse_theta=True, cache_theta=True, num_processors=4)
     model_artm.initialize(dictionary)
-    # fit model
+    # Add scores
+    model_artm.scores.add(artm.PerplexityScore(name='PerplexityScore'))
+    model_artm.scores.add(artm.TopicKernelScore(name='TopicKernelScore', class_id='text', probability_mass_threshold=0.3))
+    # Fit model
     model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
 
     phi = model_artm.get_phi()
@@ -155,7 +159,22 @@ def topic_modelling(**kwargs):
             "topic_words": sorted(topic_words, key=lambda x: x['weight'], reverse=True)[:100]
         })
 
-    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"topics": topics}})
+    # Add metrics
+    purity = np.mean(model_artm.score_tracker['TopicKernelScore'].last_average_purity)
+    contrast = np.mean(model_artm.score_tracker['TopicKernelScore'].last_average_contrast)
+    coherence = model_artm.score_tracker['TopicKernelScore'].average_coherence
+    perplexity = model_artm.score_tracker['PerplexityScore'].last_value
+
+    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id,
+                             body={"doc": {
+                                 "topics": topics,
+                                 "purity": purity,
+                                 "contrast": contrast,
+                                 "coherence": coherence,
+                                 "perplexity": perplexity,
+                             }
+                         }
+                     )
     theta = model_artm.get_theta()
     # Assign topics to docs in ES
     documents = []
