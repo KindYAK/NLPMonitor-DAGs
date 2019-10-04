@@ -162,7 +162,7 @@ def topic_modelling(**kwargs):
     # Add metrics
     purity = np.mean(model_artm.score_tracker['TopicKernelScore'].last_average_purity)
     contrast = np.mean(model_artm.score_tracker['TopicKernelScore'].last_average_contrast)
-    coherence = model_artm.score_tracker['TopicKernelScore'].average_coherence
+    coherence = np.mean(model_artm.score_tracker['TopicKernelScore'].average_coherence)
     perplexity = model_artm.score_tracker['PerplexityScore'].last_value
 
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id,
