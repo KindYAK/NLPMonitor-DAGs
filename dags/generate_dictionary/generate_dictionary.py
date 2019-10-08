@@ -6,7 +6,7 @@ from airflow import DAG
 from DjangoOperator import DjangoOperator
 from datetime import datetime, timedelta
 
-from dags.generate_dictionary.services.service import generate_dictionary_batch, init_dictionary_index
+from dags.generate_dictionary.services.service import generate_dictionary_batch, init_dictionary_index, aggregate_dicts
 
 default_args = {
     'owner': 'airflow',
@@ -47,4 +47,13 @@ with dag:
                 "end": (100 / concurrency) * (i + 1)
             }
         ))
-    init_dictionary_index >> dictionary_operators
+
+    aggregate_dicts = DjangoOperator(
+            task_id=f"aggragate_dicts",
+            python_callable=aggregate_dicts,
+            op_kwargs={
+                "name": "default_dict_pymorphy_2_4_393442_3710985",
+                "concurrency": concurrency,
+            }
+        )
+    init_dictionary_index >> dictionary_operators >> aggregate_dicts

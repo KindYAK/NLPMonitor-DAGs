@@ -79,7 +79,51 @@ def generate_dictionary_batch(**kwargs):
             word_in_doc.add(word)
 
     for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DICTIONARY, [dictionary], {f"words_{i}": list(dictionary_words.values())}),
-                                     index=ES_INDEX_DOCUMENT,
+                                     index=ES_INDEX_DICTIONARY,
                                      chunk_size=1000, raise_on_error=True, max_retries=10):
         pass
     return len(documents)
+
+
+def aggregate_dicts(**kwargs):
+    from util.service_es import search, update_generator
+    from elasticsearch_dsl import Search
+    from elasticsearch.helpers import streaming_bulk
+    from nlpmonitor.settings import ES_INDEX_DICTIONARY, ES_CLIENT
+
+    dictionary_words_final = {}
+    dictionary_normal_words = {}
+    query = {
+        "name": kwargs['name'],
+    }
+    for i in range(kwargs['concurrency']):
+        dictionary = search(ES_CLIENT, ES_INDEX_DICTIONARY, query, source=[f'words_{i}'])[-1][f'words_{i}']
+        for word in dictionary:
+            key = word['word']
+            key_normal = word['word_normal']
+            if not key in dictionary_words_final:
+                dictionary_words_final[key] = word.to_dict()
+            else:
+                dictionary_words_final[key]['word_frequency'] += word['word_frequency']
+                dictionary_words_final[key]['document_frequency'] += word['document_frequency']
+            if not key_normal in dictionary_normal_words:
+                dictionary_normal_words[key_normal] = {
+                    "word_normal_frequency": word['word_frequency'],
+                    "document_normal_frequency": word['document_frequency']
+                }
+            else:
+                dictionary_normal_words[key_normal]['word_normal_frequency'] += word['word_frequency']
+                dictionary_normal_words[key_normal]['document_normal_frequency'] += word['document_frequency']
+    for key in dictionary_words_final.keys():
+        dictionary_words_final[key]['word_normal_frequency'] = dictionary_normal_words[dictionary_words_final[key]['word_normal']]['word_normal_frequency']
+        dictionary_words_final[key]['document_normal_frequency'] = dictionary_normal_words[dictionary_words_final[key]['word_normal']]['document_normal_frequency']
+
+    body = {f"words": list(dictionary_words_final.values())}
+    for i in range(kwargs['concurrency']):
+        body[f'words_{i}'] = None
+    dictionary = search(ES_CLIENT, ES_INDEX_DICTIONARY, query, source=[f'name'])[-1]
+    for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DICTIONARY, [dictionary], body=body),
+                                     index=ES_INDEX_DICTIONARY,
+                                     chunk_size=1000, raise_on_error=True, max_retries=10):
+        pass
+    return 0
