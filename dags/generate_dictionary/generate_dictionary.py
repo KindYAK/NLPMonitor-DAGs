@@ -56,5 +56,4 @@ with dag:
                 "concurrency": concurrency,
             }
         )
-
     init_dictionary_index >> dictionary_operators >> aggregate_dicts
