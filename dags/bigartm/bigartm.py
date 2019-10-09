@@ -108,7 +108,7 @@ gen_bigartm_dag(dag=dag3, name="bigartm_small_test", description="Subset of teng
                     "ImproveCoherencePhiRegularizer": 0.15
                 })
 
-dag4 = DAG('NLPmonitor_BigARTM_small_test', default_args=default_args, schedule_interval=None)
+dag4 = DAG('NLPmonitor_BigARTM_less_small_test', default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag4, name="bigartm_less_small_test", description="Subset of tengrinews news", number_of_topics=250,
                 filters={
                     "corpus": "main",
