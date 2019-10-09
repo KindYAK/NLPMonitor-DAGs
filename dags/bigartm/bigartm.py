@@ -112,6 +112,7 @@ dag4 = DAG('NLPmonitor_BigARTM_small_test', default_args=default_args, schedule_
 gen_bigartm_dag(dag=dag4, name="bigartm_less_small_test", description="Subset of tengrinews news", number_of_topics=250,
                 filters={
                     "corpus": "main",
+                    "source": None,
                     "datetime_from": date(2019, 1, 1),
                     "datetime_to": date(2019, 3, 1),
                 },
