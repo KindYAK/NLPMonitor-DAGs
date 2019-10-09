@@ -113,8 +113,9 @@ def dataset_prepare(**kwargs):
 def topic_modelling(**kwargs):
     import artm
     import os
+    import datetime
     import numpy as np
-    from elasticsearch.helpers import streaming_bulk
+    from elasticsearch.helpers import parallel_bulk
 
     from util.constants import BASE_DAG_DIR
     from util.service_es import update_generator
@@ -150,10 +151,12 @@ def topic_modelling(**kwargs):
     model_artm.regularizers.add(artm.ImproveCoherencePhiRegularizer(name='ImproveCoherencePhi',
                                                                     tau=regularization_params['ImproveCoherencePhiRegularizer']))
 
+    print("!!!", "Start model train", datetime.datetime.now())
     # Fit model
     model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
 
     phi = model_artm.get_phi()
+    print("!!!", "Get topics", datetime.datetime.now())
     # Create topics in ES
     topics = []
     for topic in phi:
@@ -176,6 +179,7 @@ def topic_modelling(**kwargs):
     coherence = np.mean(model_artm.score_tracker['TopicKernelScore'].average_coherence)
     perplexity = model_artm.score_tracker['PerplexityScore'].last_value
 
+    print("!!!", "Write topics", datetime.datetime.now())
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id,
                              body={"doc": {
                                  "topics": topics,
@@ -190,6 +194,8 @@ def topic_modelling(**kwargs):
                              }
                          }
                      )
+
+    print("!!!", "Get document-topics", datetime.datetime.now())
     theta = model_artm.get_theta()
     # Assign topics to docs in ES
     documents = []
@@ -207,9 +213,11 @@ def topic_modelling(**kwargs):
         es_document[f'topics_{name}'] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
         documents.append(es_document)
 
-    for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents), index=ES_INDEX_DOCUMENT,
-                                     chunk_size=1000, raise_on_error=True, max_retries=10):
+    print("!!!", "Write document-topics", datetime.datetime.now())
+    for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents), index=ES_INDEX_DOCUMENT,
+                                     chunk_size=1000, thread_count=4, raise_on_error=True, max_retries=10):
         pass
         # print(ok, result)
+    print("!!!", "Done writing", datetime.datetime.now())
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"is_ready": True}})
     return "Topic Modelling complete"
