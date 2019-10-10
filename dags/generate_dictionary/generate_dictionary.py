@@ -34,7 +34,7 @@ with dag:
         }
     )
 
-    concurrency = 4
+    concurrency = 24
     dictionary_operators = []
     for i in range(concurrency):
         dictionary_operators.append(DjangoOperator(
