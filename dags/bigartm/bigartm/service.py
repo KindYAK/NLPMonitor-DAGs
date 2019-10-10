@@ -215,7 +215,7 @@ def topic_modelling(**kwargs):
 
     print("!!!", "Write document-topics", datetime.datetime.now())
     for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents), index=ES_INDEX_DOCUMENT,
-                                     chunk_size=1000, thread_count=4, raise_on_error=True):
+                                     chunk_size=10000, thread_count=4, raise_on_error=True):
         pass
         # print(ok, result)
     print("!!!", "Done writing", datetime.datetime.now())

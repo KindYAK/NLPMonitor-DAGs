@@ -79,7 +79,7 @@ def generate_dictionary_batch(**kwargs):
             word_in_doc.add(word)
 
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words.values(), index=ES_INDEX_DICTIONARY_WORD + "_temp",
-                                     chunk_size=1000, raise_on_error=True, thread_count=4):
+                                     chunk_size=10000, raise_on_error=True, thread_count=4):
         pass
     return s.count()
 
@@ -120,7 +120,7 @@ def aggregate_dicts(**kwargs):
 
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words_final.values(),
                                      index=ES_INDEX_DICTIONARY_WORD,
-                                     chunk_size=1000, raise_on_error=True, thread_count=4):
+                                     chunk_size=10000, raise_on_error=True, thread_count=4):
         pass
 
     dictionary_index = search(ES_CLIENT, ES_INDEX_DICTIONARY_INDEX, {"name": name})[-1]

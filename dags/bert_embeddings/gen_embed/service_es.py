@@ -12,5 +12,5 @@ def persist_embeddings_to_es(client, index, documents, embeddings, embedding_nam
     from elasticsearch.helpers import parallel_bulk
 
     for ok, result in parallel_bulk(client, update_embedding_generator(index, documents, embeddings, embedding_name),
-                                     index=index, chunk_size=1000, thread_count=4, raise_on_error=True):
+                                     index=index, chunk_size=2500, thread_count=4, raise_on_error=True):
         pass
