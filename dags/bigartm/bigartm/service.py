@@ -198,23 +198,22 @@ def topic_modelling(**kwargs):
     print("!!!", "Get document-topics", datetime.datetime.now())
     theta = model_artm.get_theta()
     # Assign topics to docs in ES
-    documents = []
-    for document in theta:
-        es_document = ESDocument()
-        es_document.meta['id'] = document
-        theta_filtered = theta[theta[document] > 0.0001]
-        document_topics = [
-            {
-                "topic": ind,
-                "weight": float(theta[document][ind])
-            } for ind in theta_filtered[document].index
-        ]
-
-        es_document[f'topics_{name}'] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
-        documents.append(es_document)
+    def topic_document_generator(theta):
+        for document in theta:
+            es_document = ESDocument()
+            es_document.meta['id'] = document
+            theta_filtered = theta[theta[document] > 0.0001]
+            document_topics = [
+                {
+                    "topic": ind,
+                    "weight": float(theta[document][ind])
+                } for ind in theta_filtered[document].index
+            ]
+            es_document[f'topics_{name}'] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
+            yield es_document
 
     print("!!!", "Write document-topics", datetime.datetime.now())
-    for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents), index=ES_INDEX_DOCUMENT,
+    for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, topic_document_generator(theta)), index=ES_INDEX_DOCUMENT,
                                      chunk_size=10000, thread_count=4, raise_on_error=True):
         pass
         # print(ok, result)
