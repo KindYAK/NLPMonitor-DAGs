@@ -21,7 +21,7 @@ default_args = {
     'pool': 'long_tasks'
 }
 
-dag = DAG('Nlpmonitor_Dictionary_Generation', default_args=default_args, schedule_interval=None)
+dag = DAG('Nlpmonitor_Dictionary_Generation1', default_args=default_args, schedule_interval=None)
 
 with dag:
     init_dictionary_index = DjangoOperator(
@@ -34,7 +34,7 @@ with dag:
         }
     )
 
-    concurrency = 16
+    concurrency = 4
     dictionary_operators = []
     for i in range(concurrency):
         dictionary_operators.append(DjangoOperator(
@@ -42,7 +42,6 @@ with dag:
             python_callable=generate_dictionary_batch,
             op_kwargs={
                 "name": "default_dict_pymorphy_2_4_393442_3710985",
-                "i": i,
                 "start": (100 / concurrency) * i,
                 "end": (100 / concurrency) * (i + 1)
             }
