@@ -54,7 +54,7 @@ def generate_dictionary_batch(**kwargs):
     dictionary_words = {}
     for doc in s.execute():
         word_in_doc = set()
-        cleaned_words = (x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-Z0-9ӘәҒғҚқҢңӨөҰұҮүІі]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split())
+        cleaned_words = (x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split())
         for word in cleaned_words:
             if word not in dictionary_words:
                 parse = morph.parse(word)
