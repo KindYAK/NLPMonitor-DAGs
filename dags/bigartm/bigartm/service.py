@@ -78,8 +78,12 @@ def dataset_prepare(**kwargs):
     titles = []
     sources = []
     dates = []
+    ids_in_list = set()
     for document in s.scan():
+        if document.meta.id in ids_in_list:
+            continue
         ids.append(document.meta.id)
+        ids_in_list.add(document.meta.id)
         texts.append(document.text_lemmatized)
         titles.append(document.title)
         sources.append(document.source)
