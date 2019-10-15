@@ -226,7 +226,7 @@ def topic_modelling(**kwargs):
             success += 1
         else:
             failed += 1
-        if (ok + failed) % batch_size == 0:
+        if (success + failed) % batch_size == 0:
             minutes = round((datetime.datetime.now() - time_start).seconds / 60, 2)
             print(f'{success + failed} / {index.number_of_documents} processed, took {minutes} min, TETA~{round(minutes * index.number_of_documents / batch_size / 60, 2)} hours')
             time_start = datetime.datetime.now()
