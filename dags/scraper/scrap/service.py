@@ -1,5 +1,4 @@
-def is_kazakh(text):
-    return sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) > 0.04
+from util.util import is_kazakh
 
 
 def scrap(**kwargs):

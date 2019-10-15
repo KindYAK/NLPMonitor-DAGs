@@ -1,3 +1,6 @@
+from util.util import is_kazakh
+
+
 def init_dictionary_index(**kwargs):
     from elasticsearch_dsl import Search
 
@@ -53,6 +56,8 @@ def generate_dictionary_batch(**kwargs):
     morph = MorphAnalyzer()
     dictionary_words = {}
     for doc in s.execute():
+        if is_kazakh(doc.text + doc.title):
+            continue
         word_in_doc = set()
         cleaned_words = (x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split())
         for word in cleaned_words:
