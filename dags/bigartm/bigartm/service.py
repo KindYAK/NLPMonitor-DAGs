@@ -232,4 +232,4 @@ def topic_modelling(**kwargs):
             time_start = datetime.datetime.now()
     print("!!!", "Done writing", datetime.datetime.now())
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"is_ready": True}})
-    return "Topic Modelling complete"
+    return index.number_of_documents
