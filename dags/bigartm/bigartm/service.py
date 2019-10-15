@@ -217,7 +217,7 @@ def topic_modelling(**kwargs):
     batch_size = 10000
     time_start = datetime.datetime.now()
     for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, topic_document_generator(theta)), index=ES_INDEX_DOCUMENT,
-                                     chunk_size=batch_size, thread_count=4, raise_on_error=True):
+                                     chunk_size=batch_size, thread_count=6, raise_on_error=True):
         if ok:
             success += 1
         else:
