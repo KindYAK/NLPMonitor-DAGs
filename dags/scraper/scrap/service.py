@@ -1,3 +1,7 @@
+def is_kazakh(text):
+    return sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) > 0.04
+
+
 def scrap(**kwargs):
     import os
     import subprocess
@@ -46,6 +50,8 @@ def scrap(**kwargs):
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
             for new in news:
+                if is_kazakh(new['text'] + new['title']):
+                    continue
                 new['source'] = source
                 if 'author' in new:
                     new['author'] = new['author'][:Author._meta.get_field('name').max_length]
