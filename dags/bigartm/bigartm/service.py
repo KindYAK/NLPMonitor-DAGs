@@ -207,7 +207,7 @@ def topic_modelling(**kwargs):
     theta_documents = theta.columns.array.to_numpy().astype(str)
     # Assign topics to docs in ES
     @jit(nopython=True)
-    def topic_document_generator(theta_values, theta_topics, theta_documents):
+    def topic_document_generator(theta_values, theta_documents):
         for i, document in enumerate(theta_documents):
             yield document, theta_values[i]
 
@@ -220,7 +220,7 @@ def topic_modelling(**kwargs):
                 "weight": float(row[j])
             } for j, ind in enumerate(theta_topics) if float(row[j]) > 0.0001
         ]
-        es_document['topics' + name] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
+        es_document['topics_' + name] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
         return es_document
 
     print("!!!", "Write document-topics", datetime.datetime.now())
@@ -228,7 +228,7 @@ def topic_modelling(**kwargs):
     batch_size = 10000
     time_start = datetime.datetime.now()
     for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT,
-                                    (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_topics, theta_documents))),
+                                    (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_documents))),
                                     index=ES_INDEX_DOCUMENT, chunk_size=batch_size, thread_count=6, raise_on_error=True):
         if ok:
             success += 1
