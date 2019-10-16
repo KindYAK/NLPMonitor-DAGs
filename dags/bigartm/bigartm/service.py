@@ -120,6 +120,7 @@ def topic_modelling(**kwargs):
     import datetime
     import numpy as np
     from elasticsearch.helpers import parallel_bulk
+    from numba import jit
 
     from util.constants import BASE_DAG_DIR
     from util.service_es import update_generator
@@ -201,29 +202,34 @@ def topic_modelling(**kwargs):
 
     print("!!!", "Get document-topics", datetime.datetime.now())
     theta = model_artm.get_theta()
-    theta_values = theta.values.transpose()
-    theta_topics = theta.index.array.to_numpy()
-    theta_documents = theta.columns.array.to_numpy()
+    theta_values = theta.values.transpose().astype(float)
+    theta_topics = theta.index.array.to_numpy().astype(str)
+    theta_documents = theta.columns.array.to_numpy().astype(str)
     # Assign topics to docs in ES
-    def topic_document_generator():
+    @jit(nopython=True)
+    def topic_document_generator(theta_values, theta_topics, theta_documents):
         for i, document in enumerate(theta_documents):
-            es_document = ESDocument()
-            es_document.meta['id'] = document
-            document_topics = [
-                {
-                    "topic": ind,
-                    "weight": float(theta_values[i][j])
-                } for j, ind in enumerate(theta_topics) if float(theta_values[i][j]) > 0.0001
-            ]
-            es_document[f'topics_{name}'] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
-            yield es_document
+            yield document, theta_values[i]
+
+    def topic_document_generator_converter(d, row):
+        es_document = ESDocument()
+        es_document.meta['id'] = d
+        document_topics = [
+            {
+                "topic": ind,
+                "weight": float(row[j])
+            } for j, ind in enumerate(theta_topics) if float(row[j]) > 0.0001
+        ]
+        es_document['topics' + name] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
+        return es_document
 
     print("!!!", "Write document-topics", datetime.datetime.now())
     success, failed = 0, 0
     batch_size = 10000
     time_start = datetime.datetime.now()
-    for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, topic_document_generator()), index=ES_INDEX_DOCUMENT,
-                                     chunk_size=batch_size, thread_count=6, raise_on_error=True):
+    for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT,
+                                    (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_topics, theta_documents))),
+                                    index=ES_INDEX_DOCUMENT, chunk_size=batch_size, thread_count=6, raise_on_error=True):
         if ok:
             success += 1
         else:

@@ -33,3 +33,4 @@ pymorphy2==0.8
 stop_words==2018.7.23
 
 tensorflow >= 1.11.0
+numba==0.46.0
