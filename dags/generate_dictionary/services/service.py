@@ -17,7 +17,7 @@ def init_dictionary_index(**kwargs):
         query = {
             "corpus": kwargs['corpus'],
             "name": kwargs['name'],
-            "number_of_documents": number_of_documents,
+            "is_ready": False,
         }
         if search(ES_CLIENT, ES_INDEX_DICTIONARY_INDEX, query):
             return ("!!!", "Already exists")
@@ -43,6 +43,7 @@ def generate_dictionary_batch(**kwargs):
 
     query = {
         "name": name,
+        "is_ready": False,
     }
     dictionary = search(ES_CLIENT, ES_INDEX_DICTIONARY_INDEX, query)[-1]
     number_of_documents = dictionary['number_of_documents']

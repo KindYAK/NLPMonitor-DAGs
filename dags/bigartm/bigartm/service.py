@@ -24,6 +24,8 @@ def init_embedding_index(**kwargs):
         query = {
             "name": name,
             "corpus": corpus,
+            "number_of_documents": number_of_documents,
+            "is_ready": False,
         }
         if source:
             query["source.keyword"] = source
@@ -36,6 +38,7 @@ def init_embedding_index(**kwargs):
             return s[-1]
 
     kwargs["number_of_documents"] = number_of_documents
+    kwargs["is_ready"] = False
     index = TopicModellingIndex(**kwargs)
     index.save()
     return index
