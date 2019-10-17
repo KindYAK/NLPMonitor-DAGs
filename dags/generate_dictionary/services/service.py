@@ -50,17 +50,21 @@ def generate_dictionary_batch(**kwargs):
     if not number_of_documents:
         raise Exception("No variable!")
 
-    s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True,
+    s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text', 'title'], sort=['id'], get_search_obj=True,
                        start=int(start/100*number_of_documents), end=int(end/100*number_of_documents)+1)
 
     stopwords = get_stop_words('ru')
     morph = MorphAnalyzer()
     dictionary_words = {}
     for doc in s.execute():
-        if is_kazakh(doc.text + (doc.title if hasattr(doc, "title") else "")):
+        text = doc.text + (doc.title if hasattr(doc, "title") else "")
+        if len(text) == 0:
+            print("!!! WTF", doc.meta.id)
+            continue
+        if is_kazakh(text):
             continue
         word_in_doc = set()
-        cleaned_words = (x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split())
+        cleaned_words = (x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
         for word in cleaned_words:
             is_first_upper = word[0].isupper()
             word = word.lower()
