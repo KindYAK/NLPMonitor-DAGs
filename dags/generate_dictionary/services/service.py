@@ -57,7 +57,7 @@ def generate_dictionary_batch(**kwargs):
     morph = MorphAnalyzer()
     dictionary_words = {}
     for doc in s.execute():
-        if is_kazakh(doc.text + doc.title if hasattr(doc, "title") else ""):
+        if is_kazakh(doc.text + (doc.title if hasattr(doc, "title") else "")):
             continue
         word_in_doc = set()
         cleaned_words = (x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split())

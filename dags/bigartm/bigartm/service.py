@@ -10,7 +10,7 @@ def init_embedding_index(**kwargs):
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **{"corpus": corpus})
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus)
     if source:
         s = s.filter("term", source=source)
     if datetime_from:
@@ -68,7 +68,7 @@ def dataset_prepare(**kwargs):
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
     # Extract
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", **{"corpus": corpus}).filter('exists', field="text_lemmatized")
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus).filter('exists', field="text_lemmatized")
     if source:
         s = s.filter("term", source=source)
     if datetime_from:
@@ -114,7 +114,7 @@ def dataset_prepare(**kwargs):
                                             data_format="vowpal_wabbit",
                                             target_folder=os.path.join(data_folder, "batches"))
     # TODO ngrams dictionary
-    return "Preprocessing complete"
+    return f"index.number_of_document={index.number_of_documents}, len(ids)={len(ids)}"
 
 
 def topic_modelling(**kwargs):
@@ -228,7 +228,7 @@ def topic_modelling(**kwargs):
 
     print("!!!", "Write document-topics", datetime.datetime.now())
     success, failed = 0, 0
-    batch_size = 10000
+    batch_size = 1
     time_start = datetime.datetime.now()
     for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT,
                                     (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_documents))),
