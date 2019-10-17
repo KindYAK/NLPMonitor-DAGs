@@ -72,7 +72,7 @@ def generate_dictionary_batch(**kwargs):
                     "is_in_pymorphy2_dict": parse[0].is_known,
                     "is_multiple_normals_in_pymorphy2": len(parse) > 1,
                     "is_stop_word": word in stopwords or parse[0].normal_form in stopwords,
-                    "is_latin": any([c in "qwertyuiopasdfghjklzxcvbnm" for c in word]),
+                    "is_latin": any([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in word]),
                     "is_kazakh": any([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in word]),
                     "pos_tag": parse[0].tag.POS,
                     "word_len": len(word),
