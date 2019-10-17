@@ -3,4 +3,4 @@ def not_implemented():
 
 
 def is_kazakh(text):
-    return sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) > 0.04
+    return sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) / len(text) > 0.04
