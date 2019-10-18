@@ -228,7 +228,7 @@ def topic_modelling(**kwargs):
 
     print("!!!", "Write document-topics", datetime.datetime.now())
     success, failed = 0, 0
-    batch_size = 1
+    batch_size = 10000
     time_start = datetime.datetime.now()
     for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT,
                                     (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_documents))),
