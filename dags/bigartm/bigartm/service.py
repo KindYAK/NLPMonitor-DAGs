@@ -46,6 +46,7 @@ def init_embedding_index(**kwargs):
 
 def dataset_prepare(**kwargs):
     import os
+    import shutil
     import artm
     from elasticsearch_dsl import Search
 
@@ -107,8 +108,8 @@ def dataset_prepare(**kwargs):
     if not os.path.exists(data_folder):
         os.mkdir(data_folder)
     data_folder = os.path.join(data_folder, f"bigartm_formated_data_{name}")
-    if not os.path.exists(data_folder):
-        os.mkdir(data_folder)
+    shutil.rmtree(data_folder)
+    os.mkdir(data_folder)
     txt_writer(data=formated_data, filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
     artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data.txt"),
                                             data_format="vowpal_wabbit",
@@ -119,6 +120,7 @@ def dataset_prepare(**kwargs):
 
 def topic_modelling(**kwargs):
     import artm
+    import glob
     import os
     import datetime
     import numpy as np
@@ -243,4 +245,8 @@ def topic_modelling(**kwargs):
             time_start = datetime.datetime.now()
     print("!!!", "Done writing", datetime.datetime.now())
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"is_ready": True}})
+    # Remove logs
+    fileList = glob.glob(f'{BASE_DAG_DIR}/bigartm.*')
+    for filePath in fileList:
+        os.remove(filePath)
     return index.number_of_documents
