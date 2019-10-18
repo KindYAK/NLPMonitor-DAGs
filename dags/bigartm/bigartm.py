@@ -68,8 +68,8 @@ gen_bigartm_dag(dag=dag1, name="bigartm_test", description="All news", number_of
                 filters={
                     "corpus": "main",
                     "source": None,
-                    "datetime_from": date(1950, 1, 1),
-                    "datetime_to": date(2050, 1, 1),
+                    "datetime_from": None,
+                    "datetime_to": None,
                 },
                 regularization_params={
                     "SmoothSparseThetaRegularizer": 0.15,
@@ -83,8 +83,8 @@ gen_bigartm_dag(dag=dag2, name="bigartm_tengrinews", description="All news from 
                 filters={
                     "corpus": "main",
                     "source": "https://tengrinews.kz/",
-                    "datetime_from": date(1950, 1, 1),
-                    "datetime_to": date(2050, 1, 1),
+                    "datetime_from": None,
+                    "datetime_to": None,
                 },
                 regularization_params={
                     "SmoothSparseThetaRegularizer": 0.15,
