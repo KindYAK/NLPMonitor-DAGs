@@ -12,9 +12,13 @@ def generate_coocurance_codistance(**kwargs):
     from util.service_es import search
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DICTIONARY_WORD
 
+    max_dict_size = 10000000
+    if 'max_dict_size' in kwargs:
+        max_dict_size = kwargs['max_dict_size']
+
     dictionary_words = search(ES_CLIENT, ES_INDEX_DICTIONARY_WORD,
-                              query=kwargs['dictionary_filters'], source=("word_normal", ),
-                              get_search_obj=True, end=10000000)
+                              query=kwargs['dictionary_filters'], source=("word_normal", ), sort=('word_normal_frequency', ),
+                              get_search_obj=True, end=max_dict_size)
     dictionary_words.aggs.bucket('unique_word_normals', 'terms', field='word_normal.keyword')
     dictionary_words = dictionary_words.execute()
     documents_scan = search(ES_CLIENT, ES_INDEX_DOCUMENT,

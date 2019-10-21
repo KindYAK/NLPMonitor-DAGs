@@ -40,6 +40,7 @@ with dag:
                 # "is_in_pymorphy2_dict": True,
                 # "is_multiple_normals_in_pymorphy2": False,
             },
+            "max_dict_size": 30000,
             "document_filters": {
                 "corpus": "main",
                 # "source": "https://kapital.kz/",
