@@ -1,6 +1,7 @@
 import os
 import datetime
 
+from util.constants import BASE_DAG_DIR
 from util.util import save_obj, load_obj
 
 
@@ -27,11 +28,17 @@ def generate_coocurance_codistance(**kwargs):
     print("!!!", "Start dot product for coocurance matrix", datetime.datetime.now())
     coocurance_matrix = documents_vectorized.T.dot(documents_vectorized).astype(np.uint32)
     print("!!!", "Saving coocurance matrix", datetime.datetime.now())
-    save_obj(coocurance_matrix, 'cooc_sparse_matrix')
+    data_folder = os.path.join(BASE_DAG_DIR, "mussabayev_tm_temp")
+    if not os.path.exists(data_folder):
+        os.mkdir(data_folder)
+    data_folder = os.path.join(data_folder, kwargs['name'])
+    if not os.path.exists(data_folder):
+        os.mkdir(data_folder)
+    save_obj(coocurance_matrix, os.path.join(data_folder, 'cooc_sparse_matrix.pkl'))
 
     print("!!!", "Start distance matrix calc", datetime.datetime.now())
     distance_matrix = pairwise_distances(coocurance_matrix, metric='cosine', n_jobs=4)
     print("!!!", "Save distance matrix ", datetime.datetime.now())
-    save_obj(distance_matrix, 'distance_matrix')
+    save_obj(distance_matrix, os.path.join(data_folder, 'distance_matrix.pkl'))
 
     return f"Dictionary len={len(vectorizer.vocabulary_.keys())}, documents_len={documents_vectorized.shape[0]}"

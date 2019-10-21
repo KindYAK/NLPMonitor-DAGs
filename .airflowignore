@@ -18,6 +18,7 @@ dags/tm_preprocessing/services/
 dags/generate_dictionary/services/
 
 dags/mussabayev_tm/service/
+mussabayev_tm_temp/
 
 dags/bigartm/bigartm/
 bigartm_temp/

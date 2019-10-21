@@ -10,3 +10,4 @@ venv
 
 dags/bert_embeddings/bert/models
 bigartm_temp
+mussabayev_tm_temp
