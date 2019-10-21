@@ -52,7 +52,6 @@ def dataset_prepare(**kwargs):
 
     from dags.bigartm.bigartm.cleaners import return_cleaned_array, txt_writer
     from util.constants import BASE_DAG_DIR
-    from util.service_es import search, update_generator, get_count
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
 
@@ -129,6 +128,7 @@ def topic_modelling(**kwargs):
 
     from util.constants import BASE_DAG_DIR
     from util.service_es import update_generator
+    from util.util import save_obj
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
     from mainapp.documents import Document as ESDocument
@@ -207,6 +207,9 @@ def topic_modelling(**kwargs):
 
     print("!!!", "Get document-topics", datetime.datetime.now())
     theta = model_artm.get_theta()
+    # TODO TEMP DELETE LATER
+    save_obj(theta, os.path.join(BASE_DAG_DIR, "bigartm_temp", "theta_big.pickle"))
+    # TEMP
     theta_values = theta.values.transpose().astype(float)
     theta_topics = theta.index.array.to_numpy().astype(str)
     theta_documents = theta.columns.array.to_numpy().astype(str)
