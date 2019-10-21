@@ -15,5 +15,9 @@ dags/elastic_sender/sender/
 
 dags/tm_preprocessing/services/
 
+dags/generate_dictionary/services/
+
+dags/mussabayev_tm/service/
+
 dags/bigartm/bigartm/
 bigartm_temp/

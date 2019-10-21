@@ -6,17 +6,23 @@ def es_filter_term(search, key, value):
     return search.filter(query, **{key: value})
 
 
-def search(client, index, query, start=None, end=None, source=None, sort=None, get_search_obj=False):
+def search(client, index, query, start=None, end=None, source=None, sort=None, get_scan_obj=False, get_search_obj=False):
     from elasticsearch_dsl import Search
     s = Search(using=client, index=index)
     for key, value in query.items():
-        s = es_filter_term(s, key, value)
+        if any(key.endswith(range_selector) for range_selector in ['__gte', '__lte', '__gt', '__lt']):
+            range_selector = key.split("__")[-1]
+            s = s.filter('range', **{key.replace(f"__{range_selector}", ""): {range_selector: value}})
+        else:
+            s = es_filter_term(s, key, value)
     if source:
         s = s.source(include=source)
     if sort:
         s = s.sort(*sort)
     s = s[start:end]
-    if get_search_obj:
+    if get_scan_obj:
+        return s.sort()
+    elif get_search_obj:
         return s
     else:
         return s.execute()

@@ -50,13 +50,13 @@ def generate_dictionary_batch(**kwargs):
     if not number_of_documents:
         raise Exception("No variable!")
 
-    s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text', 'title'], sort=['id'], get_search_obj=True,
+    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text', 'title'], sort=['id'],
                        start=int(start/100*number_of_documents), end=int(end/100*number_of_documents)+1)
 
     stopwords = get_stop_words('ru')
     morph = MorphAnalyzer()
     dictionary_words = {}
-    for doc in s.execute():
+    for doc in documents.execute():
         text = doc.text + (doc.title if hasattr(doc, "title") else "")
         if len(text) == 0:
             print("!!! WTF", doc.meta.id)
@@ -108,11 +108,11 @@ def aggregate_dicts(**kwargs):
     query = {
         "dictionary": name,
     }
-    dictionary = search(ES_CLIENT, ES_INDEX_DICTIONARY_WORD + "_temp", query, get_search_obj=True)
+    dictionary_scan = search(ES_CLIENT, ES_INDEX_DICTIONARY_WORD + "_temp", query, get_scan_obj=True)
     dictionary_index = search(ES_CLIENT, ES_INDEX_DICTIONARY_INDEX, {"name": name})[-1]
     dictionary_words_final = {}
     dictionary_normal_words = {}
-    for word in dictionary.scan():
+    for word in dictionary_scan:
         key = word['word']
         key_normal = word['word_normal']
         if not key in dictionary_words_final:
