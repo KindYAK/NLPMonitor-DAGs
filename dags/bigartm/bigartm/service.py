@@ -107,7 +107,7 @@ def dataset_prepare(**kwargs):
     if not os.path.exists(data_folder):
         os.mkdir(data_folder)
     data_folder = os.path.join(data_folder, f"bigartm_formated_data_{name}")
-    shutil.rmtree(data_folder)
+    shutil.rmtree(data_folder, ignore_errors=True)
     os.mkdir(data_folder)
     txt_writer(data=formated_data, filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
     artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data.txt"),
