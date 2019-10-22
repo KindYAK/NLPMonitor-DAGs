@@ -1,5 +1,5 @@
 def save_clustering(clusters, cluster_weights, object_weights, key_objects, extra_objects, vocab, filename):
-    f = open(filename, "w")
+    f = open(filename, "w", encoding="utf-8")
     for i in range(len(clusters)):
         f.write('Кластер №' + str(i) + ' ' + str(round(cluster_weights[i], 2)) + '\n')
 

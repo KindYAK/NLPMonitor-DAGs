@@ -17,7 +17,7 @@ def generate_cooccurrence_codistance(**kwargs):
         max_dict_size = kwargs['max_dict_size']
 
     dictionary_words = search(ES_CLIENT, ES_INDEX_DICTIONARY_WORD,
-                              query=kwargs['dictionary_filters'], source=("word_normal", ), sort=('word_normal_frequency', ),
+                              query=kwargs['dictionary_filters'], source=("word_normal", ), sort=('_id', ),
                               get_search_obj=True, end=max_dict_size)
     dictionary_words.aggs.bucket('unique_word_normals', 'terms', field='word_normal.keyword')
     dictionary_words = dictionary_words.execute()
@@ -160,10 +160,10 @@ def topic_modelling(**kwargs):
     use_medoid = kwargs['use_medoid']
 
     dictionary_words = search(ES_CLIENT, ES_INDEX_DICTIONARY_WORD,
-                              query=kwargs['dictionary_filters'], source=("word_normal", ), sort=('word_normal_frequency', ),
+                              query=kwargs['dictionary_filters'], source=("word_normal", ), sort=('_id', ),
                               get_search_obj=True, end=max_dict_size)
     dictionary_words.aggs.bucket('unique_word_normals', 'terms', field='word_normal.keyword')
-    vocab = (dw.key for dw in dictionary_words.execute().aggregations.unique_word_normals.buckets)
+    vocab = [dw.key for dw in dictionary_words.execute().aggregations.unique_word_normals.buckets]
 
     data_folder = os.path.join(BASE_DAG_DIR, "mussabayev_tm_temp", name)
     distance_matrix = np.array(load_obj(os.path.join(data_folder, 'distance_matrix.pkl')), dtype=np.float32)
