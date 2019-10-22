@@ -207,9 +207,6 @@ def topic_modelling(**kwargs):
 
     print("!!!", "Get document-topics", datetime.datetime.now())
     theta = model_artm.get_theta()
-    # TODO TEMP DELETE LATER
-    save_obj(theta, os.path.join(BASE_DAG_DIR, "bigartm_temp", "theta_big.pickle"))
-    # TEMP
     theta_values = theta.values.transpose().astype(float)
     theta_topics = theta.index.array.to_numpy().astype(str)
     theta_documents = theta.columns.array.to_numpy().astype(str)
