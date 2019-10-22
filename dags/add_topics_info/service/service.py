@@ -7,7 +7,7 @@ def add_topics_info(**kwargs):
 
     s = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
     # s = s.exclude('exists', field="has_topic_info").filter('term', is_ready=True)
-    s = s.exclude('exists', field="has_topic_info") # TODO Return back
+    # s = s.exclude('exists', field="has_topic_info") # TODO Return back
 
     for i, tm in enumerate(s.scan()):
         print("!!!", f"TopicModelling {i}", datetime.datetime.now())
