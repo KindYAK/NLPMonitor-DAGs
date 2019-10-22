@@ -6,15 +6,13 @@ def add_topics_info(**kwargs):
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING
 
     s = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
-    # s = s.exclude('exists', field="has_topic_info").filter('term', is_ready=True)
-    # s = s.exclude('exists', field="has_topic_info") # TODO Return back
+    s = s.exclude('exists', field="has_topic_info").filter('term', is_ready=True)
 
     for i, tm in enumerate(s.scan()):
         print("!!!", f"TopicModelling {i}", datetime.datetime.now())
         add_topic_names(tm)
         calc_topic_size(tm)
         ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=tm.meta.id, body={"doc": {"has_topic_info": True}})
-        # TODO Finalize topic info adding
 
 
 def add_topic_names(tm):
