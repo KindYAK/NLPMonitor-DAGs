@@ -1,5 +1,5 @@
 def init_embedding_index(**kwargs):
-    from util.service_es import search, get_count
+    from util.service_es import search
     from elasticsearch_dsl import Search
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
@@ -92,16 +92,12 @@ def dataset_prepare(**kwargs):
         sources.append(document.source)
         dates.append(document.datetime if hasattr(document, "datetime") else "")
     titles = return_cleaned_array(titles)
-    sources = return_cleaned_array(sources)
-    dates = return_cleaned_array(dates)
 
     formated_data = []
     for id, text, title, source, date in zip(ids, texts, titles, sources, dates):
-        formated_data.append(f'{id}' + ' ' +
+        formated_data.append(f'{id}*{source}*{date}' + ' ' +
                                    '|text' + ' ' + text + ' ' +
-                                   '|title' + ' ' + title + ' ' +
-                                   '|source' + ' ' + source + ' ' +
-                                   '|date' + ' ' + date)
+                                   '|title' + ' ' + title + ' ')
 
     data_folder = os.path.join(BASE_DAG_DIR, "bigartm_temp")
     if not os.path.exists(data_folder):
@@ -124,14 +120,14 @@ def topic_modelling(**kwargs):
     import datetime
     import numpy as np
     from elasticsearch.helpers import parallel_bulk
+    from elasticsearch_dsl import Search
     from numba import jit
 
     from util.constants import BASE_DAG_DIR
     from util.service_es import update_generator
-    from util.util import save_obj
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
-    from mainapp.documents import Document as ESDocument
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT
+    from mainapp.documents import TopicDocument
 
     name = kwargs['name']
     regularization_params = kwargs['regularization_params']
@@ -217,24 +213,29 @@ def topic_modelling(**kwargs):
             yield document, theta_values[i]
 
     def topic_document_generator_converter(d, row):
-        es_document = ESDocument()
-        es_document.meta['id'] = d
-        document_topics = [
-            {
-                "topic": ind,
-                "weight": float(row[j])
-            } for j, ind in enumerate(theta_topics) if float(row[j]) > 0.0001
-        ]
-        es_document['topics_' + name] = sorted(document_topics, key=lambda x: x['weight'], reverse=True)[:100]
-        return es_document
+        es_topic_document = TopicDocument()
+        print("!", d)
+        id, source, date = d.split("*")
+        for j, ind in enumerate(theta_topics):
+            if float(row[j]) < 0.0001:
+                continue
+            es_topic_document.topic_modelling = name
+            es_topic_document.topic_id = ind
+            es_topic_document.topic_weight = float(row[j])
+            es_topic_document.document_es_id = id
+            if date:
+                es_topic_document.datetime = datetime.datetime.strptime(date[:-3] + date[-2:], "%Y-%m-%dT%H:%M:%S%z")
+            es_topic_document.document_source = source
+            yield es_topic_document
 
     print("!!!", "Write document-topics", datetime.datetime.now())
+    Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).delete()
     success, failed = 0, 0
-    batch_size = 10000
+    batch_size = 50000
     time_start = datetime.datetime.now()
-    for ok, result in parallel_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT,
-                                    (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_documents))),
-                                    index=ES_INDEX_DOCUMENT, chunk_size=batch_size, thread_count=6, raise_on_error=True):
+    row_generator = (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_documents))
+    for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for row in row_generator for doc in row),
+                                    index=ES_INDEX_TOPIC_DOCUMENT, chunk_size=batch_size, thread_count=6, raise_on_error=True):
         if ok:
             success += 1
         else:
