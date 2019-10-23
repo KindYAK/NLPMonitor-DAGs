@@ -229,7 +229,10 @@ def topic_modelling(**kwargs):
             yield es_topic_document
 
     print("!!!", "Write document-topics", datetime.datetime.now())
-    Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).delete()
+    from elasticsearch import Elasticsearch
+    es = Elasticsearch()
+    if es.indices.exists(index=ES_INDEX_TOPIC_DOCUMENT):
+        Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).delete()
     success, failed = 0, 0
     batch_size = 50000
     time_start = datetime.datetime.now()
