@@ -35,8 +35,9 @@ def preprocessing_raw_data(**kwargs):
         cleaned_doc = " ".join([morph.parse(word)[0].normal_form for word in cleaned_doc.split() if len(word) > 2 and word not in stopwords])
         doc['text_lemmatized'] = cleaned_doc
 
+    documents_processed = 0
     for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents),
                                      index=ES_INDEX_DOCUMENT,
                                      chunk_size=5000, raise_on_error=True, max_retries=10):
-        print(ok, result)
-    return len(documents)
+        documents_processed += 1
+    return documents_processed
