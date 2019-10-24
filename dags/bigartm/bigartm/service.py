@@ -220,7 +220,10 @@ def topic_modelling(**kwargs):
             es_topic_document.topic_weight = float(row[j])
             es_topic_document.document_es_id = id
             if date:
-                es_topic_document.datetime = datetime.datetime.strptime(date[:-3] + date[-2:], "%Y-%m-%dT%H:%M:%S%z")
+                try:
+                    es_topic_document.datetime = datetime.datetime.strptime(date[:-3] + date[-2:], "%Y-%m-%dT%H:%M:%S%z")
+                except:
+                    es_topic_document.datetime = datetime.datetime.strptime(date[:-3] + date[-2:], "%Y-%m-%dT%H:%M:%S.%f%z")
             es_topic_document.document_source = source.replace("_", " ")
             yield es_topic_document
 
