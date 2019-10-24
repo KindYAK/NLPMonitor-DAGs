@@ -24,8 +24,6 @@ def init_embedding_index(**kwargs):
         query = {
             "name": name,
             "corpus": corpus,
-            "number_of_documents": number_of_documents,
-            "is_ready": False,
         }
         if source:
             query["source.keyword"] = source
@@ -124,7 +122,6 @@ def topic_modelling(**kwargs):
     from numba import jit
 
     from util.constants import BASE_DAG_DIR
-    from util.service_es import update_generator
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT
     from mainapp.documents import TopicDocument
@@ -174,9 +171,11 @@ def topic_modelling(**kwargs):
             }
             for ind in phi_filtered[topic].index
         ]
+        topic_words = sorted(topic_words, key=lambda x: x['weight'], reverse=True)[:100]
         topics.append({
             "id": topic,
-            "topic_words": sorted(topic_words, key=lambda x: x['weight'], reverse=True)[:100]
+            "topic_words": topic_words,
+            "name": ", ".join([w['word'] for w in topic_words[:5]])
         })
 
     # Add metrics
@@ -216,8 +215,6 @@ def topic_modelling(**kwargs):
         es_topic_document = TopicDocument()
         id, source, date = d.split("*")
         for j, ind in enumerate(theta_topics):
-            if float(row[j]) < 0.0001:
-                continue
             es_topic_document.topic_modelling = name
             es_topic_document.topic_id = ind
             es_topic_document.topic_weight = float(row[j])
