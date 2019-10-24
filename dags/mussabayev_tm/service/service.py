@@ -18,15 +18,15 @@ def generate_cooccurrence_codistance(**kwargs):
 
     dictionary_words = search(ES_CLIENT, ES_INDEX_DICTIONARY_WORD,
                               query=kwargs['dictionary_filters'], source=("word_normal", ), sort=('_id', ),
-                              get_search_obj=True, end=10000000)
-    dictionary_words.aggs.bucket('unique_word_normals', 'terms', field='word_normal.keyword')
+                              get_search_obj=True)
+    dictionary_words.aggs.bucket('unique_word_normals', 'terms', field='word_normal.keyword', size=max_dict_size)
     dictionary_words = dictionary_words.execute()
     documents_scan = search(ES_CLIENT, ES_INDEX_DOCUMENT,
                             query=kwargs['document_filters'], source=("text_lemmatized", ),
                             get_scan_obj=True, end=5000000)
 
     print("!!!", "Start count_vectorizing", datetime.datetime.now())
-    vectorizer = CountVectorizer(vocabulary=(dw.key for dw in dictionary_words.aggregations.unique_word_normals.buckets[:max_dict_size]))
+    vectorizer = CountVectorizer(vocabulary=(dw.key for dw in dictionary_words.aggregations.unique_word_normals.buckets))
     documents_vectorized = vectorizer.fit_transform((d.text_lemmatized for d in documents_scan))
 
     print("!!!", "Start dot product for coocurance matrix", datetime.datetime.now())
