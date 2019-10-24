@@ -18,7 +18,7 @@ def generate_cooccurrence_codistance(**kwargs):
 
     dictionary_words = search(ES_CLIENT, ES_INDEX_DICTIONARY_WORD,
                               query=kwargs['dictionary_filters'], source=("word_normal", ), sort=('_id', ),
-                              get_search_obj=True)
+                              get_search_obj=True, start=0, end=10)
     dictionary_words.aggs.bucket('unique_word_normals', 'terms', field='word_normal.keyword', size=max_dict_size)
     dictionary_words = dictionary_words.execute()
     documents_scan = search(ES_CLIENT, ES_INDEX_DOCUMENT,
