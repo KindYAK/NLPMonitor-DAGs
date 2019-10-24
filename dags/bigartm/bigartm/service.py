@@ -244,7 +244,8 @@ def topic_modelling(**kwargs):
             failed += 1
         if (success + failed) % batch_size == 0:
             minutes = round((datetime.datetime.now() - time_start).seconds / 60, 2)
-            print(f'{success + failed} / {index.number_of_documents} processed, took {minutes} min, TETA~{round(minutes * index.number_of_documents / batch_size / 60, 2)} hours')
+            print(f'{success + failed} / {index.number_of_documents * index.number_of_topics} processed, '
+                  f'took {minutes} min, TETA~{round(minutes * index.number_of_documents * index.number_of_topics / batch_size / 60, 2)} hours')
             time_start = datetime.datetime.now()
     print("!!!", "Done writing", datetime.datetime.now())
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"is_ready": True}})
