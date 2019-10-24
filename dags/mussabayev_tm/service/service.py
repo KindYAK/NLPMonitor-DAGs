@@ -12,13 +12,13 @@ def generate_cooccurrence_codistance(**kwargs):
     from util.service_es import search
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DICTIONARY_WORD
 
-    max_dict_size = 10000000
+    max_dict_size = 30000
     if 'max_dict_size' in kwargs:
         max_dict_size = kwargs['max_dict_size']
 
     dictionary_words = search(ES_CLIENT, ES_INDEX_DICTIONARY_WORD,
                               query=kwargs['dictionary_filters'], source=("word_normal", ), sort=('_id', ),
-                              get_search_obj=True, end=max_dict_size)
+                              get_search_obj=True, end=10000000)
     dictionary_words.aggs.bucket('unique_word_normals', 'terms', field='word_normal.keyword')
     dictionary_words = dictionary_words.execute()
     documents_scan = search(ES_CLIENT, ES_INDEX_DOCUMENT,
@@ -26,7 +26,7 @@ def generate_cooccurrence_codistance(**kwargs):
                             get_scan_obj=True, end=5000000)
 
     print("!!!", "Start count_vectorizing", datetime.datetime.now())
-    vectorizer = CountVectorizer(vocabulary=(dw.key for dw in dictionary_words.aggregations.unique_word_normals.buckets))
+    vectorizer = CountVectorizer(vocabulary=(dw.key for dw in dictionary_words.aggregations.unique_word_normals.buckets[:max_dict_size]))
     documents_vectorized = vectorizer.fit_transform((d.text_lemmatized for d in documents_scan))
 
     print("!!!", "Start dot product for coocurance matrix", datetime.datetime.now())

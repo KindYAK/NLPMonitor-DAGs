@@ -30,7 +30,7 @@ dag = DAG('Nlpmonitor_Mussabayev_tm', default_args=default_args, schedule_interv
 with dag:
     dictionary_filters = {
                 "dictionary": "default_dict_pymorphy_2_4_393442_3710985",
-                "document_normal_frequency__gte": 1,
+                "document_normal_frequency__gte": 100,
                 "document_normal_frequency__lte": 500000,
                 "is_stop_word": False,
                 # "is_in_pymorphy2_dict": True,
