@@ -95,7 +95,7 @@ def dataset_prepare(**kwargs):
 
     formated_data = []
     for id, text, title, source, date in zip(ids, texts, titles, sources, dates):
-        formated_data.append(f'{id}*{source}*{date}' + ' ' +
+        formated_data.append(f'{id}*{source.replace(" ", "_")}*{date}' + ' ' +
                                    '|text' + ' ' + text + ' ' +
                                    '|title' + ' ' + title + ' ')
 
@@ -225,7 +225,7 @@ def topic_modelling(**kwargs):
             es_topic_document.document_es_id = id
             if date:
                 es_topic_document.datetime = datetime.datetime.strptime(date[:-3] + date[-2:], "%Y-%m-%dT%H:%M:%S%z")
-            es_topic_document.document_source = source
+            es_topic_document.document_source = source.replace("_", " ")
             yield es_topic_document
 
     print("!!!", "Write document-topics", datetime.datetime.now())
