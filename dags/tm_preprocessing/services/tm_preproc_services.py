@@ -21,7 +21,7 @@ def preprocessing_raw_data(**kwargs):
     end = kwargs['end']
 
     number_of_documents = int(Variable.get("lemmatize_number_of_documents", default_var=None))
-    if not number_of_documents:
+    if number_of_documents is None:
         raise Exception("No variable!")
 
     documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True,

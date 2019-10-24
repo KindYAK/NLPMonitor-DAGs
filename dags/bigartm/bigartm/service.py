@@ -214,7 +214,6 @@ def topic_modelling(**kwargs):
 
     def topic_document_generator_converter(d, row):
         es_topic_document = TopicDocument()
-        print("!", d)
         id, source, date = d.split("*")
         for j, ind in enumerate(theta_topics):
             if float(row[j]) < 0.0001:
