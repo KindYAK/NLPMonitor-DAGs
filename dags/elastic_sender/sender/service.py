@@ -10,3 +10,4 @@ def send_elastic(**kwargs):
     Command().handle(batch_size=1000, from_id=from_id, to_id=to_id)
 
     Variable.set("send_elastic_from_id", to_id)
+    return to_id, Variable.get("send_elastic_from_id", default_var=0)
