@@ -212,10 +212,10 @@ def topic_modelling(**kwargs):
             yield document, theta_values[i]
 
     def topic_document_generator_converter(d, row):
-        es_topic_document = TopicDocument()
         id, source, date = d.split("*")
         document_topics = []
         for j, ind in enumerate(theta_topics):
+            es_topic_document = TopicDocument()
             if float(row[j]) < 0.0001:
                 continue
             es_topic_document.topic_modelling = name
@@ -229,7 +229,7 @@ def topic_modelling(**kwargs):
                     es_topic_document.datetime = datetime.datetime.strptime(date[:-3] + date[-2:], "%Y-%m-%dT%H:%M:%S.%f%z")
             es_topic_document.document_source = source.replace("_", " ")
             document_topics.append(es_topic_document)
-        document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[:index.number_of_topics//3]
+        document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[:index.number_of_topics // 3]
         for es_topic_document in document_topics:
             yield es_topic_document
 
