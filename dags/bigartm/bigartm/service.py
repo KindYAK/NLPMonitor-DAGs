@@ -12,7 +12,7 @@ def init_embedding_index(**kwargs):
     datetime_to = kwargs['datetime_to']
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus)
     if source:
-        s = s.filter("term", source=source)
+        s = s.filter("term", **{"source.keyword": source})
     if datetime_from:
         s = s.filter('range', datetime={'gte': datetime_from})
     if datetime_to:
@@ -68,7 +68,7 @@ def dataset_prepare(**kwargs):
     # Extract
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus).filter('exists', field="text_lemmatized")
     if source:
-        s = s.filter("term", source=source)
+        s = s.filter("term", **{"source.keyword": source})
     if datetime_from:
         s = s.filter('range', datetime={'gte': datetime_from})
     if datetime_to:
