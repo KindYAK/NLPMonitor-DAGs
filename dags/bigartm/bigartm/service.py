@@ -214,7 +214,10 @@ def topic_modelling(**kwargs):
     def topic_document_generator_converter(d, row):
         es_topic_document = TopicDocument()
         id, source, date = d.split("*")
+        document_topics = []
         for j, ind in enumerate(theta_topics):
+            if float(row[j]) < 0.0001:
+                continue
             es_topic_document.topic_modelling = name
             es_topic_document.topic_id = ind
             es_topic_document.topic_weight = float(row[j])
@@ -225,6 +228,9 @@ def topic_modelling(**kwargs):
                 except:
                     es_topic_document.datetime = datetime.datetime.strptime(date[:-3] + date[-2:], "%Y-%m-%dT%H:%M:%S.%f%z")
             es_topic_document.document_source = source.replace("_", " ")
+            document_topics.append(es_topic_document)
+        document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[:index.number_of_topics//3]
+        for es_topic_document in document_topics:
             yield es_topic_document
 
     print("!!!", "Write document-topics", datetime.datetime.now())
@@ -233,7 +239,7 @@ def topic_modelling(**kwargs):
     except:
         print("!!!!!", "Problem during old topic_documents deletion occurred")
     success, failed = 0, 0
-    batch_size = 50000
+    batch_size = 100000
     time_start = datetime.datetime.now()
     row_generator = (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_documents))
     for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for row in row_generator for doc in row),
@@ -241,6 +247,7 @@ def topic_modelling(**kwargs):
         if ok:
             success += 1
         else:
+            print("!!!", "ES index fail, error", result)
             failed += 1
         if (success + failed) % batch_size == 0:
             minutes = round((datetime.datetime.now() - time_start).seconds / 60, 2)
