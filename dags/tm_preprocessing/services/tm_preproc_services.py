@@ -24,7 +24,7 @@ def preprocessing_raw_data(**kwargs):
     if number_of_documents is None:
         raise Exception("No variable!")
 
-    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True,
+    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_scan_obj=True,
                        start=int(start/100*number_of_documents), end=int(end/100*number_of_documents)+1).exclude('exists', field="text_lemmatized")
 
     stopwords = get_stop_words('ru')
