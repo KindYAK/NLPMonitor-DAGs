@@ -92,10 +92,14 @@ def generate_dictionary_batch(**kwargs):
                     dictionary_words[word]['document_frequency'] += 1
             word_in_doc.add(word)
 
+    failed = 0
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words.values(), index=ES_INDEX_DICTIONARY_WORD + "_temp",
                                      chunk_size=10000, raise_on_error=True, thread_count=4):
-        pass
-    return s.count()
+        if not ok:
+            failed += 1
+        if failed > 3:
+            raise Exception("Too many failed!!")
+    return documents.count()
 
 
 def aggregate_dicts(**kwargs):
@@ -145,10 +149,14 @@ def aggregate_dicts(**kwargs):
         dictionary_words_final[key]['document_frequency_relative'] = dictionary_words_final[key]['document_frequency'] / dictionary_index.number_of_documents
         dictionary_words_final[key]['document_normal_frequency_relative'] = dictionary_words_final[key]['document_normal_frequency'] / dictionary_index.number_of_documents
 
+    failed = 0
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words_final.values(),
                                      index=ES_INDEX_DICTIONARY_WORD,
                                      chunk_size=10000, raise_on_error=True, thread_count=4):
-        pass
+        if not ok:
+            failed += 1
+        if failed > 3:
+            raise Exception("Too many failed!!")
 
     ES_CLIENT.update(index=ES_INDEX_DICTIONARY_INDEX, id=dictionary_index.meta.id, body={"doc": {"is_ready": True}})
     return 0

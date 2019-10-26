@@ -249,6 +249,8 @@ def topic_modelling(**kwargs):
         else:
             print("!!!", "ES index fail, error", result)
             failed += 1
+        if failed > 3:
+            raise Exception("Too many failed to ES!!")
         if (success + failed) % batch_size == 0:
             minutes = round((datetime.datetime.now() - time_start).seconds / 60, 2)
             print(f'{success + failed} / {index.number_of_documents * index.number_of_topics} processed, '

@@ -36,8 +36,13 @@ def preprocessing_raw_data(**kwargs):
         doc['text_lemmatized'] = cleaned_doc
 
     documents_processed = 0
+    failed = 0
     for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents),
                                      index=ES_INDEX_DOCUMENT,
                                      chunk_size=5000, raise_on_error=True, max_retries=10):
+        if not ok:
+            failed += 1
+        if failed > 5:
+            raise Exception("Too many failed ES!!!")
         documents_processed += 1
     return documents_processed
