@@ -26,7 +26,7 @@ def init_embedding_index(**kwargs):
             "corpus": corpus,
         }
         if source:
-            query["source"] = source
+            query["source.keyword"] = source
         if datetime_from:
             query['datetime_from'] = datetime_from
         if datetime_to:
