@@ -10,14 +10,6 @@ def init_embedding_index(**kwargs):
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus)
-    if source:
-        s = s.filter("term", **{"source": source})
-    if datetime_from:
-        s = s.filter('range', datetime={'gte': datetime_from})
-    if datetime_to:
-        s = s.filter('range', datetime={'lt': datetime_to})
-    number_of_documents = s.count()
 
     # Check if already exists
     if ES_CLIENT.indices.exists(ES_INDEX_TOPIC_MODELLING):
@@ -34,6 +26,15 @@ def init_embedding_index(**kwargs):
         s = search(ES_CLIENT, ES_INDEX_TOPIC_MODELLING, query, source=["number_of_topics", "number_of_documents"])
         if s:
             return s[-1]
+
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus)
+    if source:
+        s = s.filter("term", **{"source": source})
+    if datetime_from:
+        s = s.filter('range', datetime={'gte': datetime_from})
+    if datetime_to:
+        s = s.filter('range', datetime={'lt': datetime_to})
+    number_of_documents = s.count()
 
     kwargs["number_of_documents"] = number_of_documents
     kwargs["is_ready"] = False
