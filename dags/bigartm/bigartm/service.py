@@ -1,3 +1,6 @@
+from util.util import is_kazakh
+
+
 def init_embedding_index(**kwargs):
     from util.service_es import search
     from elasticsearch_dsl import Search
@@ -83,6 +86,8 @@ def dataset_prepare(**kwargs):
     ids_in_list = set()
     for document in s.scan():
         if document.meta.id in ids_in_list:
+            continue
+        if is_kazakh(document.text_lemmatized + document.title if document.title else ""):
             continue
         ids.append(document.meta.id)
         ids_in_list.add(document.meta.id)
