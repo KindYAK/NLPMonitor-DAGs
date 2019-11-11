@@ -2,7 +2,7 @@ def return_cleaned_array(documents):  # комбинирует наши веhх�
     import re
     array = []
     for document in documents:
-        cleaned_doc = " ".join(x.lower().strip() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі]|[^ ]*[*][^ ]*)', ' ', document).split()).split())
+        cleaned_doc = " ".join(x.lower().strip() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', document).split()).split())
         array.append(cleaned_doc)
     return array
 

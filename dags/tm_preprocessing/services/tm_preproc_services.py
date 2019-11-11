@@ -31,7 +31,7 @@ def preprocessing_raw_data(**kwargs):
     morph = MorphAnalyzer()
 
     for doc in documents:
-        cleaned_doc = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split())
+        cleaned_doc = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split())
         cleaned_doc = " ".join([morph.parse(word)[0].normal_form for word in cleaned_doc.split() if len(word) > 2 and word not in stopwords])
         doc['text_lemmatized'] = cleaned_doc
 

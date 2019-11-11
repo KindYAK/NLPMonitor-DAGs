@@ -64,7 +64,7 @@ def generate_dictionary_batch(**kwargs):
         if is_kazakh(text):
             continue
         word_in_doc = set()
-        cleaned_words = (x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
+        cleaned_words = (x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
         for word in cleaned_words:
             is_first_upper = word[0].isupper()
             word = word.lower()

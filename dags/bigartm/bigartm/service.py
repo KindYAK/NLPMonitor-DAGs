@@ -1,7 +1,7 @@
 from util.util import is_kazakh
 
 
-def init_embedding_index(**kwargs):
+def init_tm_index(**kwargs):
     from util.service_es import search
     from elasticsearch_dsl import Search
 
@@ -57,7 +57,7 @@ def dataset_prepare(**kwargs):
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
 
-    index = init_embedding_index(**kwargs)
+    index = init_tm_index(**kwargs)
 
     lc = artm.messages.ConfigureLoggingArgs()
     lib = artm.wrapper.LibArtm(logging_config=lc)
@@ -134,7 +134,7 @@ def topic_modelling(**kwargs):
 
     name = kwargs['name']
     regularization_params = kwargs['regularization_params']
-    index = init_embedding_index(**kwargs)
+    index = init_tm_index(**kwargs)
 
     data_folder = os.path.join(BASE_DAG_DIR, "bigartm_temp")
     data_folder = os.path.join(data_folder, f"bigartm_formated_data_{name}")
