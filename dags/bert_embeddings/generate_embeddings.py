@@ -18,7 +18,7 @@ default_args = {
     'email': ['yakunin.k@mail.ru'],
     'email_on_failure': True,
     'email_on_retry': True,
-    'retries': 3,
+    'retries': 0,
     'retry_delay': timedelta(minutes=60),
     'priority_weight': 40,
     'pool': 'long_tasks',

@@ -18,7 +18,7 @@ default_args = {
     'email': ['airflow@example.com'],
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 5,
+    'retries': 2,
     'retry_delay': timedelta(minutes=15),
     'priority_weight': 75,
     'pool': 'short_tasks'
