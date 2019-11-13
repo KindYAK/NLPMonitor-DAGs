@@ -55,7 +55,7 @@ def dataset_prepare(**kwargs):
     from dags.bigartm.bigartm.cleaners import return_cleaned_array, txt_writer
     from util.constants import BASE_DAG_DIR
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
 
     index = init_tm_index(**kwargs)
 
@@ -123,6 +123,7 @@ def topic_modelling(**kwargs):
     import os
     import datetime
     import numpy as np
+    import shutil
     from elasticsearch.helpers import parallel_bulk
     from elasticsearch_dsl import Search
     from numba import jit
@@ -268,4 +269,6 @@ def topic_modelling(**kwargs):
     fileList = glob.glob(f'{BASE_DAG_DIR}/bigartm.*')
     for filePath in fileList:
         os.remove(filePath)
+    # Remove batches and stuff
+    shutil.rmtree(data_folder, ignore_errors=True)
     return index.number_of_documents
