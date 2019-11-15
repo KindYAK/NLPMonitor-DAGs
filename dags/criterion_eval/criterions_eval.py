@@ -9,13 +9,13 @@ from airflow.models import Variable
 from DjangoOperator import DjangoOperator
 from datetime import datetime, timedelta
 
-from dags.scraper.scrap.service import scrap
+from dags.criterion_eval.evaluate.service import evaluate
 
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2019, 9, 5),
+    'start_date': datetime(2019, 11, 14),
     'email': ['airflow@example.com'],
     'email_on_failure': False,
     'email_on_retry': False,
@@ -36,7 +36,7 @@ with dag:
                                             criterion['name_translit'].replace(":", "_").replace(" ", "_"))))
         evaluators.append(DjangoOperator(
             task_id=f"eval_{filtered_name}",
-            python_callable=scrap,
+            python_callable=evaluate,
             op_kwargs={
                 "criterion_id": criterion['id']
             }
