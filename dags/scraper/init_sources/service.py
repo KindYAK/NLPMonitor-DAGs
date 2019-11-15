@@ -13,13 +13,3 @@ def init_sources(**kwargs):
                          } for s in ss]
                      )
                  )
-
-
-# def test(**kwargs):
-#     import json
-#     from airflow.models import Variable
-#
-#     ss = json.loads(Variable.get('sources'))
-#     print(ss)
-#
-#     return len(ss)
