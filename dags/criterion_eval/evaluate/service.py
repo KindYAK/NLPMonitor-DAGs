@@ -1,5 +1,6 @@
 def evaluate(**kwargs):
     import datetime
+    import logging
 
     from evaluation.models import EvalCriterion, TopicsEval
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT
@@ -7,6 +8,9 @@ def evaluate(**kwargs):
 
     from elasticsearch_dsl import Search
     from elasticsearch.helpers import parallel_bulk
+
+    es_logger = logging.getLogger('elasticsearch')
+    es_logger.setLevel(logging.ERROR)
 
     print("!!!", "Forming topic-eval dict", datetime.datetime.now())
     criterion = EvalCriterion.objects.get(id=kwargs['criterion_id'])
