@@ -1,4 +1,6 @@
 def evaluate(**kwargs):
+    import datetime
+
     from evaluation.models import EvalCriterion, TopicsEval
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT
     from mainapp.documents import TopicEval
@@ -6,6 +8,7 @@ def evaluate(**kwargs):
     from elasticsearch_dsl import Search
     from elasticsearch.helpers import parallel_bulk
 
+    print("!!!", "Forming topic-eval dict", datetime.datetime.now())
     criterion = EvalCriterion.objects.get(id=kwargs['criterion_id'])
     evaluations = TopicsEval.objects.filter(criterion=criterion).prefetch_related('topics')
 
@@ -26,6 +29,7 @@ def evaluate(**kwargs):
         for t in criterions_evals_dict[tm].keys():
             criterions_evals_dict[tm][t] = sum(criterions_evals_dict[tm][t]) / len(criterions_evals_dict[tm][t])
 
+    print("!!!", "Forming doc-eval dict", datetime.datetime.now())
     # Eval documents
     # Dict Document -> [topic_weight*topic_eval for ...]
     documents_criterion_dict = {}
@@ -47,6 +51,7 @@ def evaluate(**kwargs):
                 td.topic_weight * criterions_evals_dict[tm][td.topic_id]
             )
 
+    print("!!!", "Sending to elastic", datetime.datetime.now())
     # Send to elastic
     def doc_eval_generator(documents_criterion_dict):
         for doc in documents_criterion_dict.keys():
