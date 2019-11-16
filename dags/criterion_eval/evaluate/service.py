@@ -4,7 +4,7 @@ def evaluate(**kwargs):
 
     from evaluation.models import EvalCriterion, TopicsEval
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT
-    from mainapp.documents import TopicEval
+    from mainapp.documents import DocumentEval
 
     from elasticsearch_dsl import Search
     from elasticsearch.helpers import parallel_bulk
@@ -33,11 +33,13 @@ def evaluate(**kwargs):
         for t in criterions_evals_dict[tm].keys():
             criterions_evals_dict[tm][t] = sum(criterions_evals_dict[tm][t]) / len(criterions_evals_dict[tm][t])
 
-    print("!!!", "Forming doc-eval dict", datetime.datetime.now())
-    # Eval documents
-    # Dict Document -> [topic_weight*topic_eval for ...]
-    documents_criterion_dict = {}
+    total_created = 0
     for tm in criterions_evals_dict.keys():
+        print("!!!", "Forming doc-eval dict for tm", tm, datetime.datetime.now())
+        # Eval documents
+        # Dict Document -> [topic_weight*topic_eval for ...]
+        documents_criterion_dict = {}
+
         std = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT)
         std = std.filter("term", **{"topic_modelling.keyword": tm}) \
                   .filter("range", topic_weight={"gte": 0.001}) \
@@ -55,31 +57,39 @@ def evaluate(**kwargs):
                 td.topic_weight * criterions_evals_dict[tm][td.topic_id]
             )
 
-    print("!!!", "Sending to elastic", datetime.datetime.now())
-    # Send to elastic
-    def doc_eval_generator(documents_criterion_dict):
-        for doc in documents_criterion_dict.keys():
-            eval = TopicEval()
-            val = (sum(documents_criterion_dict[doc]["value"]) / len(documents_criterion_dict[doc]["value"]))
-            eval.criterion_id = criterion.id
-            eval.criterion_name = criterion.name
-            eval.value = val
-            eval.document_es_id = doc
-            eval.document_datetime = documents_criterion_dict[doc]["document_datetime"]
-            eval.document_source = documents_criterion_dict[doc]["document_source"]
-            yield eval.to_dict()
+        print("!!!", "Sending to elastic for tm", tm, datetime.datetime.now())
+        # Send to elastic
+        try:
+            Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT_EVAL).filter("term", criterion_id=criterion.id)\
+                .filter("term", topic_modelling=tm).delete()
+        except:
+            print("!!!!!", "Problem during old topic_documents deletion occurred")
 
-    failed = 0
-    ok = 0
-    for ok, result in parallel_bulk(ES_CLIENT, doc_eval_generator(documents_criterion_dict),
-                                     index=ES_INDEX_DOCUMENT_EVAL,
-                                     chunk_size=50000, raise_on_error=True, thread_count=6):
-        if not ok:
-            failed += 1
-        else:
-            ok += 1
-        if (failed+ok) % 50000 == 0:
-            print(f"{failed+ok}/{len(documents_criterion_dict.keys())} processed")
-        if failed > 5:
-            raise Exception("Too many failed ES!!!")
-    return "Done", len(documents_criterion_dict.keys())
+        def doc_eval_generator(documents_criterion_dict, tm):
+            for doc in documents_criterion_dict.keys():
+                eval = DocumentEval()
+                val = (sum(documents_criterion_dict[doc]["value"]) / len(documents_criterion_dict[doc]["value"]))
+                eval.topic_modelling = tm
+                eval.criterion_id = criterion.id
+                eval.criterion_name = criterion.name
+                eval.value = val
+                eval.document_es_id = doc
+                eval.document_datetime = documents_criterion_dict[doc]["document_datetime"]
+                eval.document_source = documents_criterion_dict[doc]["document_source"]
+                yield eval.to_dict()
+
+        failed = 0
+        ok = 0
+        for ok, result in parallel_bulk(ES_CLIENT, doc_eval_generator(documents_criterion_dict, tm),
+                                         index=ES_INDEX_DOCUMENT_EVAL,
+                                         chunk_size=50000, raise_on_error=True, thread_count=6):
+            if not ok:
+                failed += 1
+            else:
+                ok += 1
+                total_created += 1
+            if (failed+ok) % 50000 == 0:
+                print(f"!!!{failed+ok}/{len(documents_criterion_dict.keys())} processed")
+            if failed > 5:
+                raise Exception("Too many failed ES!!!")
+    return total_created
