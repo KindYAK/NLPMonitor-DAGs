@@ -1,8 +1,9 @@
 def evaluate(**kwargs):
-    from evaluation.models import EvalCriterion, TopicsEval, TopicIDEval
+    from evaluation.models import EvalCriterion, TopicsEval
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_DOCUMENT
 
     from elasticsearch_dsl import Search
+    from elasticsearch.helpers import parallel_bulk
 
     criterion = EvalCriterion.objects.get(id=kwargs['criterion_id'])
     evaluations = TopicsEval.objects.filter(criterion=criterion).prefetch_related('topics')
@@ -39,9 +40,23 @@ def evaluate(**kwargs):
                 documents_criterion_dict[td.document_es_id] = []
             documents_criterion_dict[td.document_es_id].append(td.topic_weight*criterions_evals_dict[tm][td.topic_id])
 
-    for doc in documents_criterion_dict:
-        documents_criterion_dict[doc] = sum(documents_criterion_dict[doc]) / len(documents_criterion_dict[doc])
+    def doc_eval_generator(documents_criterion_dict):
+        for doc in documents_criterion_dict.keys():
+            val = (sum(documents_criterion_dict[doc]) / len(documents_criterion_dict[doc]))
+            yield {
+                "_index": ES_INDEX_DOCUMENT,
+                "_op_type": "update",
+                "_id": doc,
+                "doc": {f'criterion_{criterion.id}': val},
+            }
 
-    print("!!!", documents_criterion_dict)
+    failed = 0
+    for ok, result in parallel_bulk(ES_CLIENT, doc_eval_generator(documents_criterion_dict),
+                                     index=ES_INDEX_DOCUMENT,
+                                     chunk_size=50000, raise_on_error=True, thread_count=6):
+        if not ok:
+            failed += 1
+        if failed > 5:
+            raise Exception("Too many failed ES!!!")
 
     return "Done"
