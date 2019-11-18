@@ -54,7 +54,10 @@ def evaluate(**kwargs):
                     "document_source": td.document_source
                 }
             documents_criterion_dict[td.document_es_id]["value"].append(
-                td.topic_weight * criterions_evals_dict[tm][td.topic_id]
+                {
+                    "topic_weight": td.topic_weight,
+                    "criterion_value": criterions_evals_dict[tm][td.topic_id],
+                }
             )
 
         print("!!!", "Sending to elastic for tm", tm, datetime.datetime.now())
@@ -68,7 +71,8 @@ def evaluate(**kwargs):
         def doc_eval_generator(documents_criterion_dict, tm):
             for doc in documents_criterion_dict.keys():
                 eval = DocumentEval()
-                val = (sum(documents_criterion_dict[doc]["value"]) / len(documents_criterion_dict[doc]["value"]))
+                val = (sum([v['topic_weight']*v['criterion_value'] for v in documents_criterion_dict[doc]["value"]])
+                        / sum([v['topic_weight'] for v in documents_criterion_dict[doc]["value"]]))
                 eval.topic_modelling = tm
                 eval.criterion_id = criterion.id
                 eval.criterion_name = criterion.name
