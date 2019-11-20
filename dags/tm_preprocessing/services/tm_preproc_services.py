@@ -7,11 +7,29 @@ def init_last_datetime():
     Variable.set("lemmatize_number_of_documents", s.count())
 
 
+known_counter = 0
+custom_dict_counter = 0
+not_in_dict_counter = 0
+def morph_with_dictionary(morph, word, custom_dict):
+    parse = morph.parse(word)[0]
+    if parse.is_known:
+        global known_counter
+        known_counter += 1
+        return parse.normal_form
+    if word in custom_dict:
+        global custom_dict_counter
+        custom_dict_counter += 1
+        return custom_dict[word]
+    global not_in_dict_counter
+    not_in_dict_counter += 1
+    return ""
+
+
 def preprocessing_raw_data(**kwargs):
     import re
     from util.service_es import search, update_generator
     from elasticsearch_dsl import Search
-    from nlpmonitor.settings import ES_INDEX_DOCUMENT, ES_CLIENT
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_CUSTOM_DICTIONARY_WORD
     from elasticsearch.helpers import streaming_bulk
     from stop_words import get_stop_words
     from pymorphy2 import MorphAnalyzer
@@ -30,9 +48,15 @@ def preprocessing_raw_data(**kwargs):
     stopwords = get_stop_words('ru')
     morph = MorphAnalyzer()
 
+    s = Search(using=ES_CLIENT, index=ES_INDEX_CUSTOM_DICTIONARY_WORD)
+    r = s[:1000000].scan()
+    custom_dict = dict((w.word, w.word_normal) for w in r)
+
     for doc in documents:
         cleaned_doc = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split())
-        cleaned_doc = " ".join([morph.parse(word)[0].normal_form for word in cleaned_doc.split() if len(word) > 2 and word not in stopwords])
+        cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in cleaned_doc.split() if len(word) > 2 and word not in stopwords]
+        cleaned_words_list = [word for word in cleaned_words_list if len(word) > 2]
+        cleaned_doc = " ".join(cleaned_words_list)
         doc['text_lemmatized'] = cleaned_doc
 
     documents_processed = 0
@@ -45,4 +69,4 @@ def preprocessing_raw_data(**kwargs):
         if failed > 5:
             raise Exception("Too many failed ES!!!")
         documents_processed += 1
-    return documents_processed
+    return f"{documents_processed} Processed, {known_counter} in pymorphie dict, {custom_dict_counter} in custom dict, {not_in_dict_counter} not found"
