@@ -250,7 +250,7 @@ def topic_modelling(**kwargs):
     time_start = datetime.datetime.now()
     row_generator = (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_documents))
     for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for row in row_generator for doc in row),
-                                    index=ES_INDEX_TOPIC_DOCUMENT, chunk_size=batch_size, thread_count=6, raise_on_error=True):
+                                    index=ES_INDEX_TOPIC_DOCUMENT, chunk_size=batch_size, thread_count=15, raise_on_error=True):
         if ok:
             success += 1
         else:
