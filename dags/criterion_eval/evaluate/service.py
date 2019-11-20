@@ -3,9 +3,10 @@ def evaluate(**kwargs):
     import logging
 
     from evaluation.models import EvalCriterion, TopicsEval
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT, ES_HOST
     from mainapp.documents import DocumentEval
 
+    from elasticsearch import Elasticsearch
     from elasticsearch_dsl import Search
     from elasticsearch.helpers import parallel_bulk
 
@@ -63,7 +64,15 @@ def evaluate(**kwargs):
         print("!!!", "Sending to elastic for tm", tm, datetime.datetime.now())
         # Send to elastic
         try:
-            Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT_EVAL).filter("term", criterion_id=criterion.id)\
+            ES_CLIENT_DELETION = Elasticsearch(
+                hosts=[
+                    {'host': ES_HOST}
+                ],
+                timeout=3600,
+                max_retries=3,
+                retry_on_timeout=True
+            )
+            Search(using=ES_CLIENT_DELETION, index=ES_INDEX_DOCUMENT_EVAL).filter("term", criterion_id=criterion.id)\
                 .filter("term", topic_modelling=tm).delete()
         except:
             print("!!!!!", "Problem during old topic_documents deletion occurred")
