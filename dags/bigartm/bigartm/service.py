@@ -1,3 +1,5 @@
+from elasticsearch import Elasticsearch
+
 from util.util import is_kazakh
 
 
@@ -130,7 +132,7 @@ def topic_modelling(**kwargs):
 
     from util.constants import BASE_DAG_DIR
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT, ES_HOST
     from mainapp.documents import TopicDocument
 
     name = kwargs['name']
@@ -242,15 +244,24 @@ def topic_modelling(**kwargs):
 
     print("!!!", "Write document-topics", datetime.datetime.now())
     try:
-        Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).delete()
-    except:
+        ES_CLIENT_DELETION = Elasticsearch(
+            hosts=[
+                {'host': ES_HOST}
+            ],
+            timeout=3600,
+            max_retries=3,
+            retry_on_timeout=True
+        )
+        Search(using=ES_CLIENT_DELETION, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).delete()
+    except Exception as e:
         print("!!!!!", "Problem during old topic_documents deletion occurred")
+        print("!!!!!", e)
     success, failed = 0, 0
     batch_size = 100000
     time_start = datetime.datetime.now()
     row_generator = (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_documents))
     for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for row in row_generator for doc in row),
-                                    index=ES_INDEX_TOPIC_DOCUMENT, chunk_size=batch_size, thread_count=15, raise_on_error=True):
+                                    index=ES_INDEX_TOPIC_DOCUMENT, chunk_size=batch_size, thread_count=10, raise_on_error=True):
         if ok:
             success += 1
         else:
