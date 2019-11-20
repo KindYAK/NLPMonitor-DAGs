@@ -50,7 +50,6 @@ def dataset_prepare(**kwargs):
     import os
     import shutil
     import artm
-    from elasticsearch import Elasticsearch
     from elasticsearch_dsl import Search
 
     from dags.bigartm.bigartm.cleaners import return_cleaned_array, txt_writer
@@ -126,6 +125,7 @@ def topic_modelling(**kwargs):
     import numpy as np
     import shutil
     from elasticsearch.helpers import parallel_bulk
+    from elasticsearch import Elasticsearch
     from elasticsearch_dsl import Search
     from numba import jit
 
