@@ -122,3 +122,18 @@ gen_bigartm_dag(dag=dag4, name="bigartm_less_small_test", description="Subset of
                     "DecorrelatorPhiRegularizer": 0.15,
                     "ImproveCoherencePhiRegularizer": 0.15
                 })
+
+dag4 = DAG('NLPmonitor_BigARTM_two_years', default_args=default_args, schedule_interval=None)
+gen_bigartm_dag(dag=dag4, name="bigartm_two_years", description="Two last years", number_of_topics=200,
+                filters={
+                    "corpus": "main",
+                    "source": None,
+                    "datetime_from": date(2017, 11, 1),
+                    "datetime_to": date(2019, 12, 1),
+                },
+                regularization_params={
+                    "SmoothSparseThetaRegularizer": 0.15,
+                    "SmoothSparsePhiRegularizer": 0.15,
+                    "DecorrelatorPhiRegularizer": 0.15,
+                    "ImproveCoherencePhiRegularizer": 0.15
+                })
