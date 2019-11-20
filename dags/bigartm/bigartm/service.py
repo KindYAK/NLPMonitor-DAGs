@@ -1,5 +1,3 @@
-from elasticsearch import Elasticsearch
-
 from util.util import is_kazakh
 
 
@@ -52,6 +50,7 @@ def dataset_prepare(**kwargs):
     import os
     import shutil
     import artm
+    from elasticsearch import Elasticsearch
     from elasticsearch_dsl import Search
 
     from dags.bigartm.bigartm.cleaners import return_cleaned_array, txt_writer
