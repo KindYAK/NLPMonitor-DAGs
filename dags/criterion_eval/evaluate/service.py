@@ -74,8 +74,9 @@ def evaluate(**kwargs):
             )
             Search(using=ES_CLIENT_DELETION, index=ES_INDEX_DOCUMENT_EVAL).filter("term", criterion_id=criterion.id)\
                 .filter("term", topic_modelling=tm).delete()
-        except:
+        except Exception as e:
             print("!!!!!", "Problem during old topic_documents deletion occurred")
+            print("!!!", e)
 
         def doc_eval_generator(documents_criterion_dict, tm):
             for doc in documents_criterion_dict.keys():
