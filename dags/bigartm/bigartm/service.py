@@ -94,7 +94,7 @@ def dataset_prepare(**kwargs):
         texts.append(document.text_lemmatized)
         titles.append(document.title)
         sources.append(document.source)
-        dates.append(document.datetime if hasattr(document, "datetime") else "")
+        dates.append(document.datetime if hasattr(document, "datetime") and document.datetime else "")
     titles = return_cleaned_array(titles)
 
     formated_data = []

@@ -50,7 +50,7 @@ def evaluate(**kwargs):
             if td.document_es_id not in documents_criterion_dict:
                 documents_criterion_dict[td.document_es_id] = {
                     "value": [],
-                    "document_datetime": td.datetime if hasattr(td, "datetime") else None,
+                    "document_datetime": td.datetime if hasattr(td, "datetime") and td.datetime else None,
                     "document_source": td.document_source
                 }
             documents_criterion_dict[td.document_es_id]["value"].append(
