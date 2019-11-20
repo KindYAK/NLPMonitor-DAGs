@@ -123,8 +123,8 @@ gen_bigartm_dag(dag=dag4, name="bigartm_less_small_test", description="Subset of
                     "ImproveCoherencePhiRegularizer": 0.15
                 })
 
-dag4 = DAG('NLPmonitor_BigARTM_two_years', default_args=default_args, schedule_interval=None)
-gen_bigartm_dag(dag=dag4, name="bigartm_two_years", description="Two last years", number_of_topics=200,
+dag5 = DAG('NLPmonitor_BigARTM_two_years', default_args=default_args, schedule_interval=None)
+gen_bigartm_dag(dag=dag5, name="bigartm_two_years", description="Two last years", number_of_topics=200,
                 filters={
                     "corpus": "main",
                     "source": None,
