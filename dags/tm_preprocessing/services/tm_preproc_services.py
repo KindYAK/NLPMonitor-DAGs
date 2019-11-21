@@ -12,14 +12,14 @@ custom_dict_counter = 0
 not_in_dict_counter = 0
 def morph_with_dictionary(morph, word, custom_dict):
     parse = morph.parse(word)[0]
-    if parse.is_known:
-        global known_counter
-        known_counter += 1
-        return parse.normal_form
     if word in custom_dict:
         global custom_dict_counter
         custom_dict_counter += 1
         return custom_dict[word]
+    if parse.is_known:
+        global known_counter
+        known_counter += 1
+        return parse.normal_form
     global not_in_dict_counter
     not_in_dict_counter += 1
     return ""
