@@ -50,12 +50,14 @@ def dataset_prepare(**kwargs):
     import os
     import shutil
     import artm
+    import datetime
     from elasticsearch_dsl import Search
 
     from dags.bigartm.bigartm.cleaners import return_cleaned_array, txt_writer
     from util.constants import BASE_DAG_DIR
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_DOCUMENT
+    from mainapp.models_user import TopicGroup
 
     index = init_tm_index(**kwargs)
 
@@ -69,6 +71,7 @@ def dataset_prepare(**kwargs):
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
+    group_id = kwargs['group_id']
     # Extract
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus).filter('exists', field="text_lemmatized")
     if source:
@@ -77,6 +80,19 @@ def dataset_prepare(**kwargs):
         s = s.filter('range', datetime={'gte': datetime_from})
     if datetime_to:
         s = s.filter('range', datetime={'lt': datetime_to})
+    if group_id:
+        group = TopicGroup.objects.get(id=group_id)
+        topic_ids = [t.topic_id for t in group.topics.all()]
+        topic_modelling_name = group.topic_modelling_name
+        st = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT)\
+            .filter("terms", **{"topic_id.keyword": topic_ids})\
+            .filter("term", **{"topic_modelling.keyword": topic_modelling_name})\
+            .filter("range", topic_weight={"gte": 0.1}) \
+            .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
+            .source(('document_es_id'))[:1000000]
+        r = st.scan()
+        document_es_ids = [doc.document_es_id for doc in r]
+        s = s.filter("terms", _id=document_es_ids)
     s = s.source(["id", "text_lemmatized", "title", "source", "datetime"]).sort(('id',))[:index.number_of_documents]
     ids = []
     texts = []
