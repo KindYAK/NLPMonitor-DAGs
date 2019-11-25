@@ -41,9 +41,8 @@ def evaluate(**kwargs):
         # Dict Document -> [topic_weight*topic_eval for ...]
         documents_criterion_dict = {}
 
-        std = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT)
-        std = std.filter("term", **{"topic_modelling.keyword": tm}) \
-                  .filter("range", topic_weight={"gte": 0.001}) \
+        std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{tm}")
+        std = std.filter("range", topic_weight={"gte": 0.001}) \
                   .source(['document_es_id', 'topic_weight', 'topic_id', "datetime", "document_source"]).scan()
         for td in std:
             if td.topic_id not in criterions_evals_dict[tm]:
