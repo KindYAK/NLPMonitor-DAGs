@@ -290,11 +290,11 @@ def topic_modelling(**kwargs):
                   f'took {minutes} min, TETA~{round(minutes * index.number_of_documents * index.number_of_topics / batch_size / 60, 2)} hours')
             time_start = datetime.datetime.now()
     print("!!!", "Done writing", datetime.datetime.now())
-    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"is_ready": True}})
+    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"is_ready": True, "number_of_documents": theta_documents.shape[0]}})
     # Remove logs
     fileList = glob.glob(f'{BASE_DAG_DIR}/bigartm.*')
     for filePath in fileList:
         os.remove(filePath)
     # Remove batches and stuff
     shutil.rmtree(data_folder, ignore_errors=True)
-    return index.number_of_documents
+    return theta_documents.shape[0]
