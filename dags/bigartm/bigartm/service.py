@@ -72,6 +72,7 @@ def dataset_prepare(**kwargs):
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
     group_id = kwargs['group_id']
+    topic_weight_threshold = kwargs['topic_weight_threshold']
     # Extract
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus).filter('exists', field="text_lemmatized")
     if source:
@@ -87,7 +88,7 @@ def dataset_prepare(**kwargs):
         st = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT)\
             .filter("terms", **{"topic_id.keyword": topic_ids})\
             .filter("term", **{"topic_modelling.keyword": topic_modelling_name})\
-            .filter("range", topic_weight={"gte": 0.1}) \
+            .filter("range", topic_weight={"gte": topic_weight_threshold}) \
             .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
             .source(('document_es_id'))[:1000000]
         r = st.scan()
