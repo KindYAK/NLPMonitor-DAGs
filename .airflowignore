@@ -25,3 +25,5 @@ mussabayev_tm_temp/
 dags/bigartm/bigartm/
 bigartm_temp/
 bigartm_models/
+
+dags/bigartm_acualizer/services/

@@ -13,6 +13,7 @@ def init_tm_index(**kwargs):
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
+    is_actualizable = kwargs['is_actualizable']
 
     # Check if already exists
     if ES_CLIENT.indices.exists(ES_INDEX_TOPIC_MODELLING):
@@ -153,6 +154,7 @@ def topic_modelling(**kwargs):
 
     name = kwargs['name']
     regularization_params = kwargs['regularization_params']
+    is_actualizable = kwargs['is_actualizable']
     index = init_tm_index(**kwargs)
 
     data_folder = os.path.join(BASE_DAG_DIR, "bigartm_temp")
@@ -295,7 +297,15 @@ def topic_modelling(**kwargs):
                   f'took {minutes} min, TETA~{round(minutes * index.number_of_documents * index.number_of_topics / batch_size / 60, 2)} hours')
             time_start = datetime.datetime.now()
     print("!!!", "Done writing", datetime.datetime.now())
-    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id, body={"doc": {"is_ready": True, "number_of_documents": theta_documents.shape[0]}})
+    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id,
+                         body={
+                             "doc": {
+                                 "is_ready": True,
+                                 "number_of_documents": theta_documents.shape[0],
+                                 "is_actualizable": is_actualizable,
+                             }
+                         }
+                     )
     # Remove logs
     fileList = glob.glob(f'{BASE_DAG_DIR}/bigartm.*')
     for filePath in fileList:

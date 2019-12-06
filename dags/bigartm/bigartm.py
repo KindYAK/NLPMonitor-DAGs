@@ -23,7 +23,7 @@ default_args = {
 }
 
 
-def gen_bigartm_dag(dag, name, description, number_of_topics, filters, regularization_params):
+def gen_bigartm_dag(dag, name, description, number_of_topics, filters, regularization_params, is_actualizable=False):
     from dags.bigartm.bigartm.service import dataset_prepare, topic_modelling
 
     # if source:
@@ -48,6 +48,7 @@ def gen_bigartm_dag(dag, name, description, number_of_topics, filters, regulariz
                 },
                 "hierarchical": False,
                 "number_of_topics": number_of_topics,
+                "is_actualizable": is_actualizable,
             }
         )
         topic_modelling = DjangoOperator(
@@ -61,11 +62,13 @@ def gen_bigartm_dag(dag, name, description, number_of_topics, filters, regulariz
                 "datetime_to": filters['datetime_to'],
                 "group_id": filters['group_id'] if 'group_id' in filters else None,
                 "regularization_params": regularization_params,
+                "is_actualizable": is_actualizable,
             }
         )
         dataset_prepare >> topic_modelling
 
 
+actualizable_dags = []
 dag1 = DAG('NLPmonitor_BigARTM', default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag1, name="bigartm_test", description="All news", number_of_topics=250,
                 filters={
@@ -79,52 +82,9 @@ gen_bigartm_dag(dag=dag1, name="bigartm_test", description="All news", number_of
                     "SmoothSparsePhiRegularizer": 0.15,
                     "DecorrelatorPhiRegularizer": 0.15,
                     "ImproveCoherencePhiRegularizer": 0.15
-                })
+                }, is_actualizable=True)
+actualizable_dags.append(dag1)
 
-dag2 = DAG('NLPmonitor_BigARTM_tengrinews', default_args=default_args, schedule_interval=None)
-gen_bigartm_dag(dag=dag2, name="bigartm_tengrinews", description="All news from tengrinews", number_of_topics=250,
-                filters={
-                    "corpus": "main",
-                    "source": "https://tengrinews.kz/",
-                    "datetime_from": None,
-                    "datetime_to": None,
-                },
-                regularization_params={
-                    "SmoothSparseThetaRegularizer": 0.15,
-                    "SmoothSparsePhiRegularizer": 0.15,
-                    "DecorrelatorPhiRegularizer": 0.15,
-                    "ImproveCoherencePhiRegularizer": 0.15
-                })
-
-dag3 = DAG('NLPmonitor_BigARTM_small_test', default_args=default_args, schedule_interval=None)
-gen_bigartm_dag(dag=dag3, name="bigartm_small_test", description="Subset of tengrinews news", number_of_topics=250,
-                filters={
-                    "corpus": "main",
-                    "source": "https://kapital.kz/",
-                    "datetime_from": date(2019, 1, 1),
-                    "datetime_to": date(2019, 3, 1),
-                },
-                regularization_params={
-                    "SmoothSparseThetaRegularizer": 0.15,
-                    "SmoothSparsePhiRegularizer": 0.15,
-                    "DecorrelatorPhiRegularizer": 0.15,
-                    "ImproveCoherencePhiRegularizer": 0.15
-                })
-
-dag4 = DAG('NLPmonitor_BigARTM_less_small_test', default_args=default_args, schedule_interval=None)
-gen_bigartm_dag(dag=dag4, name="bigartm_less_small_test", description="Subset of tengrinews news", number_of_topics=250,
-                filters={
-                    "corpus": "main",
-                    "source": None,
-                    "datetime_from": date(2019, 1, 1),
-                    "datetime_to": date(2019, 3, 1),
-                },
-                regularization_params={
-                    "SmoothSparseThetaRegularizer": 0.15,
-                    "SmoothSparsePhiRegularizer": 0.15,
-                    "DecorrelatorPhiRegularizer": 0.15,
-                    "ImproveCoherencePhiRegularizer": 0.15
-                })
 
 dag5 = DAG('NLPmonitor_BigARTM_two_years', default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag5, name="bigartm_two_years", description="Two last years", number_of_topics=200,
@@ -139,7 +99,8 @@ gen_bigartm_dag(dag=dag5, name="bigartm_two_years", description="Two last years"
                     "SmoothSparsePhiRegularizer": 0.15,
                     "DecorrelatorPhiRegularizer": 0.15,
                     "ImproveCoherencePhiRegularizer": 0.15
-                })
+                }, is_actualizable=True)
+actualizable_dags.append(dag5)
 
 
 dag6 = DAG('NLPmonitor_BigARTM_education_two_years', default_args=default_args, schedule_interval=None)
@@ -157,7 +118,8 @@ gen_bigartm_dag(dag=dag6, name="bigartm_education_two_years", description="Two l
                     "SmoothSparsePhiRegularizer": 0.15,
                     "DecorrelatorPhiRegularizer": 0.15,
                     "ImproveCoherencePhiRegularizer": 0.15
-                })
+                }, is_actualizable=True)
+actualizable_dags.append(dag6)
 
 
 dag7 = DAG('NLPmonitor_BigARTM_education_one_year', default_args=default_args, schedule_interval=None)
@@ -175,7 +137,8 @@ gen_bigartm_dag(dag=dag7, name="bigartm_education_one_year", description="One la
                     "SmoothSparsePhiRegularizer": 0.15,
                     "DecorrelatorPhiRegularizer": 0.15,
                     "ImproveCoherencePhiRegularizer": 0.15
-                })
+                }, is_actualizable=True)
+actualizable_dags.append(dag7)
 
 dag8 = DAG('NLPmonitor_BigARTM_education_half_year', default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag8, name="bigartm_education_half_year", description="One half year education", number_of_topics=100,
@@ -192,7 +155,8 @@ gen_bigartm_dag(dag=dag8, name="bigartm_education_half_year", description="One h
                     "SmoothSparsePhiRegularizer": 0.15,
                     "DecorrelatorPhiRegularizer": 0.15,
                     "ImproveCoherencePhiRegularizer": 0.15
-                })
+                }, is_actualizable=True)
+actualizable_dags.append(dag8)
 
 
 dag9 = DAG('NLPmonitor_BigARTM_science_two_years', default_args=default_args, schedule_interval=None)
@@ -210,7 +174,8 @@ gen_bigartm_dag(dag=dag9, name="bigartm_science_two_years", description="Two las
                     "SmoothSparsePhiRegularizer": 0.15,
                     "DecorrelatorPhiRegularizer": 0.15,
                     "ImproveCoherencePhiRegularizer": 0.15
-                })
+                }, is_actualizable=True)
+actualizable_dags.append(dag9)
 
 
 dag10 = DAG('NLPmonitor_BigARTM_science_one_year', default_args=default_args, schedule_interval=None)
@@ -228,7 +193,9 @@ gen_bigartm_dag(dag=dag10, name="bigartm_science_one_year", description="One las
                     "SmoothSparsePhiRegularizer": 0.15,
                     "DecorrelatorPhiRegularizer": 0.15,
                     "ImproveCoherencePhiRegularizer": 0.15
-                })
+                }, is_actualizable=True)
+actualizable_dags.append(dag10)
+
 
 dag11 = DAG('NLPmonitor_BigARTM_science_half_year', default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag11, name="bigartm_science_half_year", description="One half year science", number_of_topics=100,
@@ -245,4 +212,5 @@ gen_bigartm_dag(dag=dag11, name="bigartm_science_half_year", description="One ha
                     "SmoothSparsePhiRegularizer": 0.15,
                     "DecorrelatorPhiRegularizer": 0.15,
                     "ImproveCoherencePhiRegularizer": 0.15
-                })
+                }, is_actualizable=True)
+actualizable_dags.append(dag11)
