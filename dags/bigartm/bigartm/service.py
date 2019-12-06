@@ -182,11 +182,15 @@ def topic_modelling(**kwargs):
     print("!!!", "Start model train", datetime.datetime.now())
     # Fit model
     model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
+    model_folder = os.path.join(BASE_DAG_DIR, "bigartm_models")
+    if not os.path.exists(model_folder):
+        os.mkdir(model_folder)
+    model_artm.save(os.path.join(model_folder, f"model_{name}.model"))
 
-    phi = model_artm.get_phi()
     print("!!!", "Get topics", datetime.datetime.now())
     # Create topics in ES
     topics = []
+    phi = model_artm.get_phi()
     for topic in phi:
         phi_filtered = phi[phi[topic] > 0.0001]
         topic_words = [
