@@ -109,13 +109,13 @@ def dataset_prepare(**kwargs):
         s = s.filter("terms", _id=document_es_ids)
 
     # Exclude document already in TM if actualizing
+    ids_to_skip = None
     if perform_actualize:
         print("!!!", "Performing actualizing, skipping document already in TM")
         std = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).source([])[:0]
         std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id.keyword", size=5000000)
         r = std.execute()
-        ids = [bucket.key for bucket in r.aggregations.ids.buckets]
-        s = s.exclude("terms", _id=ids)
+        ids_to_skip = [bucket.key for bucket in r.aggregations.ids.buckets]
 
     s = s.source(["id", "text_lemmatized", "title", "source", "datetime"]).sort(('id',))[:index.number_of_documents]
     ids = []
@@ -126,6 +126,8 @@ def dataset_prepare(**kwargs):
     ids_in_list = set()
     for document in s.scan():
         if document.meta.id in ids_in_list:
+            continue
+        if ids_to_skip and document.meta.id in ids_to_skip:
             continue
         if is_kazakh(document.text_lemmatized + document.title if document.title else ""):
             continue
