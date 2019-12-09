@@ -8,7 +8,7 @@ class TMNotFoundException(Exception):
 def init_tm_index(**kwargs):
     from elasticsearch_dsl import Search
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
     from mainapp.documents import TopicModellingIndex
 
     corpus = kwargs['corpus']
@@ -100,7 +100,7 @@ def dataset_prepare(**kwargs):
         topic_modelling_name = group.topic_modelling_name
         st = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}")\
             .filter("terms", **{"topic_id.keyword": topic_ids})\
-            .filter("range", topic_weight={"gte": 0.1}) \
+            .filter("range", topic_weight={"gte": topic_weight_threshold}) \
             .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
             .source(('document_es_id'))[:1000000]
         r = st.scan()
@@ -169,13 +169,12 @@ def topic_modelling(**kwargs):
     import numpy as np
     import shutil
     from elasticsearch.helpers import parallel_bulk
-    from elasticsearch import Elasticsearch
-    from elasticsearch_dsl import Search, Index
+    from elasticsearch_dsl import Index
     from numba import jit
 
     from util.constants import BASE_DAG_DIR
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT, ES_HOST
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT
     from mainapp.documents import TopicDocument
 
     perform_actualize = 'perform_actualize' in kwargs
