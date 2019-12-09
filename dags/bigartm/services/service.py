@@ -111,7 +111,7 @@ def dataset_prepare(**kwargs):
     ids_to_skip = None
     if perform_actualize:
         print("!!!", "Performing actualizing, skipping document already in TM")
-        std = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).source([])[:0]
+        std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}").source([])[:0]
         std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id.keyword", size=5000000)
         r = std.execute()
         ids_to_skip = [bucket.key for bucket in r.aggregations.ids.buckets]
