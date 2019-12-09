@@ -22,7 +22,7 @@ dags/add_topics_info/service/
 dags/mussabayev_tm/service/
 mussabayev_tm_temp/
 
-dags/bigartm/bigartm/
+dags/bigartm/services/
 bigartm_temp/
 bigartm_models/
 

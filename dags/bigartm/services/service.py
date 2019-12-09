@@ -1,35 +1,26 @@
 from util.util import is_kazakh
 
 
+class TMNotFoundException(Exception):
+    pass
+
+
 def init_tm_index(**kwargs):
-    from util.service_es import search
     from elasticsearch_dsl import Search
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
     from mainapp.documents import TopicModellingIndex
 
-    name = kwargs['name']
     corpus = kwargs['corpus']
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
-    is_actualizable = kwargs['is_actualizable']
 
     # Check if already exists
-    if ES_CLIENT.indices.exists(ES_INDEX_TOPIC_MODELLING):
-        query = {
-            "name": name,
-            "corpus": corpus,
-        }
-        if source:
-            query["source.keyword"] = source
-        if datetime_from:
-            query['datetime_from'] = datetime_from
-        if datetime_to:
-            query['datetime_to'] = datetime_to
-        s = search(ES_CLIENT, ES_INDEX_TOPIC_MODELLING, query, source=["number_of_topics", "number_of_documents"])
-        if s:
-            return s[-1]
+    try:
+        return get_tm_index(**kwargs)
+    except TMNotFoundException:
+        pass
 
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus)
     if source:
@@ -47,6 +38,26 @@ def init_tm_index(**kwargs):
     return index
 
 
+def get_tm_index(**kwargs):
+    from util.service_es import search
+
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING
+
+    name = kwargs['name']
+    corpus = kwargs['corpus']
+
+    # Check if already exists
+    if ES_CLIENT.indices.exists(ES_INDEX_TOPIC_MODELLING):
+        query = {
+            "name": name,
+            "corpus": corpus,
+        }
+        s = search(ES_CLIENT, ES_INDEX_TOPIC_MODELLING, query, source=[])
+        if s:
+            return s[-1]
+    raise TMNotFoundException("Topic Modelling index not found!")
+
+
 def dataset_prepare(**kwargs):
     import os
     import shutil
@@ -54,7 +65,7 @@ def dataset_prepare(**kwargs):
     import datetime
     from elasticsearch_dsl import Search
 
-    from dags.bigartm.bigartm.cleaners import return_cleaned_array, txt_writer
+    from dags.bigartm.services.cleaners import return_cleaned_array, txt_writer
     from util.constants import BASE_DAG_DIR
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_DOCUMENT
@@ -67,6 +78,7 @@ def dataset_prepare(**kwargs):
     lc.minloglevel = 3  # 0 = INFO, 1 = WARNING, 2 = ERROR, 3 = FATAL
     lib.ArtmConfigureLogging(lc)
 
+    perform_actualize = 'perform_actualize' in kwargs
     name = kwargs['name']
     corpus = kwargs['corpus']
     source = kwargs['source']
@@ -80,7 +92,7 @@ def dataset_prepare(**kwargs):
         s = s.filter("term", **{"source": source})
     if datetime_from:
         s = s.filter('range', datetime={'gte': datetime_from})
-    if datetime_to:
+    if datetime_to and not perform_actualize:
         s = s.filter('range', datetime={'lt': datetime_to})
     if group_id:
         group = TopicGroup.objects.get(id=group_id)
@@ -95,6 +107,16 @@ def dataset_prepare(**kwargs):
         r = st.scan()
         document_es_ids = [doc.document_es_id for doc in r]
         s = s.filter("terms", _id=document_es_ids)
+
+    # Exclude document already in TM if actualizing
+    if perform_actualize:
+        print("!!!", "Performing actualizing, skipping document already in TM")
+        std = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).source([])[:0]
+        std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id.keyword", size=5000000)
+        r = std.execute()
+        ids = [bucket.key for bucket in r.aggregations.ids.buckets]
+        s = s.exclude("terms", _id=ids)
+
     s = s.source(["id", "text_lemmatized", "title", "source", "datetime"]).sort(('id',))[:index.number_of_documents]
     ids = []
     texts = []
@@ -124,9 +146,12 @@ def dataset_prepare(**kwargs):
     data_folder = os.path.join(BASE_DAG_DIR, "bigartm_temp")
     if not os.path.exists(data_folder):
         os.mkdir(data_folder)
-    data_folder = os.path.join(data_folder, f"bigartm_formated_data_{name}")
+    data_folder = os.path.join(data_folder, f"bigartm_formated_data_{name}{'_actualize' if perform_actualize else ''}")
     shutil.rmtree(data_folder, ignore_errors=True)
     os.mkdir(data_folder)
+    if perform_actualize and len(formated_data) == 0:
+        return f"No documents to actualize"
+    print("!!!", f"Writing {len(formated_data)} documents")
     txt_writer(data=formated_data, filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
     artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data.txt"),
                                             data_format="vowpal_wabbit",
@@ -152,72 +177,77 @@ def topic_modelling(**kwargs):
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT, ES_HOST
     from mainapp.documents import TopicDocument
 
+    perform_actualize = 'perform_actualize' in kwargs
     name = kwargs['name']
     regularization_params = kwargs['regularization_params']
-    is_actualizable = kwargs['is_actualizable']
-    index = init_tm_index(**kwargs)
+    is_actualizable = 'is_actualizable' in kwargs and kwargs['is_actualizable']
+    index = get_tm_index(**kwargs)
 
     data_folder = os.path.join(BASE_DAG_DIR, "bigartm_temp")
-    data_folder = os.path.join(data_folder, f"bigartm_formated_data_{name}")
-    batch_vectorizer = artm.BatchVectorizer(data_path=os.path.join(data_folder, "batches"),
+    data_folder = os.path.join(data_folder, f"bigartm_formated_data_{name}{'_actualize' if perform_actualize else ''}")
+    batches_folder = os.path.join(data_folder, "batches")
+    if perform_actualize and not os.path.exists(batches_folder):
+        return f"No documents to actualize"
+    batch_vectorizer = artm.BatchVectorizer(data_path=batches_folder,
                                             data_format='batches')
     dictionary = artm.Dictionary()
     dictionary.gather(batch_vectorizer.data_path)
 
+    model_folder = os.path.join(BASE_DAG_DIR, "bigartm_models")
     model_artm = artm.ARTM(num_topics=index.number_of_topics,
                            class_ids={"text": 1}, theta_columns_naming="title",
                            reuse_theta=True, cache_theta=True, num_processors=4)
-    model_artm.initialize(dictionary)
-    # Add scores
-    model_artm.scores.add(artm.PerplexityScore(name='PerplexityScore'))
-    model_artm.scores.add(artm.TopicKernelScore(name='TopicKernelScore', class_id='text', probability_mass_threshold=0.3))
-    # Regularize
-    model_artm.regularizers.add(artm.SmoothSparseThetaRegularizer(name='SparseTheta',
-                                                                  tau=regularization_params['SmoothSparseThetaRegularizer']))
-    model_artm.regularizers.add(artm.SmoothSparsePhiRegularizer(name='SparsePhi',
-                                                                tau=regularization_params['SmoothSparsePhiRegularizer']))
-    model_artm.regularizers.add(artm.DecorrelatorPhiRegularizer(name='DecorrelatorPhi',
-                                                                tau=regularization_params['DecorrelatorPhiRegularizer']))
-    model_artm.regularizers.add(artm.ImproveCoherencePhiRegularizer(name='ImproveCoherencePhi',
-                                                                    tau=regularization_params['ImproveCoherencePhiRegularizer']))
+    if not perform_actualize:
+        model_artm.initialize(dictionary)
+        # Add scores
+        model_artm.scores.add(artm.PerplexityScore(name='PerplexityScore'))
+        model_artm.scores.add(artm.TopicKernelScore(name='TopicKernelScore', class_id='text', probability_mass_threshold=0.3))
+        # Regularize
+        model_artm.regularizers.add(artm.SmoothSparseThetaRegularizer(name='SparseTheta',
+                                                                      tau=regularization_params['SmoothSparseThetaRegularizer']))
+        model_artm.regularizers.add(artm.SmoothSparsePhiRegularizer(name='SparsePhi',
+                                                                    tau=regularization_params['SmoothSparsePhiRegularizer']))
+        model_artm.regularizers.add(artm.DecorrelatorPhiRegularizer(name='DecorrelatorPhi',
+                                                                    tau=regularization_params['DecorrelatorPhiRegularizer']))
+        model_artm.regularizers.add(artm.ImproveCoherencePhiRegularizer(name='ImproveCoherencePhi',
+                                                                        tau=regularization_params['ImproveCoherencePhiRegularizer']))
 
-    print("!!!", "Start model train", datetime.datetime.now())
-    # Fit model
-    model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
-    model_folder = os.path.join(BASE_DAG_DIR, "bigartm_models")
-    if not os.path.exists(model_folder):
-        os.mkdir(model_folder)
-    model_artm.save(os.path.join(model_folder, f"model_{name}.model"))
+        print("!!!", "Start model train", datetime.datetime.now())
+        # Fit model
+        model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
+        if not os.path.exists(model_folder):
+            os.mkdir(model_folder)
+        model_artm.save(os.path.join(model_folder, f"model_{name}.model"))
 
-    print("!!!", "Get topics", datetime.datetime.now())
-    # Create topics in ES
-    topics = []
-    phi = model_artm.get_phi()
-    for topic in phi:
-        phi_filtered = phi[phi[topic] > 0.0001]
-        topic_words = [
-            {
-                "word": ind[1],
-                "weight": float(phi[topic][ind])
-            }
-            for ind in phi_filtered[topic].index
-        ]
-        topic_words = sorted(topic_words, key=lambda x: x['weight'], reverse=True)[:100]
-        topics.append({
-            "id": topic,
-            "topic_words": topic_words,
-            "name": ", ".join([w['word'] for w in topic_words[:5]])
-        })
+        print("!!!", "Get topics", datetime.datetime.now())
+        # Create topics in ES
+        topics = []
+        phi = model_artm.get_phi()
+        for topic in phi:
+            phi_filtered = phi[phi[topic] > 0.0001]
+            topic_words = [
+                {
+                    "word": ind[1],
+                    "weight": float(phi[topic][ind])
+                }
+                for ind in phi_filtered[topic].index
+            ]
+            topic_words = sorted(topic_words, key=lambda x: x['weight'], reverse=True)[:100]
+            topics.append({
+                "id": topic,
+                "topic_words": topic_words,
+                "name": ", ".join([w['word'] for w in topic_words[:5]])
+            })
 
-    # Add metrics
-    purity = np.mean(model_artm.score_tracker['TopicKernelScore'].last_average_purity)
-    contrast = np.mean(model_artm.score_tracker['TopicKernelScore'].last_average_contrast)
-    coherence = np.mean(model_artm.score_tracker['TopicKernelScore'].average_coherence)
-    perplexity = model_artm.score_tracker['PerplexityScore'].last_value
+        # Add metrics
+        purity = np.mean(model_artm.score_tracker['TopicKernelScore'].last_average_purity)
+        contrast = np.mean(model_artm.score_tracker['TopicKernelScore'].last_average_contrast)
+        coherence = np.mean(model_artm.score_tracker['TopicKernelScore'].average_coherence)
+        perplexity = model_artm.score_tracker['PerplexityScore'].last_value
 
-    print("!!!", "Write topics", datetime.datetime.now())
-    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id,
-                             body={"doc": {
+        print("!!!", "Write topics", datetime.datetime.now())
+        ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id,
+                         body={"doc": {
                                  "topics": topics,
                                  "purity": purity,
                                  "contrast": contrast,
@@ -227,12 +257,51 @@ def topic_modelling(**kwargs):
                                  "tau_smooth_sparse_phi": regularization_params['SmoothSparsePhiRegularizer'],
                                  "tau_decorrelator_phi": regularization_params['DecorrelatorPhiRegularizer'],
                                  "tau_coherence_phi": regularization_params['ImproveCoherencePhiRegularizer'],
+                                 }
                              }
-                         }
-                     )
+                         )
+
+    else:
+        print("!!!", "Loading existing model")
+        # Monkey patching stupid BigARTM bug
+        def load(self, filename, model_name="p_wt"):
+            _model_name = None
+            if model_name == 'p_wt':
+                _model_name = self.model_pwt
+            elif model_name == 'n_wt':
+                _model_name = self.model_nwt
+
+            self.master.import_model(_model_name, filename)
+            self._initialized = True
+
+            config = self._lib.ArtmRequestMasterModelConfig(self.master.master_id)
+            self._topic_names = list(config.topic_name)
+
+            class_ids = {}
+            for class_id in config.class_id:
+                class_ids[class_id] = 1.0
+            self._class_ids = class_ids
+
+            if hasattr(config, 'transaction_typename'):
+                transaction_typenames = {}
+                for transaction_typename in config.transaction_typename:
+                    transaction_typenames[transaction_typename] = 1.0
+                self._transaction_typenames = transaction_typenames
+
+            # Remove all info about previous iterations
+            self._score_tracker = {}
+            self._synchronizations_processed = 0
+            self._num_online_processed_batches = 0
+            self._phi_cached = None
+
+        model_artm.load = load
+        model_artm.load(model_artm, os.path.join(model_folder, f"model_{name}.model"))
 
     print("!!!", "Get document-topics", datetime.datetime.now())
-    theta = model_artm.get_theta()
+    if not perform_actualize:
+        theta = model_artm.get_theta()
+    else:
+        theta = model_artm.transform(batch_vectorizer)
     theta_values = theta.values.transpose().astype(float)
     theta_topics = theta.index.array.to_numpy().astype(str)
     theta_documents = theta.columns.array.to_numpy().astype(str)
@@ -260,24 +329,25 @@ def topic_modelling(**kwargs):
                     es_topic_document.datetime = datetime.datetime.strptime(date[:-3] + date[-2:], "%Y-%m-%dT%H:%M:%S.%f%z")
             es_topic_document.document_source = source.replace("_", " ")
             document_topics.append(es_topic_document)
-        document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[:index.number_of_topics // 3]
+        document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[:max(index.number_of_topics // 3, 10)]
         for es_topic_document in document_topics:
             yield es_topic_document
 
     print("!!!", "Write document-topics", datetime.datetime.now())
-    try:
-        ES_CLIENT_DELETION = Elasticsearch(
-            hosts=[
-                {'host': ES_HOST}
-            ],
-            timeout=3600,
-            max_retries=3,
-            retry_on_timeout=True
-        )
-        Search(using=ES_CLIENT_DELETION, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).delete()
-    except Exception as e:
-        print("!!!!!", "Problem during old topic_documents deletion occurred")
-        print("!!!!!", e)
+    if not perform_actualize:
+        try:
+            ES_CLIENT_DELETION = Elasticsearch(
+                hosts=[
+                    {'host': ES_HOST}
+                ],
+                timeout=3600,
+                max_retries=3,
+                retry_on_timeout=True
+            )
+            Search(using=ES_CLIENT_DELETION, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).delete()
+        except Exception as e:
+            print("!!!!!", "Problem during old topic_documents deletion occurred")
+            print("!!!!!", e)
     success, failed = 0, 0
     batch_size = 100000
     time_start = datetime.datetime.now()
