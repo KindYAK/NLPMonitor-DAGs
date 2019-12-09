@@ -24,7 +24,7 @@ default_args = {
     'pool': 'long_tasks',
 }
 
-dag = DAG('NLPMonitor_generate_bert_embeddings', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None)
+dag = DAG('NLPMonitor_generate_bert_embeddings', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 
 with dag:
     # Word
