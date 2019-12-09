@@ -23,7 +23,7 @@ default_args = {
     'pool': 'short_tasks'
 }
 
-dag = DAG('NLPmonitor_Actualize_BigARTM', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None, max_active_runs=1)
+dag = DAG('NLPmonitor_Actualize_BigARTM', catchup=False, default_args=default_args, schedule_interval=None, max_active_runs=1)
 
 actualizers_prepares = []
 actualizers_actualizers = []

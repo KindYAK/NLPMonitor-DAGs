@@ -71,7 +71,7 @@ def gen_bigartm_dag(dag, name, description, number_of_topics, filters, regulariz
         )
 
 
-dag1 = DAG('NLPmonitor_BigARTM', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None)
+dag1 = DAG('NLPmonitor_BigARTM', catchup=False, default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag1, name="bigartm_test", description="All news", number_of_topics=250,
                 filters={
                     "corpus": "main",
@@ -87,7 +87,7 @@ gen_bigartm_dag(dag=dag1, name="bigartm_test", description="All news", number_of
                 }, is_actualizable=True)
 
 
-dag5 = DAG('NLPmonitor_BigARTM_two_years', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None)
+dag5 = DAG('NLPmonitor_BigARTM_two_years', catchup=False, default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag5, name="bigartm_two_years", description="Two last years", number_of_topics=200,
                 filters={
                     "corpus": "main",
@@ -103,7 +103,7 @@ gen_bigartm_dag(dag=dag5, name="bigartm_two_years", description="Two last years"
                 }, is_actualizable=True)
 
 
-dag6 = DAG('NLPmonitor_BigARTM_education_two_years', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None)
+dag6 = DAG('NLPmonitor_BigARTM_education_two_years', catchup=False, default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag6, name="bigartm_education_two_years", description="Two last years education", number_of_topics=150,
                 filters={
                     "corpus": "main",
@@ -121,7 +121,7 @@ gen_bigartm_dag(dag=dag6, name="bigartm_education_two_years", description="Two l
                 }, is_actualizable=True)
 
 
-dag7 = DAG('NLPmonitor_BigARTM_education_one_year', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None)
+dag7 = DAG('NLPmonitor_BigARTM_education_one_year', catchup=False, default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag7, name="bigartm_education_one_year", description="One last year education", number_of_topics=100,
                 filters={
                     "corpus": "main",
@@ -139,7 +139,7 @@ gen_bigartm_dag(dag=dag7, name="bigartm_education_one_year", description="One la
                 }, is_actualizable=True)
 
 
-dag8 = DAG('NLPmonitor_BigARTM_education_half_year', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None)
+dag8 = DAG('NLPmonitor_BigARTM_education_half_year', catchup=False, default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag8, name="bigartm_education_half_year", description="One half year education", number_of_topics=100,
                 filters={
                     "corpus": "main",
@@ -157,7 +157,7 @@ gen_bigartm_dag(dag=dag8, name="bigartm_education_half_year", description="One h
                 }, is_actualizable=True)
 
 
-dag9 = DAG('NLPmonitor_BigARTM_science_two_years', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None)
+dag9 = DAG('NLPmonitor_BigARTM_science_two_years', catchup=False, default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag9, name="bigartm_science_two_years", description="Two last years science", number_of_topics=150,
                 filters={
                     "corpus": "main",
@@ -175,7 +175,7 @@ gen_bigartm_dag(dag=dag9, name="bigartm_science_two_years", description="Two las
                 }, is_actualizable=True)
 
 
-dag10 = DAG('NLPmonitor_BigARTM_science_one_year', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None)
+dag10 = DAG('NLPmonitor_BigARTM_science_one_year', catchup=False, default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag10, name="bigartm_science_one_year", description="One last year science", number_of_topics=100,
                 filters={
                     "corpus": "main",
@@ -193,7 +193,7 @@ gen_bigartm_dag(dag=dag10, name="bigartm_science_one_year", description="One las
                 }, is_actualizable=True)
 
 
-dag11 = DAG('NLPmonitor_BigARTM_science_half_year', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None)
+dag11 = DAG('NLPmonitor_BigARTM_science_half_year', catchup=False, default_args=default_args, schedule_interval=None)
 gen_bigartm_dag(dag=dag11, name="bigartm_science_half_year", description="One half year science", number_of_topics=100,
                 filters={
                     "corpus": "main",

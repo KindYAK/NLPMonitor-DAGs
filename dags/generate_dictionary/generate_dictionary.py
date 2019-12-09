@@ -21,7 +21,7 @@ default_args = {
     'pool': 'long_tasks'
 }
 
-dag = DAG('Nlpmonitor_Dictionary_Generation', catchup=False, concurrency=1, default_args=default_args, schedule_interval=None)
+dag = DAG('Nlpmonitor_Dictionary_Generation', catchup=False, default_args=default_args, schedule_interval=None)
 
 with dag:
     init_dictionary_index = DjangoOperator(

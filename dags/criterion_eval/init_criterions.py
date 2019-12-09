@@ -27,7 +27,7 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('Criterion_init_var', catchup=False, concurrency=1, default_args=default_args, schedule_interval='0 14 * * *')
+dag = DAG('Criterion_init_var', catchup=False, default_args=default_args, schedule_interval='0 14 * * *')
 
 
 with dag:
