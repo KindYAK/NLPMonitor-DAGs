@@ -27,7 +27,7 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('Nlpmonitor_send_elastic', default_args=default_args, schedule_interval='59 23 * * *')
+dag = DAG('Nlpmonitor_send_elastic', catchup=False, concurrency=1, default_args=default_args, schedule_interval='59 23 * * *')
 
 
 with dag:
