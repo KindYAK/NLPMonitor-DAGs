@@ -61,7 +61,7 @@ def scrap(**kwargs):
                 if 'datetime' in new:
                     new['datetime'] = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
                 try:
-                    Document.objects.create(**new)
+                    d = Document.objects.create(**new)
                 except IntegrityError:
                     pass
             if len(news) <= 3:

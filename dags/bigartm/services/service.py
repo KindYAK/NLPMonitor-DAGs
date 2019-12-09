@@ -8,7 +8,7 @@ class TMNotFoundException(Exception):
 def init_tm_index(**kwargs):
     from elasticsearch_dsl import Search
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
     from mainapp.documents import TopicModellingIndex
 
     corpus = kwargs['corpus']
@@ -98,10 +98,9 @@ def dataset_prepare(**kwargs):
         group = TopicGroup.objects.get(id=group_id)
         topic_ids = [t.topic_id for t in group.topics.all()]
         topic_modelling_name = group.topic_modelling_name
-        st = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT)\
+        st = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}")\
             .filter("terms", **{"topic_id.keyword": topic_ids})\
-            .filter("term", **{"topic_modelling.keyword": topic_modelling_name})\
-            .filter("range", topic_weight={"gte": topic_weight_threshold}) \
+            .filter("range", topic_weight={"gte": 0.1}) \
             .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
             .source(('document_es_id'))[:1000000]
         r = st.scan()
@@ -171,7 +170,7 @@ def topic_modelling(**kwargs):
     import shutil
     from elasticsearch.helpers import parallel_bulk
     from elasticsearch import Elasticsearch
-    from elasticsearch_dsl import Search
+    from elasticsearch_dsl import Search, Index
     from numba import jit
 
     from util.constants import BASE_DAG_DIR
@@ -320,7 +319,6 @@ def topic_modelling(**kwargs):
             es_topic_document = TopicDocument()
             if float(row[j]) < 0.0001:
                 continue
-            es_topic_document.topic_modelling = name
             es_topic_document.topic_id = ind
             es_topic_document.topic_weight = float(row[j])
             es_topic_document.document_es_id = id
@@ -336,26 +334,20 @@ def topic_modelling(**kwargs):
             yield es_topic_document
 
     print("!!!", "Write document-topics", datetime.datetime.now())
-    if not perform_actualize:
-        try:
-            ES_CLIENT_DELETION = Elasticsearch(
-                hosts=[
-                    {'host': ES_HOST}
-                ],
-                timeout=3600,
-                max_retries=3,
-                retry_on_timeout=True
-            )
-            Search(using=ES_CLIENT_DELETION, index=ES_INDEX_TOPIC_DOCUMENT).filter("term", topic_modelling=name).delete()
-        except Exception as e:
-            print("!!!!!", "Problem during old topic_documents deletion occurred")
-            print("!!!!!", e)
+    es_index = Index(f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", using=ES_CLIENT)
+    es_index.delete(ignore=404)
+    ES_CLIENT.indices.create(index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", body={
+            "settings": TopicDocument.Index.settings,
+            "mappings": TopicDocument.Index.mappings
+        }
+    )
+
     success, failed = 0, 0
     batch_size = 100000
     time_start = datetime.datetime.now()
     row_generator = (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_documents))
     for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for row in row_generator for doc in row),
-                                    index=ES_INDEX_TOPIC_DOCUMENT, chunk_size=batch_size, thread_count=10, raise_on_error=True):
+                                    index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", chunk_size=batch_size, thread_count=10, raise_on_error=True):
         if ok:
             success += 1
         else:

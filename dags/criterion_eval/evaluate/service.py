@@ -6,8 +6,7 @@ def evaluate(**kwargs):
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT, ES_HOST
     from mainapp.documents import DocumentEval
 
-    from elasticsearch import Elasticsearch
-    from elasticsearch_dsl import Search
+    from elasticsearch_dsl import Search, Index
     from elasticsearch.helpers import parallel_bulk
 
     es_logger = logging.getLogger('elasticsearch')
@@ -41,9 +40,8 @@ def evaluate(**kwargs):
         # Dict Document -> [topic_weight*topic_eval for ...]
         documents_criterion_dict = {}
 
-        std = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_DOCUMENT)
-        std = std.filter("term", **{"topic_modelling.keyword": tm}) \
-                  .filter("range", topic_weight={"gte": 0.001}) \
+        std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{tm}")
+        std = std.filter("range", topic_weight={"gte": 0.001}) \
                   .source(['document_es_id', 'topic_weight', 'topic_id', "datetime", "document_source"]).scan()
         for td in std:
             if td.topic_id not in criterions_evals_dict[tm]:
@@ -63,28 +61,19 @@ def evaluate(**kwargs):
 
         print("!!!", "Sending to elastic for tm", tm, datetime.datetime.now())
         # Send to elastic
-        try:
-            ES_CLIENT_DELETION = Elasticsearch(
-                hosts=[
-                    {'host': ES_HOST}
-                ],
-                timeout=3600,
-                max_retries=3,
-                retry_on_timeout=True
-            )
-            Search(using=ES_CLIENT_DELETION, index=ES_INDEX_DOCUMENT_EVAL).filter("term", criterion_id=criterion.id)\
-                .filter("term", topic_modelling=tm).delete()
-        except Exception as e:
-            print("!!!!!", "Problem during old topic_documents deletion occurred")
-            print("!!!", e)
+        es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}", using=ES_CLIENT)
+        es_index.delete(ignore=404)
+        ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}", body={
+            "settings": DocumentEval.Index.settings,
+            "mappings": DocumentEval.Index.mappings
+        }
+        )
 
         def doc_eval_generator(documents_criterion_dict, tm):
             for doc in documents_criterion_dict.keys():
                 eval = DocumentEval()
                 val = (sum([v['topic_weight']*v['criterion_value'] for v in documents_criterion_dict[doc]["value"]])
                         / sum([v['topic_weight'] for v in documents_criterion_dict[doc]["value"]]))
-                eval.topic_modelling = tm
-                eval.criterion_id = criterion.id
                 eval.criterion_name = criterion.name
                 eval.value = val
                 eval.document_es_id = doc
@@ -93,17 +82,17 @@ def evaluate(**kwargs):
                 yield eval.to_dict()
 
         failed = 0
-        ok = 0
+        success = 0
         for ok, result in parallel_bulk(ES_CLIENT, doc_eval_generator(documents_criterion_dict, tm),
-                                         index=ES_INDEX_DOCUMENT_EVAL,
+                                         index=f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}",
                                          chunk_size=50000, raise_on_error=True, thread_count=6):
             if not ok:
                 failed += 1
             else:
-                ok += 1
+                success += 1
                 total_created += 1
-            if (failed+ok) % 50000 == 0:
-                print(f"!!!{failed+ok}/{len(documents_criterion_dict.keys())} processed")
+            if (failed+success) % 50000 == 0:
+                print(f"!!!{failed+success}/{len(documents_criterion_dict.keys())} processed")
             if failed > 5:
                 raise Exception("Too many failed ES!!!")
     return total_created
