@@ -99,7 +99,7 @@ def dataset_prepare(**kwargs):
         topic_ids = [t.topic_id for t in group.topics.all()]
         topic_modelling_name = group.topic_modelling_name
         st = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}")\
-            .filter("terms", **{"topic_id.keyword": topic_ids})\
+            .filter("terms", **{"topic_id": topic_ids})\
             .filter("range", topic_weight={"gte": topic_weight_threshold}) \
             .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
             .source(('document_es_id'))[:1000000]
@@ -112,7 +112,7 @@ def dataset_prepare(**kwargs):
     if perform_actualize:
         print("!!!", "Performing actualizing, skipping document already in TM")
         std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}").source([])[:0]
-        std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id.keyword", size=5000000)
+        std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
         r = std.execute()
         ids_to_skip = set([bucket.key for bucket in r.aggregations.ids.buckets])
 
