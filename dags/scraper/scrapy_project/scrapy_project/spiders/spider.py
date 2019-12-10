@@ -91,6 +91,8 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 try:
                     parse_result = parse_result.lower().replace("опубликовано:", "").replace("автор", "")
                     parse_result = dateparser.parse(parse_result, languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
+                    if parse_result.year < 2000:
+                        return None
                 except:
                     return None
                 if parse_result < self.latest_date:
