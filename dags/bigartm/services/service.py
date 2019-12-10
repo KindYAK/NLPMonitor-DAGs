@@ -116,7 +116,7 @@ def dataset_prepare(**kwargs):
         r = std.execute()
         ids_to_skip = set([bucket.key for bucket in r.aggregations.ids.buckets])
 
-    s = s.source(["id", "text_lemmatized", "title", "source", "datetime"]).sort(('id',))[:index.number_of_documents]
+    s = s.source(["id", "text_lemmatized", "title", "source", "datetime"]).sort(('id',))[:5000000]
     ids = []
     texts = []
     titles = []
