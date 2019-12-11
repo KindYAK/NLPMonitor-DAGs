@@ -333,13 +333,14 @@ def topic_modelling(**kwargs):
             yield es_topic_document
 
     print("!!!", "Write document-topics", datetime.datetime.now())
-    es_index = Index(f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", using=ES_CLIENT)
-    es_index.delete(ignore=404)
-    ES_CLIENT.indices.create(index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", body={
-            "settings": TopicDocument.Index.settings,
-            "mappings": TopicDocument.Index.mappings
-        }
-    )
+    if not perform_actualize:
+        es_index = Index(f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", using=ES_CLIENT)
+        es_index.delete(ignore=404)
+        ES_CLIENT.indices.create(index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", body={
+                "settings": TopicDocument.Index.settings,
+                "mappings": TopicDocument.Index.mappings
+            }
+        )
 
     success, failed = 0, 0
     batch_size = 100000
@@ -360,16 +361,11 @@ def topic_modelling(**kwargs):
                   f'took {minutes} min, TETA~{round(minutes * index.number_of_documents * index.number_of_topics / batch_size / 60, 2)} hours')
             time_start = datetime.datetime.now()
     print("!!!", "Done writing", datetime.datetime.now())
-    if not perform_actualize:
-        number_of_documnets = theta_documents.shape[0]
-    else:
-        s = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}")
-        number_of_documnets = s.count()
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id,
                          body={
                              "doc": {
                                  "is_ready": True,
-                                 "number_of_documents": number_of_documnets,
+                                 "number_of_documents": Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}"),
                                  "is_actualizable": is_actualizable,
                              }
                          }
