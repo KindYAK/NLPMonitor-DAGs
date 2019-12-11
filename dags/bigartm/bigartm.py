@@ -111,7 +111,7 @@ gen_bigartm_dag(dag=dag6, name="bigartm_education_two_years", description="Two l
                     "datetime_from": date(2017, 11, 1),
                     "datetime_to": date(2019, 12, 1),
                     "group_id": 7,
-                    "topic_weight_threshold": 0.1,
+                    "topic_weight_threshold": 0.05,
                 },
                 regularization_params={
                     "SmoothSparseThetaRegularizer": 0.15,
@@ -129,7 +129,7 @@ gen_bigartm_dag(dag=dag7, name="bigartm_education_one_year", description="One la
                     "datetime_from": date(2018, 11, 1),
                     "datetime_to": date(2019, 12, 1),
                     "group_id": 7,
-                    "topic_weight_threshold": 0.1,
+                    "topic_weight_threshold": 0.05,
                 },
                 regularization_params={
                     "SmoothSparseThetaRegularizer": 0.15,
@@ -147,7 +147,7 @@ gen_bigartm_dag(dag=dag8, name="bigartm_education_half_year", description="One h
                     "datetime_from": date(2019, 5, 1),
                     "datetime_to": date(2019, 12, 1),
                     "group_id": 7,
-                    "topic_weight_threshold": 0.1,
+                    "topic_weight_threshold": 0.05,
                 },
                 regularization_params={
                     "SmoothSparseThetaRegularizer": 0.15,
@@ -165,7 +165,7 @@ gen_bigartm_dag(dag=dag9, name="bigartm_science_two_years", description="Two las
                     "datetime_from": date(2017, 11, 1),
                     "datetime_to": date(2019, 12, 1),
                     "group_id": 8,
-                    "topic_weight_threshold": 0.1,
+                    "topic_weight_threshold": 0.05,
                 },
                 regularization_params={
                     "SmoothSparseThetaRegularizer": 0.15,
@@ -183,7 +183,7 @@ gen_bigartm_dag(dag=dag10, name="bigartm_science_one_year", description="One las
                     "datetime_from": date(2018, 11, 1),
                     "datetime_to": date(2019, 12, 1),
                     "group_id": 8,
-                    "topic_weight_threshold": 0.1,
+                    "topic_weight_threshold": 0.05,
                 },
                 regularization_params={
                     "SmoothSparseThetaRegularizer": 0.15,
@@ -201,7 +201,7 @@ gen_bigartm_dag(dag=dag11, name="bigartm_science_half_year", description="One ha
                     "datetime_from": date(2019, 5, 1),
                     "datetime_to": date(2019, 12, 1),
                     "group_id": 8,
-                    "topic_weight_threshold": 0.1,
+                    "topic_weight_threshold": 0.05,
                 },
                 regularization_params={
                     "SmoothSparseThetaRegularizer": 0.15,
