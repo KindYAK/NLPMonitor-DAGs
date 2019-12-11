@@ -61,13 +61,15 @@ def evaluate(**kwargs):
 
         print("!!!", "Sending to elastic for tm", tm, datetime.datetime.now())
         # Send to elastic
-        es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}", using=ES_CLIENT)
-        es_index.delete(ignore=404)
-        ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}", body={
-            "settings": DocumentEval.Index.settings,
-            "mappings": DocumentEval.Index.mappings
-        }
-        )
+        if "delete_indices" in kwargs and kwargs['delete_indices']:
+            es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}", using=ES_CLIENT)
+            es_index.delete(ignore=404)
+        if not ES_CLIENT.indices.exist(f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}"):
+            ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}", body={
+                "settings": DocumentEval.Index.settings,
+                "mappings": DocumentEval.Index.mappings
+            }
+            )
 
         def doc_eval_generator(documents_criterion_dict, tm):
             for doc in documents_criterion_dict.keys():

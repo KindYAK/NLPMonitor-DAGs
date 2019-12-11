@@ -39,7 +39,8 @@ with dag:
             task_id=f"eval_{filtered_name}",
             python_callable=evaluate,
             op_kwargs={
-                "criterion_id": criterion['id']
+                "criterion_id": criterion['id'],
+                "delete_delete_indices": False,
             }
         )
         )
