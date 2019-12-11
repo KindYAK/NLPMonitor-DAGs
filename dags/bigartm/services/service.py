@@ -169,7 +169,7 @@ def topic_modelling(**kwargs):
     import numpy as np
     import shutil
     from elasticsearch.helpers import parallel_bulk
-    from elasticsearch_dsl import Index
+    from elasticsearch_dsl import Index, Search
     from numba import jit
 
     from util.constants import BASE_DAG_DIR
@@ -360,11 +360,16 @@ def topic_modelling(**kwargs):
                   f'took {minutes} min, TETA~{round(minutes * index.number_of_documents * index.number_of_topics / batch_size / 60, 2)} hours')
             time_start = datetime.datetime.now()
     print("!!!", "Done writing", datetime.datetime.now())
+    if not perform_actualize:
+        number_of_documnets = theta_documents.shape[0]
+    else:
+        s = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}")
+        number_of_documnets = s.count()
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id,
                          body={
                              "doc": {
                                  "is_ready": True,
-                                 "number_of_documents": theta_documents.shape[0],
+                                 "number_of_documents": number_of_documnets,
                                  "is_actualizable": is_actualizable,
                              }
                          }
