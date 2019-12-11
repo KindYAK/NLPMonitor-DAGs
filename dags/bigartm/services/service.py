@@ -336,6 +336,7 @@ def topic_modelling(**kwargs):
     if not perform_actualize:
         es_index = Index(f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", using=ES_CLIENT)
         es_index.delete(ignore=404)
+    if not ES_CLIENT.indices.exists(f"{ES_INDEX_TOPIC_DOCUMENT}_{name}"):
         ES_CLIENT.indices.create(index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", body={
                 "settings": TopicDocument.Index.settings,
                 "mappings": TopicDocument.Index.mappings
