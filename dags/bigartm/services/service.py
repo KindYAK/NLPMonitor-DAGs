@@ -366,7 +366,7 @@ def topic_modelling(**kwargs):
                          body={
                              "doc": {
                                  "is_ready": True,
-                                 "number_of_documents": Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}"),
+                                 "number_of_documents": Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}").count(),
                                  "is_actualizable": is_actualizable,
                              }
                          }
