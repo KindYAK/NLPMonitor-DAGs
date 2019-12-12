@@ -126,7 +126,7 @@ def dataset_prepare(**kwargs):
     for document in s.scan():
         if document.meta.id in ids_in_list:
             continue
-        if ids_to_skip and document.meta.id in ids_to_skip:
+        if ids_to_skip is not None and document.meta.id in ids_to_skip:
             continue
         if is_kazakh(document.text_lemmatized + document.title if document.title else ""):
             continue
