@@ -14,6 +14,7 @@ def evaluate(**kwargs):
 
     print("!!!", "Forming topic-eval dict", datetime.datetime.now())
     topic_modelling = kwargs['topic_modelling']
+    perform_actualize = 'perform_actualize' in kwargs
     criterion = EvalCriterion.objects.get(id=kwargs['criterion_id'])
     evaluations = TopicsEval.objects.filter(criterion=criterion, topics__topic_modelling_name=topic_modelling).distinct().prefetch_related('topics')
 
@@ -34,12 +35,22 @@ def evaluate(**kwargs):
     print("!!!", "Forming doc-eval dict for topic_modelling", topic_modelling, datetime.datetime.now())
     # Eval documents
     # Dict Document -> [topic_weight*topic_eval for ...]
-    documents_criterion_dict = {}
-
     std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}")
     std = std.filter("range", topic_weight={"gte": 0.001}) \
-              .source(['document_es_id', 'topic_weight', 'topic_id', "datetime", "document_source"]).scan()
-    for td in std:
+              .source(['document_es_id', 'topic_weight', 'topic_id', "datetime", "document_source"])
+
+    ids_to_skip = None
+    if perform_actualize:
+        print("!!!", "Performing actualizing, skipping document already in TM")
+        s = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}").source([])[:0]
+        s.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
+        r = s.execute()
+        ids_to_skip = set([bucket.key for bucket in r.aggregations.ids.buckets])
+
+    documents_criterion_dict = {}
+    for td in std.scan():
+        if ids_to_skip is not None and td.document_es_id in ids_to_skip:
+            continue
         if td.topic_id not in criterions_evals_dict:
             continue
         if td.document_es_id not in documents_criterion_dict:
@@ -54,10 +65,12 @@ def evaluate(**kwargs):
                 "criterion_value": criterions_evals_dict[td.topic_id],
             }
         )
+    if perform_actualize and len(documents_criterion_dict.keys()) == 0:
+        return f"No documents to actualize"
 
     print("!!!", "Sending to elastic for topic_modelling", topic_modelling, datetime.datetime.now())
     # Send to elastic
-    if "delete_indices" in kwargs and kwargs['delete_indices']:
+    if not perform_actualize:
         es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}", using=ES_CLIENT)
         es_index.delete(ignore=404)
     if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}"):
@@ -67,12 +80,11 @@ def evaluate(**kwargs):
         }
         )
 
-    def doc_eval_generator(documents_criterion_dict, topic_modelling):
+    def doc_eval_generator(documents_criterion_dict):
         for doc in documents_criterion_dict.keys():
             eval = DocumentEval()
             val = (sum([v['topic_weight']*v['criterion_value'] for v in documents_criterion_dict[doc]["value"]])
                     / sum([v['topic_weight'] for v in documents_criterion_dict[doc]["value"]]))
-            eval.criterion_name = criterion.name
             eval.value = val
             eval.document_es_id = doc
             eval.document_datetime = documents_criterion_dict[doc]["document_datetime"]
@@ -81,7 +93,7 @@ def evaluate(**kwargs):
 
     failed = 0
     success = 0
-    for ok, result in parallel_bulk(ES_CLIENT, doc_eval_generator(documents_criterion_dict, topic_modelling),
+    for ok, result in parallel_bulk(ES_CLIENT, doc_eval_generator(documents_criterion_dict),
                                      index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}",
                                      chunk_size=50000, raise_on_error=True, thread_count=6):
         if not ok:

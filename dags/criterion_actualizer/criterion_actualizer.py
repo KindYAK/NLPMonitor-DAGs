@@ -1,0 +1,41 @@
+"""
+Code that goes along with the Airflow tutorial located at:
+https://github.com/apache/airflow/blob/master/airflow/example_dags/tutorial.py
+"""
+from datetime import datetime, timedelta
+
+from DjangoOperator import DjangoOperator
+from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
+
+from dags.criterion_eval.criterions_eval import actualizable_criterion_evals
+from dags.criterion_eval.evaluate.service import evaluate
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2019, 12, 12),
+    'email': ['airflow@example.com'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 0,
+    'retry_delay': timedelta(minutes=15),
+    'priority_weight': 95,
+    'pool': 'short_tasks'
+}
+
+dag = DAG('Criterion_actualize_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+
+actualizers_evaluators = []
+with dag:
+    for eval in actualizable_criterion_evals:
+        evaluator = DjangoOperator(
+            task_id=f"eval_{eval['criterion_name']}_{eval['topic_modelling']}",
+            python_callable=evaluate,
+            op_kwargs={
+                "perform_actualize": True,
+                "criterion_id": eval["criterion_id"],
+                "topic_modelling": eval["topic_modelling"],
+            }
+        )
+        actualizers_evaluators.append(evaluator)

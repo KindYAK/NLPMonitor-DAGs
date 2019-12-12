@@ -28,6 +28,7 @@ default_args = {
 # dag = DAG('Criterion_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='30 14 * * *')
 dag = DAG('Criterion_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 
+actualizable_criterion_evals = []
 with dag:
     criterions = json.loads(Variable.get('criterions', default_var="[]"))
     evaluators = []
@@ -41,7 +42,13 @@ with dag:
                 op_kwargs={
                     "criterion_id": criterion['id'],
                     "topic_modelling": topic_modelling,
-                    "delete_delete_indices": False,
                 }
             )
+            )
+            actualizable_criterion_evals.append(
+                {
+                    "criterion_id": criterion['id'],
+                    "criterion_name": filtered_criterion_name,
+                    "topic_modelling": topic_modelling,
+                }
             )
