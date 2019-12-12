@@ -64,7 +64,7 @@ def evaluate(**kwargs):
         if "delete_indices" in kwargs and kwargs['delete_indices']:
             es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}", using=ES_CLIENT)
             es_index.delete(ignore=404)
-        if not ES_CLIENT.indices.exist(f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}"):
+        if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}"):
             ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}", body={
                 "settings": DocumentEval.Index.settings,
                 "mappings": DocumentEval.Index.mappings
