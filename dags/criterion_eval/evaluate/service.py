@@ -15,27 +15,20 @@ def evaluate(**kwargs):
     print("!!!", "Forming topic-eval dict", datetime.datetime.now())
     topic_modelling = kwargs['topic_modelling']
     criterion = EvalCriterion.objects.get(id=kwargs['criterion_id'])
-    evaluations = TopicsEval.objects.filter(criterion=criterion).prefetch_related('topics')
+    evaluations = TopicsEval.objects.filter(criterion=criterion, topics__topic_modelling_name=topic_modelling).distinct().prefetch_related('topics')
 
-    # Topic_modelling -> Topic -> [List of evaluations by each author]
+    # Topic -> [List of evaluations by each author]
     criterions_evals_dict = {}
     for evaluation in evaluations:
         if not evaluation.topics.exists():
             continue
-        eval_tm = evaluation.topics.first().topic_modelling_name
-        # TODO Need rework, but ok for now
-        if eval_tm != topic_modelling:
-            continue
         eval_topic_id = evaluation.topics.first().topic_id
-        if eval_tm not in criterions_evals_dict:
-            criterions_evals_dict[eval_tm] = {}
-        if eval_topic_id not in criterions_evals_dict[eval_tm]:
-            criterions_evals_dict[eval_tm][eval_topic_id] = []
-        criterions_evals_dict[eval_tm][eval_topic_id].append(evaluation.value)
+        if eval_topic_id not in criterions_evals_dict:
+            criterions_evals_dict[eval_topic_id] = []
+        criterions_evals_dict[eval_topic_id].append(evaluation.value)
 
-    for tm in criterions_evals_dict.keys():
-        for t in criterions_evals_dict[tm].keys():
-            criterions_evals_dict[tm][t] = sum(criterions_evals_dict[tm][t]) / len(criterions_evals_dict[tm][t])
+    for t in criterions_evals_dict.keys():
+        criterions_evals_dict[t] = sum(criterions_evals_dict[t]) / len(criterions_evals_dict[t])
 
     total_created = 0
     print("!!!", "Forming doc-eval dict for topic_modelling", topic_modelling, datetime.datetime.now())
@@ -47,7 +40,7 @@ def evaluate(**kwargs):
     std = std.filter("range", topic_weight={"gte": 0.001}) \
               .source(['document_es_id', 'topic_weight', 'topic_id', "datetime", "document_source"]).scan()
     for td in std:
-        if td.topic_id not in criterions_evals_dict[topic_modelling]:
+        if td.topic_id not in criterions_evals_dict:
             continue
         if td.document_es_id not in documents_criterion_dict:
             documents_criterion_dict[td.document_es_id] = {
@@ -58,7 +51,7 @@ def evaluate(**kwargs):
         documents_criterion_dict[td.document_es_id]["value"].append(
             {
                 "topic_weight": td.topic_weight,
-                "criterion_value": criterions_evals_dict[topic_modelling][td.topic_id],
+                "criterion_value": criterions_evals_dict[td.topic_id],
             }
         )
 
