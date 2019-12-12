@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from DjangoOperator import DjangoOperator
 from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
 
 from dags.bigartm.bigartm import actualizable_bigartms
 from dags.bigartm.services.service import dataset_prepare, topic_modelling
@@ -28,6 +29,11 @@ dag = DAG('NLPmonitor_Actualize_BigARTM', catchup=False, max_active_runs=1, defa
 actualizers_prepares = []
 actualizers_actualizers = []
 with dag:
+    wait_for_basic_tms = PythonOperator(
+        task_id="wait_for_basic_tms",
+        python_callable=lambda: 0,
+    )
+
     for tm in actualizable_bigartms:
         prepare = DjangoOperator(
             task_id=f"prepare_{tm['name']}",
@@ -56,3 +62,7 @@ with dag:
         prepare >> actualize
         actualizers_prepares.append(prepare)
         actualizers_actualizers.append(actualize)
+        if 'group_id' in tm['filters'] and tm["filters"]['group_id']:
+            wait_for_basic_tms >> prepare
+        else:
+            actualize >> wait_for_basic_tms
