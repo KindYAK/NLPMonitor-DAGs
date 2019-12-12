@@ -1,6 +1,7 @@
 def init_criterions(**kwargs):
     from airflow.models import Variable
     from evaluation.models import EvalCriterion
+    from mainapp.models_user import TopicID
     import json
     from transliterate import translit
 
@@ -15,6 +16,7 @@ def init_criterions(**kwargs):
                              "value_range_to": criterion.value_range_to,
                              "is_integer": criterion.is_integer,
                              "is_categorical": criterion.is_categorical,
+                             "topic_modellings": list(set([topic_id.topic_modelling_name for topic_id in TopicID.objects.filter(topicseval__criterion=criterion)]))
                          } for criterion in criterions]
                      )
                  )

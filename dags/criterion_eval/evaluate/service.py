@@ -13,6 +13,7 @@ def evaluate(**kwargs):
     es_logger.setLevel(logging.ERROR)
 
     print("!!!", "Forming topic-eval dict", datetime.datetime.now())
+    topic_modelling = kwargs['topic_modelling']
     criterion = EvalCriterion.objects.get(id=kwargs['criterion_id'])
     evaluations = TopicsEval.objects.filter(criterion=criterion).prefetch_related('topics')
 
@@ -22,6 +23,9 @@ def evaluate(**kwargs):
         if not evaluation.topics.exists():
             continue
         eval_tm = evaluation.topics.first().topic_modelling_name
+        # TODO Need rework, but ok for now
+        if eval_tm != topic_modelling:
+            continue
         eval_topic_id = evaluation.topics.first().topic_id
         if eval_tm not in criterions_evals_dict:
             criterions_evals_dict[eval_tm] = {}
@@ -34,67 +38,66 @@ def evaluate(**kwargs):
             criterions_evals_dict[tm][t] = sum(criterions_evals_dict[tm][t]) / len(criterions_evals_dict[tm][t])
 
     total_created = 0
-    for tm in criterions_evals_dict.keys():
-        print("!!!", "Forming doc-eval dict for tm", tm, datetime.datetime.now())
-        # Eval documents
-        # Dict Document -> [topic_weight*topic_eval for ...]
-        documents_criterion_dict = {}
+    print("!!!", "Forming doc-eval dict for topic_modelling", topic_modelling, datetime.datetime.now())
+    # Eval documents
+    # Dict Document -> [topic_weight*topic_eval for ...]
+    documents_criterion_dict = {}
 
-        std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{tm}")
-        std = std.filter("range", topic_weight={"gte": 0.001}) \
-                  .source(['document_es_id', 'topic_weight', 'topic_id', "datetime", "document_source"]).scan()
-        for td in std:
-            if td.topic_id not in criterions_evals_dict[tm]:
-                continue
-            if td.document_es_id not in documents_criterion_dict:
-                documents_criterion_dict[td.document_es_id] = {
-                    "value": [],
-                    "document_datetime": td.datetime if hasattr(td, "datetime") and td.datetime else None,
-                    "document_source": td.document_source
-                }
-            documents_criterion_dict[td.document_es_id]["value"].append(
-                {
-                    "topic_weight": td.topic_weight,
-                    "criterion_value": criterions_evals_dict[tm][td.topic_id],
-                }
-            )
-
-        print("!!!", "Sending to elastic for tm", tm, datetime.datetime.now())
-        # Send to elastic
-        if "delete_indices" in kwargs and kwargs['delete_indices']:
-            es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}", using=ES_CLIENT)
-            es_index.delete(ignore=404)
-        if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}"):
-            ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}", body={
-                "settings": DocumentEval.Index.settings,
-                "mappings": DocumentEval.Index.mappings
+    std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}")
+    std = std.filter("range", topic_weight={"gte": 0.001}) \
+              .source(['document_es_id', 'topic_weight', 'topic_id', "datetime", "document_source"]).scan()
+    for td in std:
+        if td.topic_id not in criterions_evals_dict[topic_modelling]:
+            continue
+        if td.document_es_id not in documents_criterion_dict:
+            documents_criterion_dict[td.document_es_id] = {
+                "value": [],
+                "document_datetime": td.datetime if hasattr(td, "datetime") and td.datetime else None,
+                "document_source": td.document_source
             }
-            )
+        documents_criterion_dict[td.document_es_id]["value"].append(
+            {
+                "topic_weight": td.topic_weight,
+                "criterion_value": criterions_evals_dict[topic_modelling][td.topic_id],
+            }
+        )
 
-        def doc_eval_generator(documents_criterion_dict, tm):
-            for doc in documents_criterion_dict.keys():
-                eval = DocumentEval()
-                val = (sum([v['topic_weight']*v['criterion_value'] for v in documents_criterion_dict[doc]["value"]])
-                        / sum([v['topic_weight'] for v in documents_criterion_dict[doc]["value"]]))
-                eval.criterion_name = criterion.name
-                eval.value = val
-                eval.document_es_id = doc
-                eval.document_datetime = documents_criterion_dict[doc]["document_datetime"]
-                eval.document_source = documents_criterion_dict[doc]["document_source"]
-                yield eval.to_dict()
+    print("!!!", "Sending to elastic for topic_modelling", topic_modelling, datetime.datetime.now())
+    # Send to elastic
+    if "delete_indices" in kwargs and kwargs['delete_indices']:
+        es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}", using=ES_CLIENT)
+        es_index.delete(ignore=404)
+    if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}"):
+        ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}", body={
+            "settings": DocumentEval.Index.settings,
+            "mappings": DocumentEval.Index.mappings
+        }
+        )
 
-        failed = 0
-        success = 0
-        for ok, result in parallel_bulk(ES_CLIENT, doc_eval_generator(documents_criterion_dict, tm),
-                                         index=f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion.id}",
-                                         chunk_size=50000, raise_on_error=True, thread_count=6):
-            if not ok:
-                failed += 1
-            else:
-                success += 1
-                total_created += 1
-            if (failed+success) % 50000 == 0:
-                print(f"!!!{failed+success}/{len(documents_criterion_dict.keys())} processed")
-            if failed > 5:
-                raise Exception("Too many failed ES!!!")
+    def doc_eval_generator(documents_criterion_dict, topic_modelling):
+        for doc in documents_criterion_dict.keys():
+            eval = DocumentEval()
+            val = (sum([v['topic_weight']*v['criterion_value'] for v in documents_criterion_dict[doc]["value"]])
+                    / sum([v['topic_weight'] for v in documents_criterion_dict[doc]["value"]]))
+            eval.criterion_name = criterion.name
+            eval.value = val
+            eval.document_es_id = doc
+            eval.document_datetime = documents_criterion_dict[doc]["document_datetime"]
+            eval.document_source = documents_criterion_dict[doc]["document_source"]
+            yield eval.to_dict()
+
+    failed = 0
+    success = 0
+    for ok, result in parallel_bulk(ES_CLIENT, doc_eval_generator(documents_criterion_dict, topic_modelling),
+                                     index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}",
+                                     chunk_size=50000, raise_on_error=True, thread_count=6):
+        if not ok:
+            failed += 1
+        else:
+            success += 1
+            total_created += 1
+        if (failed+success) % 50000 == 0:
+            print(f"!!!{failed+success}/{len(documents_criterion_dict.keys())} processed")
+        if failed > 5:
+            raise Exception("Too many failed ES!!!")
     return total_created

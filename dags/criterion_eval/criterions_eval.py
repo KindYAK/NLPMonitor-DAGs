@@ -28,19 +28,20 @@ default_args = {
 # dag = DAG('Criterion_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='30 14 * * *')
 dag = DAG('Criterion_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 
-
 with dag:
     criterions = json.loads(Variable.get('criterions', default_var="[]"))
     evaluators = []
     for criterion in criterions:
-        filtered_name = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
-                                            criterion['name_translit'].replace(":", "_").replace(" ", "_"))))
-        evaluators.append(DjangoOperator(
-            task_id=f"eval_{filtered_name}",
-            python_callable=evaluate,
-            op_kwargs={
-                "criterion_id": criterion['id'],
-                "delete_delete_indices": False,
-            }
-        )
-        )
+        for topic_modelling in criterion['topic_modellings']:
+            filtered_criterion_name = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
+                                                criterion['name_translit'].replace(":", "_").replace(" ", "_"))))
+            evaluators.append(DjangoOperator(
+                task_id=f"eval_{filtered_criterion_name}_{topic_modelling}",
+                python_callable=evaluate,
+                op_kwargs={
+                    "criterion_id": criterion['id'],
+                    "topic_modelling": topic_modelling,
+                    "delete_delete_indices": False,
+                }
+            )
+            )
