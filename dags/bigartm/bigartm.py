@@ -197,3 +197,6 @@ with dag:
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
+
+    # BigARTMs for two_year Zhazira's folders
+
