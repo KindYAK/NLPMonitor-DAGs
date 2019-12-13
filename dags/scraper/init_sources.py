@@ -20,7 +20,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 2,
     'retry_delay': timedelta(minutes=15),
-    'priority_weight': 75,
+    'priority_weight': 95,
     'pool': 'short_tasks'
     # 'queue': 'bash_queue',
     # 'priority_weight': 10,

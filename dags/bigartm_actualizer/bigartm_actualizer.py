@@ -18,13 +18,13 @@ default_args = {
     'email': ['airflow@example.com'],
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 0,
-    'retry_delay': timedelta(minutes=15),
-    'priority_weight': 80,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=30),
+    'priority_weight': 90,
     'pool': 'short_tasks'
 }
 
-dag = DAG('NLPmonitor_Actualize_BigARTM', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag = DAG('NLPmonitor_Actualize_BigARTM', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='30 22 * * *')
 
 actualizers_prepares = []
 actualizers_actualizers = []
