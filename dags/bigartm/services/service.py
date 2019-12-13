@@ -1,6 +1,12 @@
 from util.util import is_kazakh
 
 
+def bigartm_calc(**kwargs):
+
+    print("!#!#!#!#", "Dataset Prepare returned: ", dataset_prepare(**kwargs))
+    print("!#!#!#!#", "Dataset Prepare returned: ", topic_modelling(**kwargs))
+
+
 class TMNotFoundException(Exception):
     pass
 

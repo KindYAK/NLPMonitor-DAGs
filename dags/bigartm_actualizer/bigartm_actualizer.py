@@ -9,7 +9,7 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
 from dags.bigartm.bigartm import actualizable_bigartms
-from dags.bigartm.services.service import dataset_prepare, topic_modelling
+from dags.bigartm.services.service import bigartm_calc
 
 default_args = {
     'owner': 'airflow',
@@ -26,8 +26,7 @@ default_args = {
 
 dag = DAG('NLPmonitor_Actualize_BigARTM', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='30 22 * * *')
 
-actualizers_prepares = []
-actualizers_actualizers = []
+actualizers_calcs = []
 with dag:
     wait_for_basic_tms = PythonOperator(
         task_id="wait_for_basic_tms",
@@ -35,9 +34,9 @@ with dag:
     )
 
     for tm in actualizable_bigartms:
-        prepare = DjangoOperator(
-            task_id=f"prepare_{tm['name']}",
-            python_callable=dataset_prepare,
+        bigartm_calc_operator = DjangoOperator(
+            task_id=f"bigartm_calc_{tm['name']}",
+            python_callable=bigartm_calc,
             op_kwargs={
                 "perform_actualize": True,
                 "name": tm['name'],
@@ -47,22 +46,11 @@ with dag:
                 "source": tm["filters"]['source'],
                 "group_id": tm["filters"]['group_id'] if 'group_id' in tm["filters"] else None,
                 "topic_weight_threshold": tm["filters"]['topic_weight_threshold'] if 'topic_weight_threshold' in tm["filters"] else None,
-            }
-        )
-        actualize = DjangoOperator(
-            task_id=f"actualize_{tm['name']}",
-            python_callable=topic_modelling,
-            op_kwargs={
-                "perform_actualize": True,
-                "name": tm['name'],
-                "corpus": tm["filters"]['corpus'],
                 "regularization_params": tm["regularization_params"],
             }
         )
-        prepare >> actualize
-        actualizers_prepares.append(prepare)
-        actualizers_actualizers.append(actualize)
+        actualizers_calcs.append(bigartm_calc_operator)
         if 'group_id' in tm['filters'] and tm["filters"]['group_id']:
-            wait_for_basic_tms >> prepare
+            wait_for_basic_tms >> bigartm_calc_operator
         else:
-            actualize >> wait_for_basic_tms
+            bigartm_calc_operator >> wait_for_basic_tms
