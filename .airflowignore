@@ -2,6 +2,7 @@
 util/
 venv/
 
+dags/examples/
 dags/examples/external_file_example/
 
 dags/bert_embeddings/bert/
