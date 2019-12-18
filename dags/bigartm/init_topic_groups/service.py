@@ -1,7 +1,7 @@
 def transliterate_for_dag_id(name):
     from transliterate import translit
-    name_translit = translit(name, 'ru', reversed=True).replace(" ", "_").strip()
-    name_translit = "".join([c for c in name_translit if c.isalnum() or c in ["_", ".", "-"]])
+    name_translit = translit(name, 'ru', reversed=True).replace(" ", "_").strip().lower()
+    name_translit = "".join([c for c in name_translit if (c.isalnum() or c in ["_", ".", "-"]) and c not in "әғқңөұүі"])
     return name_translit
 
 

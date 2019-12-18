@@ -36,8 +36,8 @@ def gen_bigartm_dag(name, description, number_of_topics, filters, regularization
         task_id=task_id,
         python_callable=bigartm_calc,
         op_kwargs={
-            "name": name.lower(),
-            "name_translit": name_translit.lower() if name_translit else None,
+            "name": name,
+            "name_translit": name_translit,
             "corpus": filters['corpus'],
             "source": filters['source'],
             "datetime_from": filters['datetime_from'],
