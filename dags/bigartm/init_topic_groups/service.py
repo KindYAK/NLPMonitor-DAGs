@@ -1,8 +1,14 @@
+def transliterate_for_dag_id(name):
+    from transliterate import translit
+    name_translit = translit(name, 'ru', reversed=True).replace(" ", "_").strip()
+    name_translit = "".join([c for c in name_translit if c.isalnum() or c in ["_", ".", "-"]])
+    return name_translit
+
+
 def init_topic_groups(**kwargs):
     from airflow.models import Variable
     from mainapp.models_user import TopicGroup
     import json
-    from transliterate import translit
 
     groups = TopicGroup.objects.all()
     Variable.set("topic_groups",
@@ -10,7 +16,7 @@ def init_topic_groups(**kwargs):
                      [{
                          "id": group.id,
                          "name": group.name,
-                         "name_translit": translit(group.name, 'ru', reversed=True).replace(" ", "_").strip(),
+                         "name_translit": transliterate_for_dag_id(group.name),
                          "topic_modelling_name": group.topic_modelling_name,
                          "topics": [topic.topic_id for topic in group.topics.all()],
                          "owner": group.owner.username,
