@@ -108,6 +108,7 @@ def dataset_prepare(**kwargs):
         s = s.filter('range', datetime={'gte': datetime_from})
     if datetime_to and not perform_actualize:
         s = s.filter('range', datetime={'lt': datetime_to})
+    group_document_es_ids = None
     if group_id:
         group = TopicGroup.objects.get(id=group_id)
         topic_ids = [t.topic_id for t in group.topics.all()]
@@ -118,8 +119,7 @@ def dataset_prepare(**kwargs):
             .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
             .source(('document_es_id'))[:1000000]
         r = st.scan()
-        document_es_ids = [doc.document_es_id for doc in r]
-        s = s.filter("terms", _id=document_es_ids)
+        group_document_es_ids = set([doc.document_es_id for doc in r])
 
     # Exclude document already in TM if actualizing
     ids_to_skip = None
@@ -141,6 +141,8 @@ def dataset_prepare(**kwargs):
         if document.meta.id in ids_in_list:
             continue
         if ids_to_skip is not None and document.meta.id in ids_to_skip:
+            continue
+        if group_document_es_ids is not None and document.meta.id not in group_document_es_ids:
             continue
         if is_kazakh(document.text_lemmatized + document.title if document.title else ""):
             continue
