@@ -35,7 +35,7 @@ with dag:
 
     for tm in actualizable_bigartms:
         bigartm_calc_operator = DjangoOperator(
-            task_id=f"bigartm_calc_{tm['name']}",
+            task_id=f"bigartm_calc_{tm['name'] if not tm['name_translit'] else tm['name_translit']}",
             python_callable=bigartm_calc,
             op_kwargs={
                 "perform_actualize": True,

@@ -2,13 +2,13 @@
 Code that goes along with the Airflow tutorial located at:
 https://github.com/apache/airflow/blob/master/airflow/example_dags/tutorial.py
 """
-from airflow import DAG
-from airflow.operators.bash_operator import BashOperator
-from airflow.operators.python_operator import PythonVirtualenvOperator, PythonOperator
-from DjangoOperator import DjangoOperator
-from airflow.operators.python_operator import PythonOperator
+import json
 from datetime import datetime, timedelta, date
 
+from DjangoOperator import DjangoOperator
+from airflow import DAG
+from airflow.models import Variable
+from airflow.operators.python_operator import PythonOperator
 
 default_args = {
     'owner': 'airflow',
@@ -25,14 +25,15 @@ default_args = {
 
 actualizable_bigartms = []
 bigartm_calc_operators = []
-def gen_bigartm_dag(name, description, number_of_topics, filters, regularization_params, is_actualizable=False):
+def gen_bigartm_dag(name, description, number_of_topics, filters, regularization_params, is_actualizable=False, name_translit=None):
     from dags.bigartm.services.service import bigartm_calc
 
     bigartm_calc_operator = DjangoOperator(
-        task_id=f"bigartm_calc_{name}",
+        task_id=f"bigartm_calc_{name if not name_translit else name_translit}",
         python_callable=bigartm_calc,
         op_kwargs={
-            "name": name,
+            "name": name.lower(),
+            "name_translit": name_translit.lower() if name_translit else None,
             "corpus": filters['corpus'],
             "source": filters['source'],
             "datetime_from": filters['datetime_from'],
@@ -46,7 +47,6 @@ def gen_bigartm_dag(name, description, number_of_topics, filters, regularization
             "meta_parameters": {
 
             },
-            "hierarchical": False,
             "number_of_topics": number_of_topics,
             "regularization_params": regularization_params,
             "is_actualizable": is_actualizable,
@@ -61,11 +61,14 @@ def gen_bigartm_dag(name, description, number_of_topics, filters, regularization
         actualizable_bigartms.append(
             {
                 "name": name,
+                "name_translit": name_translit,
                 "regularization_params": regularization_params,
                 "filters": filters
             }
         )
 
+
+groups = json.loads(Variable.get('topic_groups', default_var="[]"))
 
 dag = DAG('NLPmonitor_BigARTMs', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 with dag:
@@ -199,4 +202,22 @@ with dag:
                     }, is_actualizable=True)
 
     # BigARTMs for two_year Zhazira's folders
-
+    groups_bigartm_two_years = filter(lambda x: x['topic_modelling_name'] == "bigartm_two_years" or True, groups)
+    for group in groups_bigartm_two_years:
+        gen_bigartm_dag(name=f"bigartm_{group['name']}_two_years", description=f"Two years {group['name']}", number_of_topics=100,
+                        filters={
+                            "corpus": "main",
+                            "source": None,
+                            "datetime_from": date(2010, 5, 1),
+                            "datetime_to": date(2020, 1, 1),
+                            "group_id": group['id'],
+                            "topic_weight_threshold": 0.05,
+                        },
+                        regularization_params={
+                            "SmoothSparseThetaRegularizer": 0.15,
+                            "SmoothSparsePhiRegularizer": 0.15,
+                            "DecorrelatorPhiRegularizer": 0.15,
+                            "ImproveCoherencePhiRegularizer": 0.15
+                        },
+                        is_actualizable=True,
+                        name_translit=f"bigartm_{group['name_translit']}_two_years")

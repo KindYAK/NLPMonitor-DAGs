@@ -3,14 +3,13 @@ Code that goes along with the Airflow tutorial located at:
 https://github.com/apache/airflow/blob/master/airflow/example_dags/tutorial.py
 """
 import json
-
-from airflow import DAG
-from airflow.models import Variable
-from DjangoOperator import DjangoOperator
 from datetime import datetime, timedelta
 
-from dags.criterion_eval.evaluate.service import evaluate
+from DjangoOperator import DjangoOperator
+from airflow import DAG
+from airflow.models import Variable
 
+from dags.criterion_eval.evaluate.service import evaluate
 
 default_args = {
     'owner': 'airflow',
