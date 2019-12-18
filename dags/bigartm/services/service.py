@@ -84,6 +84,10 @@ def dataset_prepare(**kwargs):
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_DOCUMENT
     from mainapp.models_user import TopicGroup
 
+    import logging
+    es_logger = logging.getLogger('elasticsearch')
+    es_logger.setLevel(logging.ERROR)
+
     index = init_tm_index(**kwargs)
 
     lc = artm.messages.ConfigureLoggingArgs()
@@ -192,6 +196,10 @@ def topic_modelling(**kwargs):
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT
     from mainapp.documents import TopicDocument
+
+    import logging
+    es_logger = logging.getLogger('elasticsearch')
+    es_logger.setLevel(logging.ERROR)
 
     perform_actualize = 'perform_actualize' in kwargs
     name = kwargs['name']

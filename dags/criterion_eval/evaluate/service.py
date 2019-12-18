@@ -1,6 +1,5 @@
 def evaluate(**kwargs):
     import datetime
-    import logging
 
     from evaluation.models import EvalCriterion, TopicsEval
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT, ES_HOST
@@ -9,6 +8,7 @@ def evaluate(**kwargs):
     from elasticsearch_dsl import Search, Index
     from elasticsearch.helpers import parallel_bulk
 
+    import logging
     es_logger = logging.getLogger('elasticsearch')
     es_logger.setLevel(logging.ERROR)
 
