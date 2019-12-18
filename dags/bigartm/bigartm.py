@@ -25,7 +25,7 @@ default_args = {
 
 actualizable_bigartms = []
 bigartm_calc_operators = []
-def gen_bigartm_dag(name, description, number_of_topics, filters, regularization_params, is_actualizable=False, name_translit=None, topic_modelling_parent=None):
+def gen_bigartm_operator(name, description, number_of_topics, filters, regularization_params, is_actualizable=False, name_translit=None, topic_modelling_parent=None):
     from dags.bigartm.services.service import bigartm_calc
 
     if not name_translit:
@@ -81,36 +81,36 @@ with dag:
         python_callable=lambda: 0,
     )
 
-    gen_bigartm_dag(name="bigartm_test", description="All news", number_of_topics=250,
-                    filters={
+    gen_bigartm_operator(name="bigartm_test", description="All news", number_of_topics=250,
+                         filters={
                         "corpus": "main",
                         "source": None,
                         "datetime_from": None,
                         "datetime_to": None,
                     },
-                    regularization_params={
+                         regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
 
-    gen_bigartm_dag(name="bigartm_two_years", description="Two last years", number_of_topics=200,
-                    filters={
+    gen_bigartm_operator(name="bigartm_two_years", description="Two last years", number_of_topics=200,
+                         filters={
                         "corpus": "main",
                         "source": None,
                         "datetime_from": date(2017, 11, 1),
                         "datetime_to": date(2019, 12, 1),
                     },
-                    regularization_params={
+                         regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
 
-    gen_bigartm_dag(name="bigartm_education_two_years", description="Two last years education", number_of_topics=150,
-                    filters={
+    gen_bigartm_operator(name="bigartm_education_two_years", description="Two last years education", number_of_topics=150,
+                         filters={
                         "corpus": "main",
                         "source": None,
                         "datetime_from": date(2017, 11, 1),
@@ -118,15 +118,15 @@ with dag:
                         "group_id": 7,
                         "topic_weight_threshold": 0.05,
                     },
-                    regularization_params={
+                         regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
 
-    gen_bigartm_dag(name="bigartm_education_one_year", description="One last year education", number_of_topics=100,
-                    filters={
+    gen_bigartm_operator(name="bigartm_education_one_year", description="One last year education", number_of_topics=100,
+                         filters={
                         "corpus": "main",
                         "source": None,
                         "datetime_from": date(2018, 11, 1),
@@ -134,15 +134,15 @@ with dag:
                         "group_id": 7,
                         "topic_weight_threshold": 0.05,
                     },
-                    regularization_params={
+                         regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
 
-    gen_bigartm_dag(name="bigartm_education_half_year", description="One half year education", number_of_topics=100,
-                    filters={
+    gen_bigartm_operator(name="bigartm_education_half_year", description="One half year education", number_of_topics=100,
+                         filters={
                         "corpus": "main",
                         "source": None,
                         "datetime_from": date(2019, 5, 1),
@@ -150,15 +150,15 @@ with dag:
                         "group_id": 7,
                         "topic_weight_threshold": 0.05,
                     },
-                    regularization_params={
+                         regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
 
-    gen_bigartm_dag(name="bigartm_science_two_years", description="Two last years science", number_of_topics=150,
-                    filters={
+    gen_bigartm_operator(name="bigartm_science_two_years", description="Two last years science", number_of_topics=150,
+                         filters={
                         "corpus": "main",
                         "source": None,
                         "datetime_from": date(2017, 11, 1),
@@ -166,15 +166,15 @@ with dag:
                         "group_id": 8,
                         "topic_weight_threshold": 0.05,
                     },
-                    regularization_params={
+                         regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
 
-    gen_bigartm_dag(name="bigartm_science_one_year", description="One last year science", number_of_topics=100,
-                    filters={
+    gen_bigartm_operator(name="bigartm_science_one_year", description="One last year science", number_of_topics=100,
+                         filters={
                         "corpus": "main",
                         "source": None,
                         "datetime_from": date(2018, 11, 1),
@@ -182,15 +182,15 @@ with dag:
                         "group_id": 8,
                         "topic_weight_threshold": 0.05,
                     },
-                    regularization_params={
+                         regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
 
-    gen_bigartm_dag(name="bigartm_science_half_year", description="One half year science", number_of_topics=100,
-                    filters={
+    gen_bigartm_operator(name="bigartm_science_half_year", description="One half year science", number_of_topics=100,
+                         filters={
                         "corpus": "main",
                         "source": None,
                         "datetime_from": date(2019, 5, 1),
@@ -198,7 +198,7 @@ with dag:
                         "group_id": 8,
                         "topic_weight_threshold": 0.05,
                     },
-                    regularization_params={
+                         regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
@@ -206,10 +206,10 @@ with dag:
                     }, is_actualizable=True)
 
     # BigARTMs for two_year Zhazira's folders
-    groups_bigartm_two_years = filter(lambda x: x['topic_modelling_name'] == "bigartm_two_years" or True, groups)
+    groups_bigartm_two_years = filter(lambda x: x['topic_modelling_name'] == "bigartm_two_years", groups)
     for group in groups_bigartm_two_years:
-        gen_bigartm_dag(name=f"bigartm_{group['name']}_two_years", description=f"Two years {group['name']}", number_of_topics=100,
-                        filters={
+        gen_bigartm_operator(name=f"bigartm_{group['name']}_two_years", description=f"Two years {group['name']}", number_of_topics=100,
+                             filters={
                             "corpus": "main",
                             "source": None,
                             "datetime_from": date(2010, 5, 1),
@@ -217,13 +217,13 @@ with dag:
                             "group_id": group['id'],
                             "topic_weight_threshold": 0.05,
                         },
-                        regularization_params={
+                             regularization_params={
                             "SmoothSparseThetaRegularizer": 0.15,
                             "SmoothSparsePhiRegularizer": 0.15,
                             "DecorrelatorPhiRegularizer": 0.15,
                             "ImproveCoherencePhiRegularizer": 0.15
                         },
-                        is_actualizable=True,
-                        name_translit=f"bigartm_{group['name_translit']}_two_years",
-                        topic_modelling_parent=group['topic_modelling_name']
-                        )
+                             is_actualizable=True,
+                             name_translit=f"bigartm_{group['name_translit']}_two_years",
+                             topic_modelling_parent=group['topic_modelling_name']
+                             )
