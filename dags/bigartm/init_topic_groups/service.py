@@ -5,7 +5,7 @@ def transliterate_for_dag_id(name):
 
 
 def clear_symbols(name):
-    return "".join([c for c in name if (c.isalnum() or c in ["_", ".", "-"]) and c not in "әғқңөұүі"]).replace(" ", "_").strip().lower()
+    return "".join([c for c in name.replace(" ", "_") if (c.isalnum() or c in ["_", ".", "-"]) and c not in "әғқңөұүі"]).strip().lower()
 
 
 def init_topic_groups(**kwargs):
@@ -20,7 +20,7 @@ def init_topic_groups(**kwargs):
                          "id": group.id,
                          "name": group.name,
                          "name_translit": transliterate_for_dag_id(group.name),
-                         "topic_modelling_name": group.topic_modelling_name,
+                         "topic_modelling_name": clear_symbols(group.topic_modelling_name),
                          "topics": [topic.topic_id for topic in group.topics.all()],
                          "owner": group.owner.username,
                          "is_public": group.is_public,
