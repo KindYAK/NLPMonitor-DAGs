@@ -63,6 +63,7 @@ def evaluate(**kwargs):
             {
                 "topic_weight": td.topic_weight,
                 "criterion_value": criterions_evals_dict[td.topic_id],
+                "topic_id": td.topic_id,
             }
         )
     if perform_actualize and len(documents_criterion_dict.keys()) == 0:
@@ -81,10 +82,22 @@ def evaluate(**kwargs):
         )
 
     def doc_eval_generator(documents_criterion_dict):
+        range_center = (criterion.value_range_from + criterion.value_range_to) / 2
+        neutral_neighborhood = 0.1
         for doc in documents_criterion_dict.keys():
             eval = DocumentEval()
-            val = (sum([v['topic_weight']*v['criterion_value'] for v in documents_criterion_dict[doc]["value"]])
-                    / sum([v['topic_weight'] for v in documents_criterion_dict[doc]["value"]]))
+            val = sum([v['topic_weight']*v['criterion_value'] for v in documents_criterion_dict[doc]["value"]]) / \
+                  sum([v['topic_weight'] for v in documents_criterion_dict[doc]["value"]])
+
+            eval.topic_ids_top = sorted([v for v in documents_criterion_dict[doc]["value"]
+                                  if v['topic_weight']*v['criterion_value'] >= range_center + neutral_neighborhood],
+                                        key=lambda v: v['topic_weight']*v['criterion_value'], reverse=True)[:5]
+            eval.topic_ids_top = [v['topic_id'] for v in eval.topic_ids_top]
+            eval.topic_ids_bottom = sorted([v for v in documents_criterion_dict[doc]["value"]
+                                  if v['topic_weight']*v['criterion_value'] <= range_center - neutral_neighborhood],
+                                        key=lambda v: v['topic_weight']*v['criterion_value'])[:5]
+            eval.topic_ids_bottom = [v['topic_id'] for v in eval.topic_ids_bottom]
+
             eval.value = val
             eval.document_es_id = doc
             eval.document_datetime = documents_criterion_dict[doc]["document_datetime"]
