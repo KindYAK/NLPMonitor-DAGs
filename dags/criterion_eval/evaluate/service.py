@@ -32,7 +32,7 @@ def evaluate(**kwargs):
         criterions_evals_dict[t] = sum(criterions_evals_dict[t]) / len(criterions_evals_dict[t])
 
     total_created = 0
-    print("!!!", "Forming doc-eval dict for topic_modelling", topic_modelling, datetime.datetime.now())
+    print("!!!", "Forming doc-eval dict", datetime.datetime.now())
     # Eval documents
     # Dict Document -> [topic_weight*topic_eval for ...]
     std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}")
@@ -69,7 +69,7 @@ def evaluate(**kwargs):
     if perform_actualize and len(documents_criterion_dict.keys()) == 0:
         return f"No documents to actualize"
 
-    print("!!!", "Sending to elastic for topic_modelling", topic_modelling, datetime.datetime.now())
+    print("!!!", "Sending to elastic", datetime.datetime.now())
     # Send to elastic
     if not perform_actualize:
         es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}", using=ES_CLIENT)
