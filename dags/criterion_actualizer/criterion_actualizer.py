@@ -30,7 +30,7 @@ actualizers_evaluators = []
 with dag:
     for eval in actualizable_criterion_evals:
         evaluator = DjangoOperator(
-            task_id=f"eval_{eval['criterion_name']}_{eval['topic_modelling']}",
+            task_id=f"eval_actualize_{eval['criterion_name']}_{eval['topic_modelling']}",
             python_callable=evaluate,
             op_kwargs={
                 "perform_actualize": True,
