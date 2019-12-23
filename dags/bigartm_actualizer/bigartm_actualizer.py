@@ -40,6 +40,7 @@ with dag:
             op_kwargs={
                 "perform_actualize": True,
                 "name": tm['name'],
+                "name_translit": tm['name_translit'],
                 "corpus": tm["filters"]['corpus'],
                 "datetime_from": tm["filters"]['datetime_from'],
                 "datetime_to": tm["filters"]['datetime_to'],
