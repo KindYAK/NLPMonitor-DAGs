@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 
 from DjangoOperator import DjangoOperator
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
 
 from dags.criterion_eval.criterions_eval import actualizable_criterion_evals
 from dags.criterion_eval.evaluate.service import evaluate
