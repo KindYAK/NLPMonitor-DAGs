@@ -2,8 +2,10 @@ from util.util import is_kazakh
 
 
 def bigartm_calc(**kwargs):
-
-    print("!#!#!#!#", "Dataset Prepare returned: ", dataset_prepare(**kwargs))
+    dataset_prepare_result = dataset_prepare(**kwargs)
+    if dataset_prepare_result == 1:
+        return "TopicsGroup is empty"
+    print("!#!#!#!#", "Dataset Prepare returned: ", dataset_prepare_result)
     print("!#!#!#!#", "Dataset Prepare returned: ", topic_modelling(**kwargs))
 
 
@@ -116,6 +118,8 @@ def dataset_prepare(**kwargs):
     if group_id:
         group = TopicGroup.objects.get(id=group_id)
         topic_ids = [t.topic_id for t in group.topics.all()]
+        if not topic_ids:
+            return 1
         topic_modelling_name = group.topic_modelling_name
         st = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}")\
             .filter("terms", **{"topic_id": topic_ids})\
