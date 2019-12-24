@@ -91,11 +91,11 @@ def evaluate(**kwargs):
 
             eval.topic_ids_top = sorted([v for v in documents_criterion_dict[doc]["value"]
                                   if v['topic_weight']*v['criterion_value'] >= range_center + neutral_neighborhood],
-                                        key=lambda v: v['topic_weight']*v['criterion_value'], reverse=True)[:5]
+                                        key=lambda v: v['topic_weight']*v['criterion_value'], reverse=True)[:3]
             eval.topic_ids_top = [v['topic_id'] for v in eval.topic_ids_top]
             eval.topic_ids_bottom = sorted([v for v in documents_criterion_dict[doc]["value"]
                                   if v['topic_weight']*v['criterion_value'] <= range_center - neutral_neighborhood],
-                                        key=lambda v: v['topic_weight']*v['criterion_value'])[:5]
+                                        key=lambda v: v['topic_weight']*v['criterion_value'])[:3]
             eval.topic_ids_bottom = [v['topic_id'] for v in eval.topic_ids_bottom]
 
             eval.value = val
