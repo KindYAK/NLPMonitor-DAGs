@@ -1,17 +1,24 @@
 def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
     import datetime
-
     from statistics import mean, median, pstdev
+
+    from elasticsearch_dsl import Search
+    from mainapp.services import apply_fir_filter
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT
+    from topicmodelling.services import normalize_topic_documnets, get_total_metrics
+
+    from dags.bigartm.services.service import TMNotFoundException
     from util.util import geometrical_mean
     from .service import get_tm_index
 
-    from elasticsearch_dsl import Search
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT
+    import logging
+    es_logger = logging.getLogger('elasticsearch')
+    es_logger.setLevel(logging.ERROR)
 
-    from mainapp.services import apply_fir_filter
-    from topicmodelling.services import normalize_topic_documnets, get_total_metrics
-
-    topic_modelling = get_tm_index(name=topic_modelling_name, corpus=corpus)
+    try:
+        topic_modelling = get_tm_index(name=topic_modelling_name, corpus=corpus)
+    except TMNotFoundException as e:
+        return "No TM index ready"
 
     total_metrics_dict = get_total_metrics(topic_modelling_name, "1d", topic_weight_threshold)
 
@@ -42,7 +49,7 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
         relative_weight = apply_fir_filter(relative_weight, granularity="1d")
 
         # Get topic info metrics
-        if not relative_weight:
+        if len(relative_weight) == 0:
             continue
         topic.weight_mean = mean(relative_weight)
         topic.weight_geom_mean = geometrical_mean(relative_weight)
@@ -63,10 +70,9 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
                     periods_maxes.append(max_up)
                 is_up = False
                 max_up = None
-            else:
-                if max_up is None or max_up < weight:
-                    max_up = weight
-        if not periods:
+            if is_up and (max_up is None or max_up < weight):
+                max_up = weight
+        if len(periods) == 0:
             continue
         topic.period_num = len(periods)
         topic.period_mean = mean(periods)
@@ -87,3 +93,4 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
     topic_modelling.period_maxes_mean_std = aggregate_stuff(topic_modelling.topics, pstdev, "period_maxes_mean")
     topic_modelling.weight_std_std = aggregate_stuff(topic_modelling.topics, pstdev, "weight_std")
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=topic_modelling.meta.id, body={"doc": topic_modelling.to_dict()})
+    return f"Topics periods info calculated - "
