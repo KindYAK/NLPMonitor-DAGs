@@ -1,3 +1,15 @@
+def normalize_topic_documnets(buckets, total_metrics_dict):
+    for bucket in buckets:
+        total_weight = total_metrics_dict[bucket.key_as_string]['weight']
+        total_size = total_metrics_dict[bucket.key_as_string]['size']
+        if total_weight != 0:
+            bucket.dynamics_weight.value /= total_weight
+        if total_size != 0:
+            bucket.doc_count_normal = bucket.doc_count / total_size
+        else:
+            bucket.doc_count_normal = 0
+
+
 def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
     import datetime
     from statistics import mean, median, pstdev
@@ -5,7 +17,7 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
     from elasticsearch_dsl import Search
     from mainapp.services import apply_fir_filter
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT
-    from topicmodelling.services import normalize_topic_documnets, get_total_metrics
+    from topicmodelling.services import get_total_metrics
 
     from dags.bigartm.services.service import TMNotFoundException
     from util.util import geometrical_mean
@@ -21,26 +33,32 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
     topic_modelling = get_tm_index(name=topic_modelling_name, corpus=corpus)
     total_metrics_dict = get_total_metrics(topic_modelling_name, "1d", topic_weight_threshold)
 
-    for topic in topic_modelling.topics:
-        std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}")
-        std = std.filter("range", topic_weight={"gte": topic_weight_threshold}) \
-            .filter("term", topic_id=topic.id) \
-            .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
-            .source([])[:0]
-        std.aggs.bucket(name="dynamics",
-                        agg_type="date_histogram",
-                        field="datetime",
-                        calendar_interval="1d") \
+    std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}")
+    std = std.filter("range", topic_weight={"gte": topic_weight_threshold}) \
+              .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
+              .source([])[:0]
+    std.aggs.bucket(name="topics",
+                    agg_type="terms",
+                    field="topic_id") \
+            .bucket(name="dynamics",
+                    agg_type="date_histogram",
+                    field="datetime",
+                    calendar_interval="1d") \
             .metric("dynamics_weight", agg_type="sum", field="topic_weight")
-        topic_documents = std.execute()
+    topics_documents = std.execute()
+    topics_documents_dict = dict((bucket.key, bucket.dynamics.buckets)
+                                 for bucket in topics_documents.aggregations.topics.buckets)
 
-        normalize_topic_documnets(topic_documents, total_metrics_dict)
+    for topic in topic_modelling.topics:
+        if not topic.id in topics_documents_dict:
+            continue
+        normalize_topic_documnets(topics_documents_dict[topic.id], total_metrics_dict)
 
         # Separate signals
-        date_ticks = [bucket.key_as_string for bucket in topic_documents.aggregations.dynamics.buckets]
-        absolute_power = [bucket.doc_count for bucket in topic_documents.aggregations.dynamics.buckets]
-        relative_power = [bucket.doc_count_normal for bucket in topic_documents.aggregations.dynamics.buckets]
-        relative_weight = [bucket.dynamics_weight.value for bucket in topic_documents.aggregations.dynamics.buckets]
+        date_ticks = [bucket.key_as_string for bucket in topics_documents_dict[topic.id]]
+        absolute_power = [bucket.doc_count for bucket in topics_documents_dict[topic.id]]
+        relative_power = [bucket.doc_count_normal for bucket in topics_documents_dict[topic.id]]
+        relative_weight = [bucket.dynamics_weight.value for bucket in topics_documents_dict[topic.id]]
 
         # Smooth
         absolute_power = apply_fir_filter(absolute_power, granularity="1d")
