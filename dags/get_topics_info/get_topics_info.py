@@ -30,7 +30,7 @@ topic_info_getters = []
 with dag:
     for tm in actualizable_bigartms:
         topic_info_getter = DjangoOperator(
-            task_id=f"get_topics_info_{tm['name']}",
+            task_id=f"get_topics_info_{tm['name'] if not tm['name_translit'] else tm['name_translit']}",
             python_callable=calc_topics_info,
             op_kwargs={
                 "corpus": tm["filters"]['corpus'],
