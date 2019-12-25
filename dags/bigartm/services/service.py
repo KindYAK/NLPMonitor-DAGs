@@ -1,4 +1,5 @@
 from util.util import is_kazakh
+from .calc_topics_info import calc_topics_info
 
 
 def bigartm_calc(**kwargs):
@@ -6,7 +7,12 @@ def bigartm_calc(**kwargs):
     if dataset_prepare_result == 1:
         return "TopicsGroup is empty"
     print("!#!#!#!#", "Dataset Prepare returned: ", dataset_prepare_result)
-    print("!#!#!#!#", "Dataset Prepare returned: ", topic_modelling(**kwargs))
+    print("!#!#!#!#", "Topic modelling Calc returned: ", topic_modelling(**kwargs))
+    print("!#!#!#!#", "Calc topics info returned: ", calc_topics_info(kwargs['corpus'],
+                                                                      kwargs['name'],
+                                                                      kwargs['topic_weight_threshold']
+                                                                      )
+          )
 
 
 class TMNotFoundException(Exception):

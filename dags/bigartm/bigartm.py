@@ -43,7 +43,7 @@ def gen_bigartm_operator(name, description, number_of_topics, filters, regulariz
             "datetime_from": filters['datetime_from'],
             "datetime_to": filters['datetime_to'],
             "group_id": filters['group_id'] if 'group_id' in filters else None,
-            "topic_weight_threshold": filters['topic_weight_threshold'] if 'topic_weight_threshold' in filters else None,
+            "topic_weight_threshold": filters['topic_weight_threshold'] if 'topic_weight_threshold' in filters else 0.05,
             "is_ready": False,
             "description": description,
             "datetime_created": datetime.now(),

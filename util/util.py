@@ -16,3 +16,8 @@ def load_obj(name):
 
 def save_obj(obj, name):
     pickle.dump(obj, open(name + '.pkl', 'wb'), protocol=4)
+
+
+def geometrical_mean(data):
+    from functools import reduce
+    return reduce((lambda x, y: x * y), data) ** (1/len(data))
