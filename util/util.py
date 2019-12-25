@@ -19,5 +19,6 @@ def save_obj(obj, name):
 
 
 def geometrical_mean(data):
-    from functools import reduce
-    return reduce((lambda x, y: x * y), data) ** (1/len(data))
+    import numpy as np
+    a = np.log(data)
+    return np.exp(a.sum()/len(a))

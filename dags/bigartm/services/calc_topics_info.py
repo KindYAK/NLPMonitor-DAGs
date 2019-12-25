@@ -49,7 +49,6 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
         relative_weight = apply_fir_filter(relative_weight, granularity="1d")
 
         # Get topic info metrics
-        print("! Len weights", relative_weight)
         if len(relative_weight) == 0:
             continue
         topic.weight_mean = mean(relative_weight)
