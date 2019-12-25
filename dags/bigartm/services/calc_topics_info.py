@@ -64,7 +64,7 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
                 is_up = True
                 period_start = i
             elif weight < topic.weight_geom_mean and is_up:
-                if max_up - topic.weight_mean > 0.1 * topic.weight_std:
+                if max_up - topic.weight_mean > 0.5 * topic.weight_std:
                     periods.append(i - period_start)
                     periods_maxes.append(max_up)
                 is_up = False
