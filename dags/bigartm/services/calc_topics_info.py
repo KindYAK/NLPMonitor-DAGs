@@ -93,4 +93,5 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
     topic_modelling.period_maxes_mean_std = aggregate_stuff(topic_modelling.topics, pstdev, "period_maxes_mean")
     topic_modelling.weight_std_std = aggregate_stuff(topic_modelling.topics, pstdev, "weight_std")
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=topic_modelling.meta.id, body={"doc": topic_modelling.to_dict()})
-    return f"Topics periods info calculated - average periods per topic - {aggregate_stuff(topic_modelling.topics, mean, 'period_num')}"
+    return f"Topics periods info calculated - average periods per topic - {aggregate_stuff(topic_modelling.topics, mean, 'period_num')}" \
+           f"Number of topics with periods - {len([getattr(topic, 'period_num') for topic in topic_modelling.topics if hasattr(topic, 'period_num')])}"
