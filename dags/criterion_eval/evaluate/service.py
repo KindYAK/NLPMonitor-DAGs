@@ -42,6 +42,8 @@ def evaluate(**kwargs):
     ids_to_skip = None
     if perform_actualize:
         print("!!!", "Performing actualizing, skipping document already in TM")
+        if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}"):
+            return "Evaluation doesn't exist yet"
         s = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}").source([])[:0]
         s.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
         r = s.execute()
