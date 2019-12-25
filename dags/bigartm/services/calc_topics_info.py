@@ -15,11 +15,10 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
     es_logger = logging.getLogger('elasticsearch')
     es_logger.setLevel(logging.ERROR)
 
-    try:
-        topic_modelling = get_tm_index(name=topic_modelling_name, corpus=corpus)
-    except TMNotFoundException as e:
+    if not ES_CLIENT.indices.exists(f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}"):
         return "No TM index ready"
 
+    topic_modelling = get_tm_index(name=topic_modelling_name, corpus=corpus)
     total_metrics_dict = get_total_metrics(topic_modelling_name, "1d", topic_weight_threshold)
 
     for topic in topic_modelling.topics:
