@@ -56,14 +56,14 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
         normalize_topic_documnets(topics_documents_dict[topic.id], total_metrics_dict)
 
         # Separate signals
-        date_ticks = [bucket.key_as_string for bucket in topics_documents_dict[topic.id]]
-        absolute_power = [bucket.doc_count for bucket in topics_documents_dict[topic.id]]
-        relative_power = [bucket.doc_count_normal for bucket in topics_documents_dict[topic.id]]
+        # date_ticks = [bucket.key_as_string for bucket in topics_documents_dict[topic.id]]
+        # absolute_power = [bucket.doc_count for bucket in topics_documents_dict[topic.id]]
+        # relative_power = [bucket.doc_count_normal for bucket in topics_documents_dict[topic.id]]
         relative_weight = [bucket.dynamics_weight.value for bucket in topics_documents_dict[topic.id]]
 
         # Smooth
-        absolute_power = apply_fir_filter(absolute_power, granularity="1d")
-        relative_power = apply_fir_filter(relative_power, granularity="1d")
+        # absolute_power = apply_fir_filter(absolute_power, granularity="1d")
+        # relative_power = apply_fir_filter(relative_power, granularity="1d")
         relative_weight = apply_fir_filter(relative_weight, granularity="1d")
 
         # Get topic info metrics
