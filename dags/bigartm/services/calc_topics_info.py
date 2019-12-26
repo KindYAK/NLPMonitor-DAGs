@@ -39,7 +39,8 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
               .source([])[:0]
     std.aggs.bucket(name="topics",
                     agg_type="terms",
-                    field="topic_id") \
+                    field="topic_id",
+                    size=50000) \
             .bucket(name="dynamics",
                     agg_type="date_histogram",
                     field="datetime",
@@ -109,7 +110,17 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
     topic_modelling.period_std = aggregate_stuff(topic_modelling.topics, pstdev, "period_mean")
     topic_modelling.period_maxes_mean_std = aggregate_stuff(topic_modelling.topics, pstdev, "period_maxes_mean")
     topic_modelling.weight_std_std = aggregate_stuff(topic_modelling.topics, pstdev, "weight_std")
-    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=topic_modelling.meta.id, body={"doc": topic_modelling.to_dict()})
+
+    ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=topic_modelling.meta.id,
+                     body={"doc": {
+                         "topics": [topic.to_dict() for topic in topic_modelling.topics],
+                         "period_median": topic_modelling.period_median,
+                         "period_maxes_mean_median": topic_modelling.period_maxes_mean_median,
+                         "weight_std_median": topic_modelling.weight_std_median,
+                         "period_std": topic_modelling.period_std,
+                         "period_maxes_mean_std": topic_modelling.period_maxes_mean_std,
+                         "weight_std_std": topic_modelling.weight_std_std,
+                     }})
     return f"Topics periods info calculated - average periods per topic - {aggregate_stuff(topic_modelling.topics, mean, 'period_num')}\n" \
            f"Number of topics with periods - {len([getattr(topic, 'period_num') for topic in topic_modelling.topics if hasattr(topic, 'period_num')])}\n" \
            f"Median period length - {topic_modelling.period_median}\n"
