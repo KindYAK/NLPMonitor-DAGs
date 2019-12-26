@@ -24,7 +24,7 @@ default_args = {
     'pool': 'short_tasks'
 }
 
-dag = DAG('NLPmonitor_get_topics_info', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag = DAG('NLPmonitor_get_topics_info', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='0 23 * * *')
 
 topic_info_getters = []
 with dag:

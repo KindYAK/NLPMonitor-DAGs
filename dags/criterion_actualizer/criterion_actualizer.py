@@ -23,7 +23,7 @@ default_args = {
     'pool': 'short_tasks'
 }
 
-dag = DAG('Criterion_actualize_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='30 22 * * *')
+dag = DAG('Criterion_actualize_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='0 23 * * *')
 
 actualizers_evaluators = []
 with dag:
