@@ -72,7 +72,9 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
         topic.weight_mean = mean(relative_weight)
         topic.weight_geom_mean = geometrical_mean(relative_weight)
         topic.weight_std = pstdev(relative_weight)
-        topic.weight_change_std = pstdev([abs(relative_weight[i] - relative_weight[i + 1]) for i in range(len(relative_weight) - 1)])
+        weight_changes = [abs(relative_weight[i] - relative_weight[i + 1]) for i in range(len(relative_weight) - 1)]
+        topic.weight_change_std = pstdev(weight_changes)
+        topic.weight_change_median = median(weight_changes)
 
         periods = []
         periods_maxes = []
