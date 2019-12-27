@@ -1,4 +1,4 @@
-def normalize_topic_documnets(buckets, total_metrics_dict):
+def normalize_topic_documents(buckets, total_metrics_dict):
     for bucket in buckets:
         total_weight = total_metrics_dict[bucket.key_as_string]['weight']
         total_size = total_metrics_dict[bucket.key_as_string]['size']
@@ -41,11 +41,11 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
                     agg_type="terms",
                     field="topic_id",
                     size=50000) \
-            .bucket(name="dynamics",
-                    agg_type="date_histogram",
-                    field="datetime",
-                    calendar_interval="1d") \
-            .metric("dynamics_weight", agg_type="sum", field="topic_weight")
+        .bucket(name="dynamics",
+                agg_type="date_histogram",
+                field="datetime",
+                calendar_interval="1d") \
+        .metric("dynamics_weight", agg_type="sum", field="topic_weight")
     topics_documents = std.execute()
     topics_documents_dict = dict((bucket.key, bucket.dynamics.buckets)
                                  for bucket in topics_documents.aggregations.topics.buckets)
@@ -53,7 +53,7 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
     for topic in topic_modelling.topics:
         if not topic.id in topics_documents_dict:
             continue
-        normalize_topic_documnets(topics_documents_dict[topic.id], total_metrics_dict)
+        normalize_topic_documents(topics_documents_dict[topic.id], total_metrics_dict)
 
         # Separate signals
         # date_ticks = [bucket.key_as_string for bucket in topics_documents_dict[topic.id]]
@@ -72,6 +72,7 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
         topic.weight_mean = mean(relative_weight)
         topic.weight_geom_mean = geometrical_mean(relative_weight)
         topic.weight_std = pstdev(relative_weight)
+        topic.weight_change_std = pstdev([abs(relative_weight[i] - relative_weight[i + 1]) for i in range(len(relative_weight) - 1)])
 
         periods = []
         periods_maxes = []
