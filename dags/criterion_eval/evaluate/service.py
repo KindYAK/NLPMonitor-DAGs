@@ -54,7 +54,9 @@ def evaluate(**kwargs):
         if ids_to_skip is not None and td.document_es_id in ids_to_skip:
             continue
         if td.topic_id not in criterions_evals_dict:
-            continue
+            criterion_value = 0
+        else:
+            criterion_value = criterions_evals_dict[td.topic_id]
         if td.document_es_id not in documents_criterion_dict:
             documents_criterion_dict[td.document_es_id] = {
                 "value": [],
@@ -64,7 +66,7 @@ def evaluate(**kwargs):
         documents_criterion_dict[td.document_es_id]["value"].append(
             {
                 "topic_weight": td.topic_weight,
-                "criterion_value": criterions_evals_dict[td.topic_id],
+                "criterion_value": criterion_value,
                 "topic_id": td.topic_id,
             }
         )
