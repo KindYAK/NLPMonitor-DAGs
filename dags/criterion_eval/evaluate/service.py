@@ -76,7 +76,7 @@ def evaluate(**kwargs):
         documents_criterion_dict[td.document_es_id]["total_topic_weight"] += td.topic_weight
 
         # Top docs
-        if (any((eval > t['eval'] for t in documents_criterion_dict[td.document_es_id]['topic_ids_top'])) \
+        if (any((eval > t['eval'] for t in documents_criterion_dict[td.document_es_id]['topic_ids_top']))
                 or len(documents_criterion_dict[td.document_es_id]['topic_ids_top']) < 3) and \
                 eval > range_center + neutral_neighborhood:
             documents_criterion_dict[td.document_es_id]['topic_ids_top'].append(
@@ -93,8 +93,8 @@ def evaluate(**kwargs):
             ]
 
         # Bottom docs
-        if any((eval < t['eval'] for t in documents_criterion_dict[td.document_es_id]['topic_ids_bottom'])) \
-                or len(documents_criterion_dict[td.document_es_id]['topic_ids_bottom']) < 3 and \
+        if (any((eval < t['eval'] for t in documents_criterion_dict[td.document_es_id]['topic_ids_bottom']))
+                or len(documents_criterion_dict[td.document_es_id]['topic_ids_bottom']) < 3) and \
                 eval < range_center - neutral_neighborhood:
             documents_criterion_dict[td.document_es_id]['topic_ids_bottom'].append(
                 {
