@@ -97,7 +97,10 @@ def evaluate(**kwargs):
         )
 
     def eval_calc_generator(std):
-        range_center = (criterion.value_range_from + criterion.value_range_to) / 2
+        if criterion.value_range_from < 0:
+            range_center = (criterion.value_range_from + criterion.value_range_to) / 2
+        else:
+            range_center = 0
         neutral_neighborhood = 0.1
         for doc in doc_eval_generator(std):
             eval = DocumentEval()
@@ -108,10 +111,12 @@ def evaluate(**kwargs):
                                   if v['topic_weight']*v['criterion_value'] >= range_center + neutral_neighborhood],
                                         key=lambda v: v['topic_weight']*v['criterion_value'], reverse=True)[:3]
             eval.topic_ids_top = [v['topic_id'] for v in eval.topic_ids_top]
-            eval.topic_ids_bottom = sorted([v for v in doc["value"]
-                                  if v['topic_weight']*v['criterion_value'] <= range_center - neutral_neighborhood],
-                                        key=lambda v: v['topic_weight']*v['criterion_value'])[:3]
-            eval.topic_ids_bottom = [v['topic_id'] for v in eval.topic_ids_bottom]
+
+            if criterion.value_range_from < 0:
+                eval.topic_ids_bottom = sorted([v for v in doc["value"]
+                                      if v['topic_weight']*v['criterion_value'] <= range_center - neutral_neighborhood],
+                                            key=lambda v: v['topic_weight']*v['criterion_value'])[:3]
+                eval.topic_ids_bottom = [v['topic_id'] for v in eval.topic_ids_bottom]
 
             eval.value = val
             eval.document_es_id = doc["document_es_id"]
