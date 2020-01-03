@@ -95,6 +95,9 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                         return None
                 except:
                     return None
+                date_now = datetime.datetime.now().date()
+                if parse_result.year == date_now.year and parse_result.month > date_now.month:
+                    parse_result.year = parse_result.year - 1
                 if parse_result < self.latest_date:
                     self.depth_history.append(1)
                 else:
