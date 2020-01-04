@@ -92,22 +92,23 @@ def evaluate(**kwargs):
                 )
             ]
 
-        # Bottom docs
-        if (any((eval < t['eval'] for t in documents_criterion_dict[td.document_es_id]['topic_ids_bottom']))
-                or len(documents_criterion_dict[td.document_es_id]['topic_ids_bottom']) < 3) and \
-                eval < range_center - neutral_neighborhood:
-            documents_criterion_dict[td.document_es_id]['topic_ids_bottom'].append(
-                {
-                    "topic_id": td.topic_id,
-                    "eval": eval
-                }
-            )
-        if len(documents_criterion_dict[td.document_es_id]['topic_ids_bottom']) > 3:
-            del documents_criterion_dict[td.document_es_id]['topic_ids_bottom'][
-                documents_criterion_dict[td.document_es_id]['topic_ids_bottom'].index(
-                    max(documents_criterion_dict[td.document_es_id]['topic_ids_bottom'], key=lambda x: x['eval'])
+        if criterion.value_range_from < 0:
+            # Bottom docs
+            if (any((eval < t['eval'] for t in documents_criterion_dict[td.document_es_id]['topic_ids_bottom']))
+                    or len(documents_criterion_dict[td.document_es_id]['topic_ids_bottom']) < 3) and \
+                    eval < range_center - neutral_neighborhood:
+                documents_criterion_dict[td.document_es_id]['topic_ids_bottom'].append(
+                    {
+                        "topic_id": td.topic_id,
+                        "eval": eval
+                    }
                 )
-            ]
+            if len(documents_criterion_dict[td.document_es_id]['topic_ids_bottom']) > 3:
+                del documents_criterion_dict[td.document_es_id]['topic_ids_bottom'][
+                    documents_criterion_dict[td.document_es_id]['topic_ids_bottom'].index(
+                        max(documents_criterion_dict[td.document_es_id]['topic_ids_bottom'], key=lambda x: x['eval'])
+                    )
+                ]
 
     if perform_actualize and len(documents_criterion_dict.keys()) == 0:
         return f"No documents to actualize"
