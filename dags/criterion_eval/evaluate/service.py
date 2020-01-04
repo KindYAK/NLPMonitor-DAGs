@@ -52,7 +52,10 @@ def evaluate(**kwargs):
         range_center = (criterion.value_range_from + criterion.value_range_to) / 2
     else:
         range_center = 0
-    neutral_neighborhood = 0.1
+    if criterion.value_range_from < 0:
+        neutral_neighborhood = 0.1
+    else:
+        neutral_neighborhood = 0.01
     documents_criterion_dict = {}
     for td in std.scan():
         if ids_to_skip is not None and td.document_es_id in ids_to_skip:
