@@ -15,6 +15,7 @@ def evaluate(**kwargs):
     print("!!!", "Forming topic-eval dict", datetime.datetime.now())
     topic_modelling = kwargs['topic_modelling']
     perform_actualize = 'perform_actualize' in kwargs
+    calc_virt_negative = 'calc_virt_negative' in kwargs
     criterion = EvalCriterion.objects.get(id=kwargs['criterion_id'])
     evaluations = TopicsEval.objects.filter(criterion=criterion, topics__topic_modelling_name=topic_modelling).distinct().prefetch_related('topics')
 
@@ -74,7 +75,13 @@ def evaluate(**kwargs):
                 "topic_ids_top": [],
                 "topic_ids_bottom": [],
             }
-        eval = td.topic_weight * criterion_value
+        if not calc_virt_negative:
+            eval = td.topic_weight * criterion_value
+        else:
+            if criterion.value_range_from < 0:
+                eval = (-1 * td.topic_weight) * criterion_value
+            else:
+                eval = (1 - td.topic_weight) * criterion_value
         documents_criterion_dict[td.document_es_id]["eval_value"] += eval
         documents_criterion_dict[td.document_es_id]["total_topic_weight"] += td.topic_weight
 
@@ -145,7 +152,7 @@ def evaluate(**kwargs):
     success = 0
     total_created = 0
     for ok, result in parallel_bulk(ES_CLIENT, doc_eval_generator(documents_criterion_dict),
-                                     index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}",
+                                     index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}",
                                      chunk_size=50000, raise_on_error=True, thread_count=6):
         if not ok:
             failed += 1

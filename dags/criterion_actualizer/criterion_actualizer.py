@@ -38,3 +38,14 @@ with dag:
             }
         )
         actualizers_evaluators.append(evaluator)
+        if 'calc_virt_negative' in eval:
+            evaluator = DjangoOperator(
+                task_id=f"eval_actualize_{eval['criterion_name']}_{eval['topic_modelling_translit']}_neg",
+                python_callable=evaluate,
+                op_kwargs={
+                    "perform_actualize": True,
+                    "criterion_id": eval["criterion_id"],
+                    "topic_modelling": eval["topic_modelling"],
+                    "calc_virt_negative": True,
+                }
+            )
