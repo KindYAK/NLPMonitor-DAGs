@@ -412,7 +412,10 @@ def topic_modelling(**kwargs):
     # Remove logs
     fileList = glob.glob(f'{BASE_DAG_DIR}/bigartm.*')
     for filePath in fileList:
-        os.remove(filePath)
+        try:
+            os.remove(filePath)
+        except:
+            print("!Someone already deleted file")
     # Remove batches and stuff
     shutil.rmtree(data_folder, ignore_errors=True)
     return theta_documents.shape[0]
