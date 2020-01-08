@@ -21,7 +21,7 @@ default_args = {
     'retries': 3,
     'retry_delay': timedelta(minutes=15),
     'priority_weight': 80,
-    'pool': 'long_tasks'
+    'pool': 'short_tasks'
     # 'queue': 'bash_queue',
     # 'priority_weight': 10,
     # 'end_date': datetime(2016, 1, 1),
