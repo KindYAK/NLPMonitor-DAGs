@@ -8,11 +8,12 @@ def bigartm_calc(**kwargs):
         return "TopicsGroup is empty"
     print("!#!#!#!#", "Dataset Prepare returned: ", dataset_prepare_result)
     print("!#!#!#!#", "Topic modelling Calc returned: ", topic_modelling(**kwargs))
-    print("!#!#!#!#", "Calc topics info returned: ", calc_topics_info(kwargs['corpus'],
-                                                                      kwargs['name'],
-                                                                      kwargs['topic_weight_threshold']
-                                                                      )
-          )
+    if 'perform_actualize' not in kwargs:
+        print("!#!#!#!#", "Calc topics info returned: ", calc_topics_info(kwargs['corpus'],
+                                                                          kwargs['name'],
+                                                                          kwargs['topic_weight_threshold']
+                                                                          )
+              )
 
 
 class TMNotFoundException(Exception):
