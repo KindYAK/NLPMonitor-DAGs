@@ -25,13 +25,13 @@ default_args = {
 
 actualizable_bigartms = []
 bigartm_calc_operators = []
-def gen_bigartm_operator(name, description, number_of_topics, filters, regularization_params, is_actualizable=False, name_translit=None, topic_modelling_parent=None):
+def gen_bigartm_operator(name, description, number_of_topics, filters, regularization_params, is_actualizable=False, name_translit=None, topic_modelling_translit=None):
     from dags.bigartm.services.service import bigartm_calc
 
     if not name_translit:
         task_id = f"bigartm_calc_{name}"
     else:
-        task_id = f"bigartm_calc_{topic_modelling_parent}_{name_translit}"
+        task_id = f"bigartm_calc_{topic_modelling_translit}_{name_translit}"
     bigartm_calc_operator = DjangoOperator(
         task_id=task_id,
         python_callable=bigartm_calc,
@@ -248,5 +248,5 @@ with dag:
                              },
                              is_actualizable=True,
                              name_translit=f"bigartm_{group['name_translit']}_it_two_years",
-                             topic_modelling_parent=group['topic_modelling_name']
+                             topic_modelling_translit=group['topic_modelling_name_translit'],
                              )
