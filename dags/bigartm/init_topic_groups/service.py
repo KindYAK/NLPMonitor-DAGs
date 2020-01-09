@@ -21,7 +21,7 @@ def init_topic_groups(**kwargs):
                          "name": clear_symbols(group.name),
                          "name_translit": transliterate_for_dag_id(group.name),
                          "topic_modelling_name": group.topic_modelling_name,
-                         "topic_modelling_name_translit": clear_symbols(group.topic_modelling_name),
+                         "topic_modelling_name_translit": transliterate_for_dag_id(group.topic_modelling_name),
                          "topics": [topic.topic_id for topic in group.topics.all()],
                          "owner": group.owner.username,
                          "is_public": group.is_public,
