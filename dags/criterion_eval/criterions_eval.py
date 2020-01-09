@@ -32,17 +32,17 @@ with dag:
     criterions = json.loads(Variable.get('criterions', default_var="[]"))
     evaluators = []
     for criterion in criterions:
-        for topic_modelling, topic_modelling_translit in zip(criterion['topic_modellings'], criterion['topic_modellings_translit']):
+        for tm in criterion['topic_modellings']:
             filtered_criterion_name = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
                                                 criterion['name_translit'].replace(":", "_").replace(" ", "_"))))
             filtered_topic_modelling = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
-                                                          topic_modelling_translit.replace(":", "_").replace(" ", "_"))))
+                                                          tm['name_translit'].replace(":", "_").replace(" ", "_"))))
             evaluators.append(DjangoOperator(
                 task_id=f"eval_{filtered_criterion_name}_{filtered_topic_modelling}",
                 python_callable=evaluate,
                 op_kwargs={
                     "criterion_id": criterion['id'],
-                    "topic_modelling": topic_modelling,
+                    "topic_modelling": tm['name'],
                 }
             )
             )
@@ -50,7 +50,7 @@ with dag:
                 {
                     "criterion_id": criterion['id'],
                     "criterion_name": filtered_criterion_name,
-                    "topic_modelling": topic_modelling,
+                    "topic_modelling": tm['name'],
                     "topic_modelling_translit": filtered_topic_modelling,
                 }
             )
@@ -60,7 +60,7 @@ with dag:
                     python_callable=evaluate,
                     op_kwargs={
                         "criterion_id": criterion['id'],
-                        "topic_modelling": topic_modelling,
+                        "topic_modelling": tm['name'],
                         "calc_virt_negative": True
                     }
                 )
@@ -69,7 +69,7 @@ with dag:
                     {
                         "criterion_id": criterion['id'],
                         "criterion_name": filtered_criterion_name,
-                        "topic_modelling": topic_modelling,
+                        "topic_modelling": tm['name'],
                         "topic_modelling_translit": filtered_topic_modelling,
                         "calc_virt_negative": True
                     }
