@@ -255,7 +255,7 @@ with dag:
     group_info_security = filter(lambda x: x['id'] == 86, groups)
     for group in group_info_security:
         gen_bigartm_operator(name=f"bigartm_{group['name']}_2_level_it_two_years", description=f"IT two 2 level years {group['name']}",
-                             number_of_topics=50,
+                             number_of_topics=25,
                              filters={
                                  "corpus": "main",
                                  "source": None,
