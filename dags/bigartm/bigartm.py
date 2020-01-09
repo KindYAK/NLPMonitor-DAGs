@@ -250,3 +250,27 @@ with dag:
                              name_translit=f"bigartm_{group['name_translit']}_it_two_years",
                              topic_modelling_translit=group['topic_modelling_name_translit'],
                              )
+
+
+    group_info_security = filter(lambda x: x['id'] == 86, groups)
+    for group in group_info_security:
+        gen_bigartm_operator(name=f"bigartm_{group['name']}_2_level_it_two_years", description=f"IT two 2 level years {group['name']}",
+                             number_of_topics=50,
+                             filters={
+                                 "corpus": "main",
+                                 "source": None,
+                                 "datetime_from": date(2010, 5, 1),
+                                 "datetime_to": date(2020, 1, 1),
+                                 "group_id": group['id'],
+                                 "topic_weight_threshold": 0.05,
+                             },
+                             regularization_params={
+                                 "SmoothSparseThetaRegularizer": 0.15,
+                                 "SmoothSparsePhiRegularizer": 0.15,
+                                 "DecorrelatorPhiRegularizer": 0.15,
+                                 "ImproveCoherencePhiRegularizer": 0.15
+                             },
+                             is_actualizable=True,
+                             name_translit=f"bigartm_{group['name_translit']}_2_level_it_two_years",
+                             topic_modelling_translit=group['topic_modelling_name_translit'],
+                             )
