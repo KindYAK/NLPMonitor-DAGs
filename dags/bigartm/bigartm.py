@@ -225,7 +225,7 @@ with dag:
                         },
                              is_actualizable=True,
                              name_translit=f"bigartm_{group['name_translit']}_two_years",
-                             topic_modelling_parent=group['topic_modelling_name']
+                             topic_modelling_translit=group['topic_modelling_name_translit'],
                              )
 
     group_info_security = filter(lambda x: x['id'] == 85, groups)
