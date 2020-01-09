@@ -32,119 +32,126 @@ def evaluate(**kwargs):
     for t in criterions_evals_dict.keys():
         criterions_evals_dict[t] = sum(criterions_evals_dict[t]) / len(criterions_evals_dict[t])
 
+    print("!!!", "Forming doc-eval dict", datetime.datetime.now())
     # Eval documents
     # Dict Document -> [topic_weight*topic_eval for ...]
     std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}")
-    std = std.filter("range", topic_weight={"gte": 0.001}).source([])[:0]
-    std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
-    ids_to_process = set([bucket.key for bucket in std.execute().aggregations.ids.buckets])
+    std = std.filter("range", topic_weight={"gte": 0.001}) \
+              .source(['document_es_id', 'topic_weight', 'topic_id', "datetime", "document_source"])
 
-    ids_to_skip = set()
+    ids_to_skip = None
     if perform_actualize:
         print("!!!", "Performing actualizing, skipping document already in TM")
-        if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}"):
+        if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}"):
             return "Evaluation doesn't exist yet"
-        s = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}").source([])[:0]
+        s = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}").source([])[:0]
         s.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
         r = s.execute()
         ids_to_skip = set([bucket.key for bucket in r.aggregations.ids.buckets])
-    ids_to_process = ids_to_process - ids_to_skip
 
-    def doc_eval_generator(ids_to_process):
-        current_doc = None
-        if criterion.value_range_from < 0:
-            range_center = (criterion.value_range_from + criterion.value_range_to) / 2
-            neutral_neighborhood = 0.1
+    if criterion.value_range_from < 0:
+        range_center = (criterion.value_range_from + criterion.value_range_to) / 2
+    else:
+        range_center = 0
+    if criterion.value_range_from < 0:
+        neutral_neighborhood = 0.1
+    else:
+        neutral_neighborhood = 0.01
+    documents_criterion_dict = {}
+    for td in std.scan():
+        if ids_to_skip is not None and td.document_es_id in ids_to_skip:
+            continue
+        if td.topic_id not in criterions_evals_dict:
+            criterion_value = 0
         else:
-            range_center = 0
-            neutral_neighborhood = 0.001
-        for document_es_id in ids_to_process:
-            s = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}") \
-                .filter("range", topic_weight={"gte": 0.001}).filter("term", document_es_id=document_es_id) \
-                .source(['topic_weight', 'topic_id', "datetime", "document_source"])
-            for td in s.execute():
-                if td.topic_id not in criterions_evals_dict:
-                    criterion_value = 0
-                else:
-                    criterion_value = criterions_evals_dict[td.topic_id]
-                if current_doc is None:
-                    current_doc = {
-                        "document_es_id": document_es_id,
-                        "document_datetime": td.datetime if hasattr(td, "datetime") and td.datetime else None,
-                        "document_source": td.document_source,
-                        "eval_value": 0,
-                        "total_topic_weight": 0,
-                        "topic_ids_top": [],
-                        "topic_ids_bottom": [],
-                    }
-                if not calc_virt_negative:
-                    eval = td.topic_weight * criterion_value
-                else:
-                    if criterion.value_range_from < 0:
-                        eval = (-1 * td.topic_weight) * criterion_value
-                    else:
-                        eval = (1 - td.topic_weight) * criterion_value
-                current_doc["eval_value"] += eval
-                current_doc["total_topic_weight"] += td.topic_weight
-                # Top docs
-                if (any((eval > t['eval'] for t in current_doc['topic_ids_top'])) or len(current_doc['topic_ids_top']) < 3) and eval > range_center + neutral_neighborhood:
-                    current_doc['topic_ids_top'].append(
-                        {
-                            "topic_id": td.topic_id,
-                            "eval": eval
-                        }
-                    )
-                if len(current_doc['topic_ids_top']) > 3:
-                    del current_doc['topic_ids_top'][current_doc['topic_ids_top'].index(
-                            min(current_doc['topic_ids_top'], key=lambda x: x['eval'])
-                        )]
-                # Bottom docs
-                if criterion.value_range_from < 0:
-                    if any((eval < t['eval'] for t in current_doc['topic_ids_bottom'])) or len(current_doc['topic_ids_bottom']) < 3 and eval < range_center - neutral_neighborhood:
-                        current_doc['topic_ids_bottom'].append(
-                            {
-                                "topic_id": td.topic_id,
-                                "eval": eval
-                            }
-                        )
-                    if len(current_doc['topic_ids_bottom']) > 3:
-                        del current_doc['topic_ids_bottom'][
-                            current_doc['topic_ids_bottom'].index(
-                                max(current_doc['topic_ids_bottom'],
-                                    key=lambda x: x['eval'])
-                            )
-                        ]
-            yield current_doc
-            current_doc = None
+            criterion_value = criterions_evals_dict[td.topic_id]
+        if td.document_es_id not in documents_criterion_dict:
+            documents_criterion_dict[td.document_es_id] = {
+                "value": [],
+                "document_datetime": td.datetime if hasattr(td, "datetime") and td.datetime else None,
+                "document_source": td.document_source,
+                "eval_value": 0,
+                "total_topic_weight": 0,
+                "topic_ids_top": [],
+                "topic_ids_bottom": [],
+            }
+        if not calc_virt_negative:
+            eval = td.topic_weight * criterion_value
+        else:
+            if criterion.value_range_from < 0:
+                eval = (-1 * td.topic_weight) * criterion_value
+            else:
+                eval = (1 - td.topic_weight) * criterion_value
+        documents_criterion_dict[td.document_es_id]["eval_value"] += eval
+        documents_criterion_dict[td.document_es_id]["total_topic_weight"] += td.topic_weight
 
-    print("!!!", "Sending to elastic + calculating through generators", datetime.datetime.now())
+        # Top docs
+        if (any((eval > t['eval'] for t in documents_criterion_dict[td.document_es_id]['topic_ids_top']))
+                or len(documents_criterion_dict[td.document_es_id]['topic_ids_top']) < 3) and \
+                eval > range_center + neutral_neighborhood:
+            documents_criterion_dict[td.document_es_id]['topic_ids_top'].append(
+                {
+                    "topic_id": td.topic_id,
+                    "eval": eval
+                }
+            )
+        if len(documents_criterion_dict[td.document_es_id]['topic_ids_top']) > 3:
+            del documents_criterion_dict[td.document_es_id]['topic_ids_top'][
+                documents_criterion_dict[td.document_es_id]['topic_ids_top'].index(
+                    min(documents_criterion_dict[td.document_es_id]['topic_ids_top'], key=lambda x: x['eval'])
+                )
+            ]
+
+        if criterion.value_range_from < 0:
+            # Bottom docs
+            if (any((eval < t['eval'] for t in documents_criterion_dict[td.document_es_id]['topic_ids_bottom']))
+                    or len(documents_criterion_dict[td.document_es_id]['topic_ids_bottom']) < 3) and \
+                    eval < range_center - neutral_neighborhood:
+                documents_criterion_dict[td.document_es_id]['topic_ids_bottom'].append(
+                    {
+                        "topic_id": td.topic_id,
+                        "eval": eval
+                    }
+                )
+            if len(documents_criterion_dict[td.document_es_id]['topic_ids_bottom']) > 3:
+                del documents_criterion_dict[td.document_es_id]['topic_ids_bottom'][
+                    documents_criterion_dict[td.document_es_id]['topic_ids_bottom'].index(
+                        max(documents_criterion_dict[td.document_es_id]['topic_ids_bottom'], key=lambda x: x['eval'])
+                    )
+                ]
+
+    if perform_actualize and len(documents_criterion_dict.keys()) == 0:
+        return f"No documents to actualize"
+
+    print("!!!", "Sending to elastic", datetime.datetime.now())
     # Send to elastic
     if not perform_actualize:
-        es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}", using=ES_CLIENT)
+        es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}", using=ES_CLIENT)
         es_index.delete(ignore=404)
-    if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}"):
-        ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}", body={
-                "settings": DocumentEval.Index.settings,
-                "mappings": DocumentEval.Index.mappings
-            }
+    if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}"):
+        ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}", body={
+            "settings": DocumentEval.Index.settings,
+            "mappings": DocumentEval.Index.mappings
+        }
         )
 
-    def eval_calc_generator(ids_to_process):
-        for doc in doc_eval_generator(ids_to_process):
+    def doc_eval_generator(documents_criterion_dict):
+        for doc in documents_criterion_dict.keys():
             eval = DocumentEval()
-            eval.value = doc["eval_value"] / doc["total_topic_weight"]
-            eval.topic_ids_top = [v['topic_id'] for v in doc["topic_ids_top"]]
+            val = documents_criterion_dict[doc]["eval_value"] / documents_criterion_dict[doc]["total_topic_weight"]
+            eval.topic_ids_top = [v['topic_id'] for v in documents_criterion_dict[doc]["topic_ids_top"]]
             if criterion.value_range_from < 0:
-                eval.topic_ids_bottom = [v['topic_id'] for v in doc["topic_ids_bottom"]]
-            eval.document_es_id = doc['document_es_id']
-            eval.document_datetime = doc["document_datetime"]
-            eval.document_source = doc["document_source"]
+                eval.topic_ids_bottom = [v['topic_id'] for v in documents_criterion_dict[doc]["topic_ids_bottom"]]
+            eval.value = val
+            eval.document_es_id = doc
+            eval.document_datetime = documents_criterion_dict[doc]["document_datetime"]
+            eval.document_source = documents_criterion_dict[doc]["document_source"]
             yield eval.to_dict()
 
-    total_created = 0
     failed = 0
     success = 0
-    for ok, result in parallel_bulk(ES_CLIENT, eval_calc_generator(ids_to_process),
+    total_created = 0
+    for ok, result in parallel_bulk(ES_CLIENT, doc_eval_generator(documents_criterion_dict),
                                      index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}",
                                      chunk_size=50000, raise_on_error=True, thread_count=6):
         if not ok:
@@ -153,10 +160,7 @@ def evaluate(**kwargs):
             success += 1
             total_created += 1
         if (failed+success) % 50000 == 0:
-            print(f"!!!{failed+success} processed", datetime.datetime.now())
+            print(f"!!!{failed+success}/{len(documents_criterion_dict.keys())} processed")
         if failed > 5:
             raise Exception("Too many failed ES!!!")
-
-    if perform_actualize and total_created == 0:
-        return f"No documents to actualize"
     return total_created
