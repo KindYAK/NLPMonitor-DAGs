@@ -34,7 +34,7 @@ def evaluate(**kwargs):
 
     # Eval documents
     # Dict Document -> [topic_weight*topic_eval for ...]
-    print("!!!", "Finding IDs to process")
+    print("!!!", "Finding IDs to process", datetime.datetime.now())
     std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}")
     std = std.filter("range", topic_weight={"gte": 0.001}).source([])[:0]
     std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
@@ -42,7 +42,7 @@ def evaluate(**kwargs):
 
     ids_to_skip = set()
     if perform_actualize:
-        print("!!!", "Performing actualizing, skipping document already in TM")
+        print("!!!", "Performing actualizing, skipping document already in TM", datetime.datetime.now())
         if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}"):
             return "Evaluation doesn't exist yet"
         s = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}").source([])[:0]
