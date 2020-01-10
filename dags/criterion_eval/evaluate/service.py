@@ -34,6 +34,7 @@ def evaluate(**kwargs):
 
     # Eval documents
     # Dict Document -> [topic_weight*topic_eval for ...]
+    print("!!!", "Finding IDs to process")
     std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}")
     std = std.filter("range", topic_weight={"gte": 0.001}).source([])[:0]
     std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
@@ -146,16 +147,16 @@ def evaluate(**kwargs):
     success = 0
     for ok, result in parallel_bulk(ES_CLIENT, eval_calc_generator(ids_to_process),
                                      index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}",
-                                     chunk_size=5000, raise_on_error=True, thread_count=2):
+                                     chunk_size=1000, raise_on_error=True, thread_count=2):
+        if (failed+success) % 1000 == 0:
+            print(f"!!!{failed+success} processed", datetime.datetime.now())
+        if failed > 5:
+            raise Exception("Too many failed ES!!!")
         if not ok:
             failed += 1
         else:
             success += 1
             total_created += 1
-        if (failed+success) % 50000 == 0:
-            print(f"!!!{failed+success} processed", datetime.datetime.now())
-        if failed > 5:
-            raise Exception("Too many failed ES!!!")
 
     if perform_actualize and total_created == 0:
         return f"No documents to actualize"
