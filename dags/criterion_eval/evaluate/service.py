@@ -35,8 +35,7 @@ def evaluate(**kwargs):
     # Eval documents
     # Dict Document -> [topic_weight*topic_eval for ...]
     print("!!!", "Finding IDs to process", datetime.datetime.now())
-    std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}")
-    std = std.filter("range", topic_weight={"gte": 0.001}).source([])[:0]
+    std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}").source([])[:0]
     std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
     ids_to_process = set([bucket.key for bucket in std.execute().aggregations.ids.buckets])
 
