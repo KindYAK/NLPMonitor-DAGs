@@ -143,7 +143,7 @@ def dataset_prepare(**kwargs):
     if perform_actualize:
         print("!!!", "Performing actualizing, skipping document already in TM")
         std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS}_{name}").source(['document_es_id'])[:5000000]
-        ids_to_skip = set((d.document_es_id for d in std.scan()))
+        ids_to_skip = set((doc.document_es_id for doc in std.scan()))
 
     ids = []
     texts = []
@@ -425,9 +425,9 @@ def topic_modelling(**kwargs):
 
     def unique_ids_generator(theta_documents):
         for d in theta_documents:
-            id, _, _ = d.split("*")
+            doc_id, _, _ = d.split("*")
             doc = TopicDocumentUniqueIDs()
-            doc.document_es_id = id
+            doc.document_es_id = doc_id
             yield doc
 
     success, failed = 0, 0

@@ -2,8 +2,9 @@ def evaluate(**kwargs):
     import datetime
 
     from evaluation.models import EvalCriterion, TopicsEval
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT, ES_HOST
-    from mainapp.documents import DocumentEval
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL, \
+        ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS, ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_TOPIC_DOCUMENT
+    from mainapp.documents import DocumentEval, DocumentEvalUniqueIDs
 
     from elasticsearch_dsl import Search, Index
     from elasticsearch.helpers import parallel_bulk
@@ -35,20 +36,16 @@ def evaluate(**kwargs):
     # Eval documents
     # Dict Document -> [topic_weight*topic_eval for ...]
     print("!!!", "Finding IDs to process", datetime.datetime.now())
-    std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}").source([])[:0]
-    std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
-    r = std.execute()
-    ids_to_process = set((bucket.key for bucket in r.aggregations.ids.buckets))
+    std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS}_{topic_modelling}") \
+            .source(['document_es_id'])[:5000000]
+    ids_to_process = set((doc.document_es_id for doc in std.scan()))
 
     ids_to_skip = set()
     if perform_actualize:
         print("!!!", "Performing actualizing, skipping document already in TM", datetime.datetime.now())
-        if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}"):
-            return "Evaluation doesn't exist yet"
-        s = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}").source([])[:0]
-        s.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
-        r = s.execute()
-        ids_to_skip = set((bucket.key for bucket in r.aggregations.ids.buckets))
+        s = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}") \
+                .source(['document_es_id'])[:5000000]
+        ids_to_skip = set((doc.document_es_id for doc in s.scan()))
     ids_to_process = ids_to_process - ids_to_skip
 
     def doc_eval_generator(ids_to_process):
@@ -160,4 +157,37 @@ def evaluate(**kwargs):
 
     if perform_actualize and total_created == 0:
         return f"No documents to actualize"
+
+    # Create or update unique IDs index
+    print("!!!", "Writing unique IDs", datetime.datetime.now())
+    if not perform_actualize:
+        es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}", using=ES_CLIENT)
+        es_index.delete(ignore=404)
+    if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}"):
+        ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}", body={
+                "settings": DocumentEvalUniqueIDs.Index.settings,
+                "mappings": DocumentEvalUniqueIDs.Index.mappings
+            }
+        )
+
+    def unique_ids_generator(ids_to_process):
+        for doc_id in ids_to_process:
+            doc = DocumentEvalUniqueIDs()
+            doc.document_es_id = doc_id
+            yield doc
+
+    failed = 0
+    success = 0
+    for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for doc in unique_ids_generator(ids_to_process)),
+                                    index=f"{ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}",
+                                    chunk_size=10000, raise_on_error=True, thread_count=4):
+        if (failed + success) % 10000 == 0:
+            print(f"!!!{failed + success}/{len(ids_to_process)} processed", datetime.datetime.now())
+        if failed > 5:
+            raise Exception("Too many failed ES!!!")
+        if not ok:
+            failed += 1
+        else:
+            success += 1
+            total_created += 1
     return total_created
