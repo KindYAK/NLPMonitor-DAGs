@@ -49,19 +49,3 @@ with dag:
                     "calc_virt_negative": True,
                 }
             )
-
-
-dag2 = DAG('Criterion_actualize_evaluations_neg_to_delete', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='0 23 * * *')
-with dag2:
-    for eval in actualizable_criterion_evals:
-        if 'calc_virt_negative' in eval:
-            evaluator = DjangoOperator(
-                task_id=f"eval_actualize_{eval['criterion_name']}_{eval['topic_modelling_translit']}_neg",
-                python_callable=evaluate,
-                op_kwargs={
-                    "perform_actualize": True,
-                    "criterion_id": eval["criterion_id"],
-                    "topic_modelling": eval["topic_modelling"],
-                    "calc_virt_negative": True,
-                }
-            )
