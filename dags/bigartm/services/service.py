@@ -398,14 +398,15 @@ def topic_modelling(**kwargs):
                   f'took {minutes} min, TETA~{round(minutes * index.number_of_documents * index.number_of_topics / batch_size / 60, 2)} hours')
             time_start = datetime.datetime.now()
     print("!!!", "Done writing", datetime.datetime.now())
-    s = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}").source([])[:0]
-    s.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
-    r = s.execute()
+    if not perform_actualize:
+        new_number_of_documents = theta_documents.shape[0]
+    else:
+        new_number_of_documents = index.number_of_documents + theta_documents.shape[0]
     ES_CLIENT.update(index=ES_INDEX_TOPIC_MODELLING, id=index.meta.id,
                          body={
                              "doc": {
                                  "is_ready": True,
-                                 "number_of_documents": len(r.aggregations.ids.buckets),
+                                 "number_of_documents": new_number_of_documents,
                                  "is_actualizable": is_actualizable,
                              }
                          }
