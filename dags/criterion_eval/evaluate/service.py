@@ -148,7 +148,7 @@ def evaluate(**kwargs):
     for ok, result in parallel_bulk(ES_CLIENT, eval_calc_generator(ids_to_process),
                                      index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}",
                                      chunk_size=2500 if not perform_actualize else 500, raise_on_error=True, thread_count=2):
-        if (failed+success) % 1000 == 0:
+        if (failed+success) % 2500 == 0:
             print(f"!!!{failed+success}/{len(ids_to_process)} processed", datetime.datetime.now())
         if failed > 5:
             raise Exception("Too many failed ES!!!")
