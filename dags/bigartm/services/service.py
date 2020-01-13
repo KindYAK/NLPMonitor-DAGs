@@ -143,7 +143,7 @@ def dataset_prepare(**kwargs):
         std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}").source([])[:0]
         std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
         r = std.execute()
-        ids_to_skip = set([bucket.key for bucket in r.aggregations.ids.buckets])
+        ids_to_skip = set((bucket.key for bucket in r.aggregations.ids.buckets))
 
     s = s.source(["id", "text_lemmatized", "title", "source", "datetime"]).sort(('id',))[:5000000]
     ids = []

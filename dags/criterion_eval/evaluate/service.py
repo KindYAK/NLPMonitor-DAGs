@@ -37,7 +37,8 @@ def evaluate(**kwargs):
     print("!!!", "Finding IDs to process", datetime.datetime.now())
     std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}").source([])[:0]
     std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
-    ids_to_process = set([bucket.key for bucket in std.execute().aggregations.ids.buckets])
+    r = std.execute()
+    ids_to_process = set((bucket.key for bucket in r.aggregations.ids.buckets))
 
     ids_to_skip = set()
     if perform_actualize:
@@ -47,7 +48,7 @@ def evaluate(**kwargs):
         s = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}").source([])[:0]
         s.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
         r = s.execute()
-        ids_to_skip = set([bucket.key for bucket in r.aggregations.ids.buckets])
+        ids_to_skip = set((bucket.key for bucket in r.aggregations.ids.buckets))
     ids_to_process = ids_to_process - ids_to_skip
 
     def doc_eval_generator(ids_to_process):
