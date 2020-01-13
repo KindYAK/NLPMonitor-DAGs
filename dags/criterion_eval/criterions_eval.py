@@ -25,7 +25,7 @@ default_args = {
 }
 
 # dag = DAG('Criterion_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='30 14 * * *')
-dag = DAG('Criterion_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag = DAG('Criterion_evaluations', catchup=False, max_active_runs=1, concurrency=4, default_args=default_args, schedule_interval=None)
 
 actualizable_criterion_evals = []
 with dag:
@@ -76,7 +76,7 @@ with dag:
                 )
 
 
-dag2 = DAG('Criterion_evaluations_neg_to_delete', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag2 = DAG('Criterion_evaluations_neg_to_delete', catchup=False, max_active_runs=1, concurrency=4, default_args=default_args, schedule_interval=None)
 
 with dag2:
     for criterion in criterions:
