@@ -90,7 +90,7 @@ def dataset_prepare(**kwargs):
     from dags.bigartm.services.cleaners import return_cleaned_array, txt_writer
     from util.constants import BASE_DAG_DIR
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_DOCUMENT
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_DOCUMENT, ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS
     from mainapp.models_user import TopicGroup
 
     import logging
@@ -121,6 +121,8 @@ def dataset_prepare(**kwargs):
         s = s.filter('range', datetime={'gte': datetime_from})
     if datetime_to and not perform_actualize:
         s = s.filter('range', datetime={'lt': datetime_to})
+    s = s.source(["id", "text_lemmatized", "title", "source", "datetime"]).sort(('id',))[:5000000]
+
     group_document_es_ids = None
     if group_id:
         group = TopicGroup.objects.get(id=group_id)
@@ -132,7 +134,7 @@ def dataset_prepare(**kwargs):
             .filter("terms", **{"topic_id": topic_ids})\
             .filter("range", topic_weight={"gte": topic_weight_threshold}) \
             .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
-            .source(('document_es_id'))[:1000000]
+            .source(('document_es_id'))[:5000000]
         r = st.scan()
         group_document_es_ids = set([doc.document_es_id for doc in r])
 
@@ -140,12 +142,9 @@ def dataset_prepare(**kwargs):
     ids_to_skip = None
     if perform_actualize:
         print("!!!", "Performing actualizing, skipping document already in TM")
-        std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}").source([])[:0]
-        std.aggs.bucket(name="ids", agg_type="terms", field="document_es_id", size=5000000)
-        r = std.execute()
-        ids_to_skip = set((bucket.key for bucket in r.aggregations.ids.buckets))
+        std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS}_{name}").source(['document_es_id'])[:5000000]
+        ids_to_skip = set((d.document_es_id for d in std.scan()))
 
-    s = s.source(["id", "text_lemmatized", "title", "source", "datetime"]).sort(('id',))[:5000000]
     ids = []
     texts = []
     titles = []
@@ -205,8 +204,8 @@ def topic_modelling(**kwargs):
 
     from util.constants import BASE_DAG_DIR
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT
-    from mainapp.documents import TopicDocument
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT, ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS
+    from mainapp.documents import TopicDocument, TopicDocumentUniqueIDs
 
     import logging
     es_logger = logging.getLogger('elasticsearch')
@@ -380,11 +379,11 @@ def topic_modelling(**kwargs):
         )
 
     success, failed = 0, 0
-    batch_size = 100000
+    batch_size = 50000
     time_start = datetime.datetime.now()
     row_generator = (topic_document_generator_converter(id, row) for id, row in topic_document_generator(theta_values, theta_documents))
     for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for row in row_generator for doc in row),
-                                    index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", chunk_size=batch_size, thread_count=10, raise_on_error=True):
+                                    index=f"{ES_INDEX_TOPIC_DOCUMENT}_{name}", chunk_size=batch_size, thread_count=6, raise_on_error=True):
         if ok:
             success += 1
         else:
@@ -411,6 +410,40 @@ def topic_modelling(**kwargs):
                              }
                          }
                      )
+
+    # Create or update unique IDS index
+    print("!!!", "Writing unique IDs", datetime.datetime.now())
+    if not perform_actualize:
+        es_index = Index(f"{ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS}_{name}", using=ES_CLIENT)
+        es_index.delete(ignore=404)
+    if not ES_CLIENT.indices.exists(f"{ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS}_{name}"):
+        ES_CLIENT.indices.create(index=f"{ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS}_{name}", body={
+                "settings": TopicDocumentUniqueIDs.Index.settings,
+                "mappings": TopicDocumentUniqueIDs.Index.mappings
+            }
+        )
+
+    def unique_ids_generator(theta_documents):
+        for d in theta_documents:
+            id, _, _ = d.split("*")
+            doc = TopicDocumentUniqueIDs()
+            doc.document_es_id = id
+            yield doc
+
+    success, failed = 0, 0
+    for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for doc in unique_ids_generator(theta_documents)),
+                                    index=f"{ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS}_{name}", chunk_size=batch_size, thread_count=6, raise_on_error=True):
+        if ok:
+            success += 1
+        else:
+            print("!!!", "ES index fail, error", result)
+            failed += 1
+        if failed > 3:
+            raise Exception("Too many failed to ES!!")
+        if (success + failed) % batch_size == 0:
+            print(f'{success + failed} / {index.number_of_documents} processed)')
+    print("!!!", "Done writing", datetime.datetime.now())
+
     # Remove logs
     fileList = glob.glob(f'{BASE_DAG_DIR}/bigartm.*')
     for filePath in fileList:
