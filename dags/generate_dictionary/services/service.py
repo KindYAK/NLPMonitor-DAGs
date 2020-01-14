@@ -94,7 +94,7 @@ def generate_dictionary_batch(**kwargs):
 
     failed = 0
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words.values(), index=ES_INDEX_DICTIONARY_WORD + "_temp",
-                                     chunk_size=10000, raise_on_error=True, thread_count=4):
+                                     chunk_size=10000, raise_on_error=True, thread_count=6):
         if not ok:
             failed += 1
         if failed > 3:
@@ -152,7 +152,7 @@ def aggregate_dicts(**kwargs):
     failed = 0
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words_final.values(),
                                      index=ES_INDEX_DICTIONARY_WORD,
-                                     chunk_size=10000, raise_on_error=True, thread_count=4):
+                                     chunk_size=10000, raise_on_error=True, thread_count=6):
         if not ok:
             failed += 1
         if failed > 3:
