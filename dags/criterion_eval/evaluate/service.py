@@ -79,9 +79,9 @@ def evaluate(**kwargs):
                     eval = td.topic_weight * criterion_value
                 else:
                     if criterion.value_range_from < 0:
-                        eval = (-1 * td.topic_weight) * criterion_value
+                        eval = td.topic_weight * (-1 * criterion_value)
                     else:
-                        eval = (1 - td.topic_weight) * criterion_value
+                        eval = td.topic_weight * (1 - criterion_value)
                 current_doc["eval_value"] += eval
                 current_doc["total_topic_weight"] += td.topic_weight
                 # Top docs
