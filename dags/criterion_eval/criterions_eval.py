@@ -75,7 +75,7 @@ with dag:
                     }
                 )
 
-dag2 = DAG('Criterion_evaluations_neg_to_delete', catchup=False, max_active_runs=1, concurrency=4, default_args=default_args, schedule_interval=None)
+dag2 = DAG('Criterion_evaluations_neg_to_delete', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 
 with dag2:
     for criterion in criterions:
