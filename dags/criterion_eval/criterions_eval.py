@@ -74,25 +74,3 @@ with dag:
                         "calc_virt_negative": True
                     }
                 )
-
-
-dag2 = DAG('Criterion_evaluations_neg_to_delete', catchup=False, max_active_runs=1, concurrency=4, default_args=default_args, schedule_interval=None)
-
-with dag2:
-    for criterion in criterions:
-        for tm in criterion['topic_modellings']:
-            filtered_criterion_name = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
-                                                criterion['name_translit'].replace(":", "_").replace(" ", "_"))))
-            filtered_topic_modelling = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
-                                                          tm['name_translit'].replace(":", "_").replace(" ", "_"))))
-            if criterion['calc_virt_negative']:
-                evaluators.append(DjangoOperator(
-                    task_id=f"eval_{filtered_criterion_name}_{filtered_topic_modelling}_neg",
-                    python_callable=evaluate,
-                    op_kwargs={
-                        "criterion_id": criterion['id'],
-                        "topic_modelling": tm['name'],
-                        "calc_virt_negative": True
-                    }
-                )
-                )
