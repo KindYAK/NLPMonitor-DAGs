@@ -89,7 +89,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 return None
             if field == "datetime":
                 try:
-                    parse_result = parse_result.lower().replace("опубликовано:", "").replace("автор", "")
+                    parse_result = parse_result.lower().strip().replace("опубликовано:", "").replace("автор", "").replace("автор:", "")
                     parse_result = dateparser.parse(parse_result, languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
                     if parse_result.year < 2000:
                         return None
