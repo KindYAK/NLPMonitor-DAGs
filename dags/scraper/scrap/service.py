@@ -60,6 +60,8 @@ def scrap(**kwargs):
                         new['author'] = Author.objects.create(name=new['author'], corpus=source.corpus)
                 if 'datetime' in new:
                     new['datetime'] = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
+                    if new['datetime'].date() > datetime.datetime.now().date():
+                        new['datetime'] = new['datetime'].replace(month=new['datetime'].day, day=new['datetime'].month)
                 try:
                     d = Document.objects.create(**new)
                 except IntegrityError:
