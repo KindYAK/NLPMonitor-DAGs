@@ -74,7 +74,7 @@ def gen_bigartm_operator(name, description, number_of_topics, filters, regulariz
 
 groups = json.loads(Variable.get('topic_groups', default_var="[]"))
 
-dag = DAG('NLPmonitor_BigARTMs', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag = DAG('NLPmonitor_full_BigARTMs', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 with dag:
     wait_for_basic_tms = PythonOperator(
         task_id="wait_for_basic_tms",
@@ -95,6 +95,8 @@ with dag:
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
 
+dag2 = DAG('NLPmonitor_two_years_BigARTMs', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+with dag2:
     gen_bigartm_operator(name="bigartm_two_years", description="Two last years", number_of_topics=200,
                          filters={
                         "corpus": "main",
@@ -276,6 +278,9 @@ with dag:
                              topic_modelling_translit=group['topic_modelling_name_translit'],
                              )
 
+dag3 = DAG('NLPmonitor_2019_BigARTMs', catchup=False, max_active_runs=1, default_args=default_args,
+           schedule_interval=None)
+with dag3:
     gen_bigartm_operator(name="bigartm_2019", description="2019", number_of_topics=175,
                          filters={
                              "corpus": "main",
