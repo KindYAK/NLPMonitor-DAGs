@@ -208,21 +208,22 @@ with dag:
     # BigARTMs for two_year Zhazira's folders
     groups_bigartm_two_years = filter(lambda x: x['topic_modelling_name'] == "bigartm_two_years", groups)
     for group in groups_bigartm_two_years:
-        gen_bigartm_operator(name=f"bigartm_{group['name']}_two_years", description=f"Two years {group['name']}", number_of_topics=100,
+        gen_bigartm_operator(name=f"bigartm_{group['name']}_two_years", description=f"Two years {group['name']}",
+                             number_of_topics=100,
                              filters={
-                            "corpus": "main",
-                            "source": None,
-                            "datetime_from": date(2010, 5, 1),
-                            "datetime_to": date(2020, 1, 1),
-                            "group_id": group['id'],
-                            "topic_weight_threshold": 0.05,
-                        },
+                                 "corpus": "main",
+                                 "source": None,
+                                 "datetime_from": date(2010, 5, 1),
+                                 "datetime_to": date(2020, 1, 1),
+                                 "group_id": group['id'],
+                                 "topic_weight_threshold": 0.05,
+                             },
                              regularization_params={
-                            "SmoothSparseThetaRegularizer": 0.15,
-                            "SmoothSparsePhiRegularizer": 0.15,
-                            "DecorrelatorPhiRegularizer": 0.15,
-                            "ImproveCoherencePhiRegularizer": 0.15
-                        },
+                                 "SmoothSparseThetaRegularizer": 0.15,
+                                 "SmoothSparsePhiRegularizer": 0.15,
+                                 "DecorrelatorPhiRegularizer": 0.15,
+                                 "ImproveCoherencePhiRegularizer": 0.15
+                             },
                              is_actualizable=True,
                              name_translit=f"bigartm_{group['name_translit']}_two_years",
                              topic_modelling_translit=group['topic_modelling_name_translit'],
@@ -274,3 +275,18 @@ with dag:
                              name_translit=f"bigartm_{group['name_translit']}_2_level_it_two_years",
                              topic_modelling_translit=group['topic_modelling_name_translit'],
                              )
+
+    gen_bigartm_operator(name="bigartm_2019", description="2019", number_of_topics=175,
+                         filters={
+                             "corpus": "main",
+                             "source": None,
+                             "datetime_from": date(2019, 1, 1),
+                             "datetime_to": date(2019, 12, 31),
+                             "topic_weight_threshold": 0.05,
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         }, is_actualizable=False)
