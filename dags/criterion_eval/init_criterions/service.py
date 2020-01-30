@@ -21,7 +21,7 @@ def init_criterions(**kwargs):
                                  {
                                      "name": topic_id.topic_modelling_name,
                                      "name_translit": translit(topic_id.topic_modelling_name, 'ru', reversed=True)
-                                 } for topic_id in TopicID.objects.filter(topicseval__criterion=criterion).distinct()
+                                 } for topic_id in TopicID.objects.filter(topicseval__criterion=criterion).distinct('topic_modelling_name')
                              ]
                          } for criterion in criterions]
                      )
