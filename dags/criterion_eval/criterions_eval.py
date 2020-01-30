@@ -33,9 +33,9 @@ with dag:
     evaluators = []
     for criterion in criterions:
         for tm in criterion['topic_modellings']:
-            filtered_criterion_name = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
+            filtered_criterion_name = "".join(list(filter(lambda x: x.isalnum() or x in ['.', '-', '_'],
                                                 criterion['name_translit'].replace(":", "_").replace(" ", "_"))))
-            filtered_topic_modelling = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
+            filtered_topic_modelling = "".join(list(filter(lambda x: x.isalnum() or x in ['.', '-', '_'],
                                                           tm['name_translit'].replace(":", "_").replace(" ", "_"))))
             evaluators.append(DjangoOperator(
                 task_id=f"eval_{filtered_criterion_name}_{filtered_topic_modelling}",
