@@ -441,7 +441,7 @@ def topic_modelling(**kwargs):
         if failed > 3:
             raise Exception("Too many failed to ES!!")
         if (success + failed) % batch_size == 0:
-            print(f'{success + failed} / {index.number_of_documents} processed)')
+            print(f'{success + failed} / {index.number_of_documents} processed')
     print("!!!", "Done writing", datetime.datetime.now())
 
     # Remove logs

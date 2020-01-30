@@ -287,7 +287,6 @@ with dag3:
                              "source": None,
                              "datetime_from": date(2019, 1, 1),
                              "datetime_to": date(2019, 12, 31),
-                             "topic_weight_threshold": 0.05,
                          },
                          regularization_params={
                              "SmoothSparseThetaRegularizer": 0.15,
@@ -295,3 +294,19 @@ with dag3:
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
                          }, is_actualizable=False)
+
+    gen_bigartm_operator(name="bigartm_education_2019", description="2019 education", number_of_topics=90,
+                         filters={
+                             "corpus": "main",
+                             "source": None,
+                             "datetime_from": date(2019, 1, 1),
+                             "datetime_to": date(2019, 12, 31),
+                             "group_id": 87,
+                             "topic_weight_threshold": 0.04,
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         }, is_actualizable=True)
