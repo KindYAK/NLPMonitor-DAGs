@@ -328,7 +328,7 @@ with dag3:
                              "datetime_from": date(2019, 1, 1),
                              "datetime_to": date(2019, 12, 31),
                              "group_id": 93,
-                             "topic_weight_threshold": 0.01,
+                             "topic_weight_threshold": 0.02,
                          },
                          regularization_params={
                              "SmoothSparseThetaRegularizer": 0.15,
