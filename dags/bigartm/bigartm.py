@@ -320,3 +320,19 @@ with dag3:
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
                          }, is_actualizable=True)
+
+    gen_bigartm_operator(name="bigartm_education_2_2019", description="2019 education 2 distilled", number_of_topics=75,
+                         filters={
+                             "corpus": "main",
+                             "source": None,
+                             "datetime_from": date(2019, 1, 1),
+                             "datetime_to": date(2019, 12, 31),
+                             "group_id": 93,
+                             "topic_weight_threshold": 0.01,
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         }, is_actualizable=True)
