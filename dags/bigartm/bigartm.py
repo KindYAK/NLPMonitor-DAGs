@@ -319,7 +319,7 @@ with dag3:
                              "SmoothSparsePhiRegularizer": 0.15,
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
-                         }, is_actualizable=True)
+                         }, is_actualizable=False)
 
     gen_bigartm_operator(name="bigartm_education_2_2019", description="2019 education 2 distilled", number_of_topics=75,
                          filters={
@@ -335,4 +335,4 @@ with dag3:
                              "SmoothSparsePhiRegularizer": 0.15,
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
-                         }, is_actualizable=True)
+                         }, is_actualizable=False)
