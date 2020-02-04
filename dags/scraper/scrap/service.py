@@ -52,6 +52,8 @@ def scrap(**kwargs):
                 if is_kazakh(new['text'] + new['title']):
                     continue
                 new['source'] = source
+                if 'title' in new:
+                    new['title'] = new['title'][:Document._meta.get_field('title').max_length]
                 if 'author' in new:
                     new['author'] = new['author'][:Author._meta.get_field('name').max_length]
                     if Author.objects.filter(name=new['author']).exists():
