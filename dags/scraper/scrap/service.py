@@ -64,6 +64,7 @@ def scrap(**kwargs):
                     new['datetime'] = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
                     if new['datetime'].date() > datetime.datetime.now().date() and new['datetime'].day <= 12:
                         new['datetime'] = new['datetime'].replace(month=new['datetime'].day, day=new['datetime'].month)
+                    new['date'] = new['datetime'].date()
                 try:
                     d = Document.objects.create(**new)
                 except IntegrityError:
