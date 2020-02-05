@@ -1,4 +1,4 @@
-from util.util import is_kazakh
+from util.util import is_kazakh, is_latin
 
 
 def scrap(**kwargs):
@@ -49,7 +49,7 @@ def scrap(**kwargs):
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
             for new in news:
-                if is_kazakh(new['text'] + new['title']):
+                if is_kazakh(new['text'] + new['title']) or is_latin(new['text'] + new['title']):
                     continue
                 new['source'] = source
                 if 'title' in new:
