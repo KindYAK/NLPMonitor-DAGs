@@ -45,6 +45,7 @@ def scrap(**kwargs):
 
     # Write to DB
     filename = os.path.join(BASE_DAG_DIR, "dags", "scraper", "scrapy_project", filename)
+    new_news = 0
     try:
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
@@ -67,10 +68,11 @@ def scrap(**kwargs):
                     new['date'] = new['datetime'].date()
                 try:
                     Document.objects.create(**new)
+                    new_news += 1
                 except IntegrityError:
                     pass
             if len(news) <= 3:
                 raise Exception("Seems like parser is broken - less than 3 news")
     finally:
         os.remove(filename)
-    return "Parse complete"
+    return f"Parse complete, {new_news} parsed"
