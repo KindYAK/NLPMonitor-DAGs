@@ -77,8 +77,9 @@ FEED_EXPORT_ENCODING = 'utf-8'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 CONCURRENT_REQUESTS = 32
+RETRY_ENABLED = True
 RETRY_TIMES = 50
-RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
+RETRY_HTTP_CODES = [204, 500, 502, 503, 504, 522, 524, 400, 403, 404, 408, 429]
 
 DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
