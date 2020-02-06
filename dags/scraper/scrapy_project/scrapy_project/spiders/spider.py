@@ -21,6 +21,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                                  # process_request="splash_request"
                                  ),
              )
+    rotate_user_agent = True
 
     def splash_request(self, request):
         request.meta.update(splash={
