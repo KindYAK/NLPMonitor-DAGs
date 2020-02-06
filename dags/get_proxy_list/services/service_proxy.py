@@ -1,21 +1,31 @@
-def get_proxy_list(**kwargs):
+def get_proxy_list():
+    import asyncio
     import os
-    import requests
+
+    from proxybroker import Broker
 
     from util.constants import BASE_DAG_DIR
 
-    key = "ODg4.XjuW9g.JqRqEoQ7lp9r7UqNnmkk3RQYrYI"
-    timeout_limit = 3
-    number_of_proxies = 50
-    r = requests.get(
-                        f'https://proxy11.com/api/proxy.json'
-                        f'?key={key}'
-                        f'&speed={timeout_limit}'
-                        f'&limit={number_of_proxies}'
-                        f'&type={"anonymous"}'
-                     )
-    proxylist = r.json()
+    async def write_to_file(proxies):
+        with open(os.path.join(BASE_DAG_DIR, "proxy_list.txt"), "w") as f:
+            while True:
+                proxy = await proxies.get()
+                if proxy is None:
+                    break
+                f.write(f"{proxy.host}:{proxy.port}\n")
 
-    with open(os.path.join(BASE_DAG_DIR, "proxy_list.txt"), "w") as f:
-        for proxy in proxylist['data']:
-            f.write(f"http://{proxy['ip']}:{proxy['port']}\n")
+    proxies = asyncio.Queue()
+    broker = Broker(proxies)
+    tasks = asyncio.gather(
+        broker.find(
+            types=[
+                ('HTTP', ('Anonymous', 'High')),
+                ('HTTPS', ('Anonymous', 'High'))
+            ],
+            limit=75
+        ),
+        write_to_file(proxies)
+    )
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(tasks)

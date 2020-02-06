@@ -27,7 +27,7 @@ textblob==0.15.3
 gensim==3.8.0
 scrapy==1.7.3
 bs4==0.0.1
-dateparser>=0.7.1
+dateparser>=0.7.2
 scrapy-splash==0.7.2
 pymorphy2==0.8
 stop_words==2018.7.23
@@ -35,3 +35,5 @@ stop_words==2018.7.23
 tensorflow >= 1.11.0
 numba==0.46.0
 transliterate==1.10.2
+scrapy_proxies==0.4
+proxybroker==0.3.2
