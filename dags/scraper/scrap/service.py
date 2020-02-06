@@ -22,7 +22,7 @@ def scrap(**kwargs):
         return "No rules - no parse"
 
     # Scrap
-    os.chdir("/opt/bitnami/airflow/dags/dags/scraper/scrapy_project/")
+    os.chdir(os.path.join(BASE_DAG_DIR, "dags", "scraper", "scrapy_project"))
     safe_source_url = source_url.replace('https://', '').replace('http://', '').replace('/', '')
     filename = f"{safe_source_url}_{str(datetime.datetime.now()).replace(':', '-')}.json"
     run_args = ["scrapy", "crawl", "spider", "-o", filename]
@@ -49,8 +49,8 @@ def scrap(**kwargs):
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
             for new in news:
-                if is_kazakh(new['text'] + new['title']) or is_latin(new['text'] + new['title']):
-                    continue
+                # if is_kazakh(new['text'] + new['title']) or is_latin(new['text'] + new['title']):
+                #     continue
                 new['source'] = source
                 if 'title' in new:
                     new['title'] = new['title'][:Document._meta.get_field('title').max_length]
@@ -66,7 +66,7 @@ def scrap(**kwargs):
                         new['datetime'] = new['datetime'].replace(month=new['datetime'].day, day=new['datetime'].month)
                     new['date'] = new['datetime'].date()
                 try:
-                    d = Document.objects.create(**new)
+                    Document.objects.create(**new)
                 except IntegrityError:
                     pass
             if len(news) <= 3:

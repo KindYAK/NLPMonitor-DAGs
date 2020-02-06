@@ -18,10 +18,19 @@ USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36
 # ROBOTSTXT_OBEY = True
 
 DOWNLOADER_MIDDLEWARES = {
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,
+    'scrapy_proxies.RandomProxy': 100,
+    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
     'scrapy_splash.SplashCookiesMiddleware': 723,
     'scrapy_splash.SplashMiddleware': 725,
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
 }
+
+# PROXY START
+import os
+PROXY_LIST = os.path.join('/', 'opt', 'bitnami', 'airflow', 'dags', "proxy_list.txt")
+PROXY_MODE = 0
+# PROXY END
 
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
@@ -45,6 +54,7 @@ FEED_EXPORT_ENCODING = 'utf-8'
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 CONCURRENT_REQUESTS = 32
 RETRY_TIMES = 50
+RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 
 DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
