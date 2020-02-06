@@ -41,6 +41,10 @@ def scrap(**kwargs):
         latest_date -= datetime.timedelta(days=30)
     run_args.append("-a")
     run_args.append(f"latest_date={latest_date.isoformat()}")
+    try:
+        print(f"Run command: {run_args}")
+    except:
+        pass
     subprocess.run(run_args)
 
     # Write to DB
