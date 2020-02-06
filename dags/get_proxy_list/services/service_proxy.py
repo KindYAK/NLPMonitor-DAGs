@@ -12,7 +12,7 @@ def get_proxy_list():
                 proxy = await proxies.get()
                 if proxy is None:
                     break
-                f.write(f"{proxy.host}:{proxy.port}\n")
+                f.write(f"http://{proxy.host}:{proxy.port}\n")
 
     proxies = asyncio.Queue()
     broker = Broker(proxies)
