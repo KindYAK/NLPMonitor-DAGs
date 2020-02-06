@@ -49,8 +49,8 @@ def scrap(**kwargs):
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
             for new in news:
-                # if is_kazakh(new['text'] + new['title']) or is_latin(new['text'] + new['title']):
-                #     continue
+                if is_kazakh(new['text'] + new['title']) or is_latin(new['text'] + new['title']):
+                    continue
                 new['source'] = source
                 if 'title' in new:
                     new['title'] = new['title'][:Document._meta.get_field('title').max_length]

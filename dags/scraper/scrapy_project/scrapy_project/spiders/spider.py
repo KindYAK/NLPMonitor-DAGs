@@ -62,10 +62,10 @@ class TheSpider(scrapy.spiders.CrawlSpider):
     def parse_item(self, response):
         if not "text" in response.headers['Content-Type'].decode('utf-8'):
             return None
-        if not hasattr(self, "i"):
-            self.i = 0
-        if self.i > 50:
-            raise CloseSpider('No more new stuff')
+        # if not hasattr(self, "i"):
+        #     self.i = 0
+        # if self.i > 50:
+        #     raise CloseSpider('No more new stuff')
         if self.depth_history_depth < response.meta['depth']:
             fails_ratio = sum(self.depth_history) / len(self.depth_history) if len(self.depth_history) else 0
             if fails_ratio > 0.9 and not self.last_depth:
@@ -112,7 +112,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         result['url'] = response.__dict__['_url']
         result['html'] = "\n".join(response.css(self.text).extract())
         result['datetime_created'] = datetime.datetime.now().replace(tzinfo=pytz.timezone('Asia/Almaty'))
-        self.i += 1
-        print("!!!", self.i, response.meta['depth'])
-        print(result['datetime'], self.latest_date, self.last_depth)
+        # self.i += 1
+        # print("!!!", self.i, response.meta['depth'])
+        # print(result['datetime'], self.latest_date, self.last_depth)
         yield result
