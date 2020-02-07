@@ -78,7 +78,7 @@ FEED_EXPORT_ENCODING = 'utf-8'
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 CONCURRENT_REQUESTS = 32
 RETRY_ENABLED = True
-RETRY_TIMES = 2500
+RETRY_TIMES = 1500
 RETRY_HTTP_CODES = [204, 500, 502, 503, 504, 522, 524, 400, 403, 404, 408, 429]
 
 DEPTH_PRIORITY = 1
