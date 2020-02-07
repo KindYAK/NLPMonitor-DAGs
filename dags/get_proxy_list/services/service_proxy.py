@@ -22,7 +22,7 @@ def get_proxy_list():
                 ('HTTP', ('Anonymous', 'High')),
                 ('HTTPS', ('Anonymous', 'High'))
             ],
-            limit=75
+            limit=100
         ),
         write_to_file(proxies)
     )
