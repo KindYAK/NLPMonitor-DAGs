@@ -1,6 +1,3 @@
-from util.util import is_kazakh
-
-
 def scrap(**kwargs):
     import os
     import subprocess
@@ -9,6 +6,7 @@ def scrap(**kwargs):
     import pytz
 
     from util.constants import BASE_DAG_DIR
+    from util.util import is_kazakh
     from django.db import IntegrityError
 
     from mainapp.models import ScrapRules, Document, Source, Author
