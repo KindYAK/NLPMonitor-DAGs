@@ -1,6 +1,3 @@
-from util.util import is_kazakh
-
-
 def init_dictionary_index(**kwargs):
     from elasticsearch_dsl import Search
 
@@ -29,6 +26,7 @@ def init_dictionary_index(**kwargs):
 
 
 def generate_dictionary_batch(**kwargs):
+    from util.util import is_kazakh
     import re
     from util.service_es import search, update_generator
     from elasticsearch_dsl import Search
