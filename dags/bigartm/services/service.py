@@ -312,7 +312,6 @@ def topic_modelling(**kwargs):
         print("!!!", "Start model train", datetime.datetime.now())
         # Fit model
         model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
-        print(f'cant write to {model_folder}')
         if not os.path.exists(model_folder):
             os.mkdir(model_folder)
 
@@ -325,7 +324,6 @@ def topic_modelling(**kwargs):
 
         print("!!!", "Get topics", datetime.datetime.now())
         # Create topics in ES
-
         topics = []
         phi = model_artm.get_phi()
         for topic in phi:
@@ -373,7 +371,6 @@ def topic_modelling(**kwargs):
 
     else:
         print("!!!", "Loading existing model")
-
         # Monkey patching stupid BigARTM bug
         def load(self, filename, model_name="p_wt"):
             _model_name = None
@@ -419,7 +416,6 @@ def topic_modelling(**kwargs):
     theta_values = theta.values.transpose().astype(float)
     theta_topics = theta.index.array.to_numpy().astype(str)
     theta_documents = theta.columns.array.to_numpy().astype(str)
-
     # Assign topics to docs in ES
     @jit(nopython=True)
     def topic_document_generator(theta_values, theta_documents):
@@ -462,12 +458,12 @@ def topic_modelling(**kwargs):
                                  )
 
     success, failed = 0, 0
-    batch_size = 10000
+    batch_size = 25000
     time_start = datetime.datetime.now()
     row_generator = (topic_document_generator_converter(id, row) for id, row in
                      topic_document_generator(theta_values, theta_documents))
     for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for row in row_generator for doc in row),
-                                    index=f"{topic_doc}_{name}", chunk_size=batch_size, thread_count=4,
+                                    index=f"{topic_doc}_{name}", chunk_size=batch_size, thread_count=5,
                                     raise_on_error=True):
         if ok:
             success += 1
@@ -518,7 +514,7 @@ def topic_modelling(**kwargs):
     success, failed = 0, 0
     for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for doc in unique_ids_generator(theta_documents)),
                                     index=f"{uniq_topic_doc}_{name}", chunk_size=batch_size,
-                                    thread_count=4, raise_on_error=True):
+                                    thread_count=5, raise_on_error=True):
         if ok:
             success += 1
         else:
@@ -527,7 +523,7 @@ def topic_modelling(**kwargs):
         if failed > 3:
             raise Exception("Too many failed to ES!!")
         if (success + failed) % batch_size == 0:
-            print(f'{success + failed} / {index.number_of_documents} processed)')
+            print(f'{success + failed} / {index.number_of_documents} processed')
     print("!!!", "Done writing", datetime.datetime.now())
 
     # Remove logs

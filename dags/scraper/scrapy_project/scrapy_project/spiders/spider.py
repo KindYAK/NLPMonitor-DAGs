@@ -21,6 +21,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                                  # process_request="splash_request"
                                  ),
              )
+    rotate_user_agent = True
 
     def splash_request(self, request):
         request.meta.update(splash={
@@ -63,7 +64,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
             return None
         # if not hasattr(self, "i"):
         #     self.i = 0
-        # if self.i > 4:
+        # if self.i > 50:
         #     raise CloseSpider('No more new stuff')
         if self.depth_history_depth < response.meta['depth']:
             fails_ratio = sum(self.depth_history) / len(self.depth_history) if len(self.depth_history) else 0
@@ -89,7 +90,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 return None
             if field == "datetime":
                 try:
-                    parse_result = parse_result.lower().replace("опубликовано:", "").replace("автор", "")
+                    parse_result = parse_result.lower().strip().replace("опубликовано:", "").replace("автор", "").replace("автор:", "")
                     parse_result = dateparser.parse(parse_result, languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
                     if parse_result.year < 2000:
                         return None
@@ -97,7 +98,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                     return None
                 date_now = datetime.datetime.now().date()
                 if parse_result.year == date_now.year and parse_result.month > date_now.month:
-                    parse_result.year = parse_result.year - 1
+                    parse_result = parse_result.replace(year=parse_result.year - 1)
                 if parse_result < self.latest_date:
                     self.depth_history.append(1)
                 else:

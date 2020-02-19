@@ -14,6 +14,10 @@ def is_kazakh(text):
     return sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) / len(text) > 0.07 if text else False
 
 
+def is_latin(text):
+    return sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in text]) / len(text) > 0.51 if text else False
+
+
 def load_obj(name):
     with open(name + '.pkl', 'rb') as f:
         return pickle.load(f)

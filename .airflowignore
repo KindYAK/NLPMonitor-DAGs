@@ -28,3 +28,5 @@ bigartm_temp/
 bigartm_models/
 
 dags/bigartm_acualizer/services/
+
+dags/get_proxy_list/services/

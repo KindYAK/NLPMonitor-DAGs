@@ -6,7 +6,7 @@ def scrap(**kwargs):
     import pytz
 
     from util.constants import BASE_DAG_DIR
-    from util.util import is_kazakh
+    from util.util import is_kazakh, is_latin
     from django.db import IntegrityError
 
     from mainapp.models import ScrapRules, Document, Source, Author
@@ -20,7 +20,7 @@ def scrap(**kwargs):
         return "No rules - no parse"
 
     # Scrap
-    os.chdir("/opt/bitnami/airflow/dags/dags/scraper/scrapy_project/")
+    os.chdir(os.path.join(BASE_DAG_DIR, "dags", "scraper", "scrapy_project"))
     safe_source_url = source_url.replace('https://', '').replace('http://', '').replace('/', '')
     filename = f"{safe_source_url}_{str(datetime.datetime.now()).replace(':', '-')}.json"
     run_args = ["scrapy", "crawl", "spider", "-o", filename]
@@ -39,17 +39,24 @@ def scrap(**kwargs):
         latest_date -= datetime.timedelta(days=30)
     run_args.append("-a")
     run_args.append(f"latest_date={latest_date.isoformat()}")
+    try:
+        print(f"Run command: {run_args}")
+    except:
+        pass
     subprocess.run(run_args)
 
     # Write to DB
     filename = os.path.join(BASE_DAG_DIR, "dags", "scraper", "scrapy_project", filename)
+    new_news = 0
     try:
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
             for new in news:
-                if is_kazakh(new['text'] + new['title']):
+                if is_kazakh(new['text'] + new['title']) or is_latin(new['text'] + new['title']):
                     continue
                 new['source'] = source
+                if 'title' in new:
+                    new['title'] = new['title'][:Document._meta.get_field('title').max_length]
                 if 'author' in new:
                     new['author'] = new['author'][:Author._meta.get_field('name').max_length]
                     if Author.objects.filter(name=new['author']).exists():
@@ -58,12 +65,16 @@ def scrap(**kwargs):
                         new['author'] = Author.objects.create(name=new['author'], corpus=source.corpus)
                 if 'datetime' in new:
                     new['datetime'] = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
+                    if new['datetime'].date() > datetime.datetime.now().date() and new['datetime'].day <= 12:
+                        new['datetime'] = new['datetime'].replace(month=new['datetime'].day, day=new['datetime'].month)
+                    new['date'] = new['datetime'].date()
                 try:
-                    d = Document.objects.create(**new)
+                    Document.objects.create(**new)
+                    new_news += 1
                 except IntegrityError:
                     pass
             if len(news) <= 3:
                 raise Exception("Seems like parser is broken - less than 3 news")
     finally:
         os.remove(filename)
-    return "Parse complete"
+    return f"Parse complete, {new_news} parsed"

@@ -12,3 +12,4 @@ dags/bert_embeddings/bert/models
 mussabayev_tm_temp
 bigartm_temp
 bigartm_models
+proxy_list.txt
