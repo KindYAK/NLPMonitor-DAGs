@@ -2,7 +2,6 @@ from airflow import DAG
 from datetime import datetime, timedelta
 from DjangoOperator import DjangoOperator
 
-from util.util import not_implemented
 from dags.bert_embeddings.gen_embed.services import (init_embedding_index,
                                                      generate_word_embeddings,
                                                      persist_embeddings,
