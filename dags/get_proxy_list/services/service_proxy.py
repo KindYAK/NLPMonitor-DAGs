@@ -1,5 +1,6 @@
 def get_proxy_list():
     import asyncio
+    import datetime
     import os
 
     from proxybroker import Broker
@@ -7,8 +8,12 @@ def get_proxy_list():
     from util.constants import BASE_DAG_DIR
 
     async def get_list(proxies, proxy_list):
+        start_time = datetime.datetime.now()
         while True:
             proxy = await proxies.get()
+            if (datetime.datetime.now() - start_time).seconds / 3600 >= 12:
+                print("!!!", "Timeout!", datetime.datetime.now())
+                break
             if proxy is None:
                 break
             proxy_list.append(f"http://{proxy.host}:{proxy.port}\n")
