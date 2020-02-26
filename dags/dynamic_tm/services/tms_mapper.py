@@ -42,6 +42,9 @@ def mapper(**kwargs):
     tm_1_dict, tm_1_name = parse_topics_field(tm_1[0])
     tm_2_dict, tm_2_name = parse_topics_field(tm_2[0])
 
+    topic_modelling_first_from = tm_1_name.split('_')[-2]
+    topic_modelling_second_to = tm_2_name.split('_')[-1]
+
     thresholds = list(map(str, [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]))
 
     mappings_dict, delta_words_dict, delta_count_dict = mapper(topic_seq_1=tm_1_dict,
@@ -62,6 +65,8 @@ def mapper(**kwargs):
                 meta_dtm_name=meta_dtm_name,
                 topic_modelling_first=tm_1_name,
                 topic_modelling_second=tm_2_name,
+                topic_modelling_first_from=topic_modelling_first_from,
+                topic_modelling_second_to=topic_modelling_second_to,
                 mappings_dict=json.dumps(mappings_dict[threshold]),
                 scores_list=scores[threshold],
                 delta_words_dict=json.dumps(delta_words_dict[threshold]),
