@@ -10,6 +10,7 @@ def evaluate(**kwargs):
     from elasticsearch.helpers import parallel_bulk
 
     import logging
+
     es_logger = logging.getLogger('elasticsearch')
     es_logger.setLevel(logging.ERROR)
 
@@ -106,12 +107,9 @@ def evaluate(**kwargs):
                             }
                         )
                     if len(current_doc['topic_ids_bottom']) > 3:
-                        del current_doc['topic_ids_bottom'][
-                            current_doc['topic_ids_bottom'].index(
-                                max(current_doc['topic_ids_bottom'],
-                                    key=lambda x: x['eval'])
-                            )
-                        ]
+                        del current_doc['topic_ids_bottom'][current_doc['topic_ids_bottom'].index(
+                                max(current_doc['topic_ids_bottom'], key=lambda x: x['eval'])
+                            )]
             yield current_doc
             current_doc = None
 
