@@ -19,18 +19,16 @@ def calc_topics_info(corpus, topic_modelling_name, topic_weight_threshold):
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT
     from topicmodelling.services import get_total_metrics
 
-    from dags.bigartm.services.service import TMNotFoundException
     from util.util import geometrical_mean
     from .service import get_tm_index
 
     import logging
     es_logger = logging.getLogger('elasticsearch')
     es_logger.setLevel(logging.ERROR)
-
     if not ES_CLIENT.indices.exists(f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}"):
         return "No TM index ready"
 
-    topic_modelling = get_tm_index(name=topic_modelling_name, corpus=corpus)
+    topic_modelling = get_tm_index(name=topic_modelling_name, corpus=corpus, index_tm=ES_INDEX_TOPIC_MODELLING)
     total_metrics_dict = get_total_metrics(topic_modelling_name, "1d", topic_weight_threshold)
 
     std = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}")

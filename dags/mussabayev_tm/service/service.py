@@ -1,11 +1,11 @@
-import os
 import datetime
+import os
 
 from util.constants import BASE_DAG_DIR
-from util.util import save_obj, load_obj
 
 
 def generate_cooccurrence_codistance(**kwargs):
+    from util.util import save_obj
     import numpy as np
     from sklearn.feature_extraction.text import CountVectorizer
     from sklearn.metrics.pairwise import pairwise_distances
@@ -17,16 +17,17 @@ def generate_cooccurrence_codistance(**kwargs):
         max_dict_size = kwargs['max_dict_size']
 
     dictionary_words = search(ES_CLIENT, ES_INDEX_DICTIONARY_WORD,
-                              query=kwargs['dictionary_filters'], source=("word_normal", ), sort=('_id', ),
+                              query=kwargs['dictionary_filters'], source=("word_normal",), sort=('_id',),
                               get_search_obj=True, start=0, end=10)
     dictionary_words.aggs.bucket('unique_word_normals', 'terms', field='word_normal.keyword', size=max_dict_size)
     dictionary_words = dictionary_words.execute()
     documents_scan = search(ES_CLIENT, ES_INDEX_DOCUMENT,
-                            query=kwargs['document_filters'], source=("text_lemmatized", ),
+                            query=kwargs['document_filters'], source=("text_lemmatized",),
                             get_scan_obj=True, end=5000000)
 
     print("!!!", "Start count_vectorizing", datetime.datetime.now())
-    vectorizer = CountVectorizer(vocabulary=(dw.key for dw in dictionary_words.aggregations.unique_word_normals.buckets))
+    vectorizer = CountVectorizer(
+        vocabulary=(dw.key for dw in dictionary_words.aggregations.unique_word_normals.buckets))
     documents_vectorized = vectorizer.fit_transform((d.text_lemmatized for d in documents_scan))
 
     print("!!!", "Start dot product for coocurance matrix", datetime.datetime.now())
@@ -51,9 +52,9 @@ def generate_cooccurrence_codistance(**kwargs):
 def topic_modelling(**kwargs):
     import numpy as np
     import numba as nb
-    from sklearn.metrics.pairwise import pairwise_distances
+    from util.util import save_obj, load_obj
     from util.service_es import search
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_DICTIONARY_WORD
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DICTIONARY_WORD
     from .clustering_util import unique_clots, clots_binding, object_weighting1, cluster_weighting1, full_weighting1, \
         n_extra_objects, n_key_objects, save_clustering
 
@@ -73,6 +74,7 @@ def topic_modelling(**kwargs):
     start_ind - индекс объекта который будет использован как начальная точка роста при формировании сгустка
     Возвращает индексы объектов включённых в сгусток
     '''
+
     @nb.jit(nopython=True)
     def single_clot(dm, d1, start_ind):
         n = dm.shape[0]
@@ -118,6 +120,7 @@ def topic_modelling(**kwargs):
     центры окружностей.
     Возвращает массив в котором каждый i-ый элемент является сгустком в окрестности i-го объекта.
     '''
+
     @nb.njit(parallel=True)
     def all_clots(D, d1, d2, use_medoid=True):
         n = D.shape[0]
@@ -160,7 +163,7 @@ def topic_modelling(**kwargs):
     use_medoid = kwargs['use_medoid']
 
     dictionary_words = search(ES_CLIENT, ES_INDEX_DICTIONARY_WORD,
-                              query=kwargs['dictionary_filters'], source=("word_normal", ), sort=('_id', ),
+                              query=kwargs['dictionary_filters'], source=("word_normal",), sort=('_id',),
                               get_search_obj=True, end=max_dict_size)
     dictionary_words.aggs.bucket('unique_word_normals', 'terms', field='word_normal.keyword')
     vocab = [dw.key for dw in dictionary_words.execute().aggregations.unique_word_normals.buckets]
