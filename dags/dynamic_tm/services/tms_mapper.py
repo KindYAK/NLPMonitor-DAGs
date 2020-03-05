@@ -11,10 +11,10 @@ def mapper(**kwargs):
     import json
 
     meta_dtm_name = kwargs['meta_dtm_name']
-    datetime_from_tm_1 = kwargs['datetime_from_tm_1'].date()
-    datetime_to_tm_1 = kwargs['datetime_to_tm_1'].date()
-    datetime_from_tm_2 = kwargs['datetime_from_tm_2'].date()
-    datetime_to_tm_2 = kwargs['datetime_to_tm_2'].date()
+    datetime_from_tm_1 = kwargs['datetime_from_tm_1']
+    datetime_to_tm_1 = kwargs['datetime_to_tm_1']
+    datetime_from_tm_2 = kwargs['datetime_from_tm_2']
+    datetime_to_tm_2 = kwargs['datetime_to_tm_2']
     number_of_topics = kwargs['number_of_topics']
     theta_name_1 = ES_INDEX_DYNAMIC_TOPIC_DOCUMENT + "_" + kwargs['name_immutable'] + "_" + str(
         datetime_from_tm_1) + "_" + str(datetime_to_tm_1)
@@ -23,7 +23,7 @@ def mapper(**kwargs):
     # TODO fix meta_dtm_name issue
     tm_1 = search(client=ES_CLIENT, index=ES_INDEX_DYNAMIC_TOPIC_MODELLING,
                   query={
-                      # 'meta_dtm_name': meta_dtm_name,
+                      'meta_dtm_name.keyword': meta_dtm_name,
                       'datetime_from__gte': datetime_from_tm_1,
                       'datetime_to__lte': datetime_to_tm_1
                   },
@@ -32,7 +32,7 @@ def mapper(**kwargs):
 
     tm_2 = search(client=ES_CLIENT, index=ES_INDEX_DYNAMIC_TOPIC_MODELLING,
                   query={
-                      # 'meta_dtm_name': meta_dtm_name,
+                      'meta_dtm_name.keyword': meta_dtm_name,
                       'datetime_from__gte': datetime_from_tm_2,
                       'datetime_to__lte': datetime_to_tm_2
                   },
