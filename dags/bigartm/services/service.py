@@ -5,7 +5,7 @@ def bigartm_calc(**kwargs):
     from nlpmonitor.settings import ES_INDEX_DYNAMIC_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT, \
         ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_DYNAMIC_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_DYNAMIC_TOPIC_DOCUMENT, \
         ES_INDEX_TOPIC_MODELLING
-
+    kwargs = kwargs.copy()
     is_dynamic = 'is_dynamic' in kwargs and kwargs['is_dynamic']
     if is_dynamic:
         kwargs['index_tm'] = ES_INDEX_DYNAMIC_TOPIC_MODELLING
@@ -317,7 +317,7 @@ def topic_modelling(**kwargs):
 
         if is_dynamic:
             model_artm.save(os.path.join(model_folder,
-                                         f"model_{name if not name_translit else name_translit}_{datetime_from.date()}_{datetime_to.date()}.model"))
+                                         f"model_{name if not name_translit else name_translit}.model"))
         else:
             model_artm.save(os.path.join(model_folder,
                                          f"model_{name if not name_translit else name_translit}_{datetime_from}_{datetime_to}.model"))
