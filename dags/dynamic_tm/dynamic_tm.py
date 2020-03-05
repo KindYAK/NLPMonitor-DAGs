@@ -27,7 +27,6 @@ def gen_dynamic_tm_operator(**kwargs):
     number_of_topics = kwargs['number_of_topics']
     filters = kwargs['filters']
     name = kwargs['name']
-    name_immutable = kwargs['name_immutable']
     regularization_params = kwargs['regularization_params']
     is_actualizable = kwargs['is_actualizable']
     name_translit = kwargs['name_translit']
@@ -37,7 +36,7 @@ def gen_dynamic_tm_operator(**kwargs):
     from dags.bigartm.services.service import bigartm_calc
 
     if not name_translit:
-        task_id = f"dynamic_tm_calc_{name_immutable}_{filters['datetime_from'].date()}_{filters['datetime_to'].date()}"
+        task_id = f"dynamic_tm_calc_{name}_{filters['datetime_from'].date()}_{filters['datetime_to'].date()}"
     else:
         task_id = f"dynamic_tm_calc_{topic_modelling_translit}_{name_translit}_{filters['datetime_from'].date()}_{filters['datetime_to'].date()}"
     dynamic_tm_calc_operator = DjangoOperator(
@@ -72,8 +71,7 @@ def gen_dynamic_tm_operator(**kwargs):
 
 def gen_mapper_operator(**kwargs):
     from dags.dynamic_tm.services.tms_mapper import mapper
-    task_id = 'mapping_between_tm1_' + str(kwargs['datetime_from_tm_1'].date()) + "_tm2_" + str(
-        kwargs['datetime_from_tm_2'].date())
+    task_id = 'mapping_between_tm1_' + str(kwargs['datetime_from_tm_1']) + "_tm2_" + str(kwargs['datetime_from_tm_2'])
     mapper_operator = DjangoOperator(
         task_id=task_id,
         python_callable=mapper,
@@ -93,11 +91,11 @@ def gen_meta_tdm_operator(mydag, dynamic_tm_parameters):
 
         from_date = dynamic_tm_parameters['from_date']
         to_date = dynamic_tm_parameters['to_date']
+        dynamic_tm_parameters['meta_dtm_name'] = 'meta_dtm_' + from_date[:10] + '_' + to_date[:10]
         from_date = dt.strptime(from_date, '%Y-%m-%d')
         to_date = dt.strptime(to_date, '%Y-%m-%d')
         delta_days = dynamic_tm_parameters['delta_days']
         tm_volume_days = dynamic_tm_parameters['tm_volume_days']
-        dynamic_tm_parameters['meta_dtm_name'] = dynamic_tm_parameters['name_immutable'] + str(from_date) + str(to_date)
         date_iterations = (to_date - from_date) / timedelta(days=delta_days)
 
         meta_dtm = DjangoOperator(task_id=f"meta_dtm_creating_{from_date.date()}_{to_date.date()}",
@@ -124,13 +122,17 @@ def gen_meta_tdm_operator(mydag, dynamic_tm_parameters):
             gen_dynamic_tm_operator(**dynamic_tm_parameters)
             dynamic_tm_parameters['datetime_from_tm_2'] = from_d
             dynamic_tm_parameters['datetime_to_tm_2'] = to_d
-            dynamic_tm_parameters['name'] = dynamic_tm_parameters['name'] + "_" + str(
-                dynamic_tm_parameters['datetime_from_tm_1'].date()) + "_" + str(
-                dynamic_tm_parameters['datetime_to_tm_1'].date()) + "_" + str(
-                dynamic_tm_parameters['datetime_from_tm_2'].date()) + "_" + str(
-                dynamic_tm_parameters['datetime_to_tm_2'].date())
 
-            gen_mapper_operator(**dynamic_tm_parameters)
+            gen_mapper_operator(
+                meta_dtm_name=dynamic_tm_parameters['meta_dtm_name'],
+                datetime_from_tm_1=dynamic_tm_parameters['datetime_from_tm_1'].date(),
+                datetime_to_tm_1=dynamic_tm_parameters['datetime_to_tm_1'].date(),
+                datetime_from_tm_2=dynamic_tm_parameters['datetime_from_tm_2'].date(),
+                datetime_to_tm_2=dynamic_tm_parameters['datetime_to_tm_2'].date(),
+                number_of_topics=dynamic_tm_parameters['number_of_topics'],
+                name_immutable=dynamic_tm_parameters['name_immutable']
+            )
+
             meta_dtm >> dynamic_tm_calc_operators[-2:] >> dynamic_mapper_operators[-1]
 
             dynamic_tm_parameters['datetime_from_tm_1'] = from_d  # replacing previous from to date to current
@@ -150,7 +152,7 @@ for f, t, v, d, n in [
             'to_date': t,
             'tm_volume_days': v,
             'delta_days': d,
-            'reset_index': True,
+            'reset_index': False,
             'name': "dynamic_tm_test",
             'name_immutable': "dynamic_tm_test",
             'description': "All news",
