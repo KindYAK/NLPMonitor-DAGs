@@ -282,14 +282,13 @@ def topic_modelling(**kwargs):
         return f"No documents to actualize"
     batch_vectorizer = artm.BatchVectorizer(data_path=batches_folder,
                                             data_format='batches')
-    dictionary = artm.Dictionary()
-    dictionary.gather(batch_vectorizer.data_path)
-
     model_folder = os.path.join(BASE_DAG_DIR, models_folder_name)
     model_artm = artm.ARTM(num_topics=index.number_of_topics,
                            class_ids={"text": 1}, theta_columns_naming="title",
                            reuse_theta=True, cache_theta=True, num_processors=4)
     if not perform_actualize:
+        dictionary = artm.Dictionary()
+        dictionary.gather(batch_vectorizer.data_path)
         model_artm.initialize(dictionary)
         # Add scores
         model_artm.scores.add(artm.PerplexityScore(name='PerplexityScore'))
