@@ -32,6 +32,7 @@ def gen_dynamic_tm_operator(**kwargs):
     name_translit = kwargs['name_translit']
     topic_modelling_translit = kwargs['topic_modelling_translit']
     meta_dtm_name = kwargs['meta_dtm_name']
+    to_date = kwargs['to_date']
 
     from dags.bigartm.services.service import bigartm_calc
 
@@ -43,6 +44,7 @@ def gen_dynamic_tm_operator(**kwargs):
         task_id=task_id,
         python_callable=bigartm_calc,
         op_kwargs={
+            "to_date": to_date,
             "name": name,
             "name_translit": name_translit,
             "corpus": filters['corpus'],
@@ -142,7 +144,7 @@ def gen_meta_tdm_operator(mydag, dynamic_tm_parameters):
 for f, t, v, d, n in [
     # from_date, to_date, tm_volume_days, delta_days, number_of_topics
     ('2018-01-01', '2020-02-28', 180, 90, 200),
-    ('2010-01-01', '2020-02-28', 360, 180, 250),
+    #    ('2010-01-01', '2020-02-28', 360, 180, 250),
     #    ('2019-01-01', '2019-08-31', 14, 7, 75)
 ]:
     gen_meta_tdm_operator(
