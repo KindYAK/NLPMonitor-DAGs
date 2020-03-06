@@ -450,9 +450,10 @@ def topic_modelling(**kwargs):
     if not perform_actualize:
         es_index = Index(f"{topic_doc}_{name}", using=ES_CLIENT)
         es_index.delete(ignore=404)
+
     if not ES_CLIENT.indices.exists(f"{topic_doc}_{name}"):
         ES_CLIENT.indices.create(index=f"{topic_doc}_{name}", body={
-            "settings": TopicDocument.Index.settings,
+            "settings": TopicDocument.Index.settings if not is_dynamic else TopicDocument.Index.settings_dynamic,
             "mappings": TopicDocument.Index.mappings
         }
                                  )
@@ -494,37 +495,38 @@ def topic_modelling(**kwargs):
 
     # Create or update unique IDS index
     print("!!!", "Writing unique IDs", datetime.datetime.now())
-    if not perform_actualize:
-        es_index = Index(f"{uniq_topic_doc}_{name}", using=ES_CLIENT)
-        es_index.delete(ignore=404)
-    if not ES_CLIENT.indices.exists(f"{uniq_topic_doc}_{name}"):
-        ES_CLIENT.indices.create(index=f"{uniq_topic_doc}_{name}", body={
-            "settings": TopicDocumentUniqueIDs.Index.settings,
-            "mappings": TopicDocumentUniqueIDs.Index.mappings
-        }
-                                 )
+    if not is_dynamic or (is_dynamic and kwargs['to_date'] == str(kwargs['datetime_to'])):
+        if not perform_actualize:
+            es_index = Index(f"{uniq_topic_doc}_{name}", using=ES_CLIENT)
+            es_index.delete(ignore=404)
+        if not ES_CLIENT.indices.exists(f"{uniq_topic_doc}_{name}"):
+            ES_CLIENT.indices.create(index=f"{uniq_topic_doc}_{name}", body={
+                "settings": TopicDocumentUniqueIDs.Index.settings,
+                "mappings": TopicDocumentUniqueIDs.Index.mappings
+            }
+                                     )
 
-    def unique_ids_generator(theta_documents):
-        for d in theta_documents:
-            doc_id, _, _ = d.split("*")
-            doc = TopicDocumentUniqueIDs()
-            doc.document_es_id = doc_id
-            yield doc
+        def unique_ids_generator(theta_documents):
+            for d in theta_documents:
+                doc_id, _, _ = d.split("*")
+                doc = TopicDocumentUniqueIDs()
+                doc.document_es_id = doc_id
+                yield doc
 
-    success, failed = 0, 0
-    for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for doc in unique_ids_generator(theta_documents)),
-                                    index=f"{uniq_topic_doc}_{name}", chunk_size=batch_size,
-                                    thread_count=5, raise_on_error=True):
-        if ok:
-            success += 1
-        else:
-            print("!!!", "ES index fail, error", result)
-            failed += 1
-        if failed > 3:
-            raise Exception("Too many failed to ES!!")
-        if (success + failed) % batch_size == 0:
-            print(f'{success + failed} / {index.number_of_documents} processed')
-    print("!!!", "Done writing", datetime.datetime.now())
+        success, failed = 0, 0
+        for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for doc in unique_ids_generator(theta_documents)),
+                                        index=f"{uniq_topic_doc}_{name}", chunk_size=batch_size,
+                                        thread_count=5, raise_on_error=True):
+            if ok:
+                success += 1
+            else:
+                print("!!!", "ES index fail, error", result)
+                failed += 1
+            if failed > 3:
+                raise Exception("Too many failed to ES!!")
+            if (success + failed) % batch_size == 0:
+                print(f'{success + failed} / {index.number_of_documents} processed')
+        print("!!!", "Done writing", datetime.datetime.now())
 
     # Remove logs
     fileList = glob.glob(f'{BASE_DAG_DIR}/bigartm.*')
