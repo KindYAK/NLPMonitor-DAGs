@@ -39,7 +39,12 @@ def generate_meta_dtm(**kwargs):
                          }
                          )
     else:
-        index = META_DTM(**kwargs)
+        index = META_DTM(**{"meta_name": meta_name,
+                            "volume_days": volume_days,
+                            "delta_days": delta_days,
+                            'from_date': from_date,
+                            'to_date': to_date,
+                            'reset_index': reset_index})
         index.save()
 
     return 'META DTM GENERATED'
