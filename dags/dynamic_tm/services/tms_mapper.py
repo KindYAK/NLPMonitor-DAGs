@@ -45,7 +45,7 @@ def mapper(**kwargs):
     topic_modelling_first_from = tm_1_name.split('_')[-2]
     topic_modelling_second_to = tm_2_name.split('_')[-1]
 
-    thresholds = list(map(str, [0.4, 0.5, 0.6, 0.7, 0.8]))
+    thresholds = list(map(str, [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]))
 
     mappings_dict, delta_words_dict, delta_count_dict = mapper(topic_seq_1=tm_1_dict,
                                                                topic_seq_2=tm_2_dict,
