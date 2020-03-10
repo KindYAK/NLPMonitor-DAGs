@@ -83,7 +83,7 @@ def score_docs(**kwargs):
     custom_dict = dict((w.word, w.word_normal) for w in r)
     formatted_data = []
     for i, file in enumerate(os.listdir(os.path.join(BASE_DAG_DIR, docs_folder_name))):
-        with open(os.path.join(BASE_DAG_DIR, model_folder, file), 'r', encoding='utf-8') as f:
+        with open(os.path.join(BASE_DAG_DIR, docs_folder_name, file), 'r', encoding='utf-8') as f:
             file_to_process = f.read()
 
         cleaned_doc = " ".join(x.lower() for x in ' '.join(
