@@ -55,6 +55,7 @@ def score_docs(**kwargs):
     model_name = kwargs['model_name']
     criterion_name = kwargs['criterion_name']
     criterion_name_unicode = kwargs['criterion_name_unicode']
+    docs_folder_name = kwargs['docs_folder_name']
 
     models_folder_name = 'bigartm_models'
     temp_folder = 'bigartm_temp'
@@ -81,7 +82,7 @@ def score_docs(**kwargs):
     r = s[:1000000].scan()
     custom_dict = dict((w.word, w.word_normal) for w in r)
     formatted_data = []
-    for i, file in enumerate(os.listdir(os.path.join(BASE_DAG_DIR, 'docs'))):
+    for i, file in enumerate(os.listdir(os.path.join(BASE_DAG_DIR, docs_folder_name))):
         with open(os.path.join(BASE_DAG_DIR, 'docs', file), 'r', encoding='utf-8') as f:
             file_to_process = f.read()
 
