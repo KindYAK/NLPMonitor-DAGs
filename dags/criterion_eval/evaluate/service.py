@@ -112,8 +112,9 @@ def evaluate(**kwargs):
                         del current_doc['topic_ids_bottom'][current_doc['topic_ids_bottom'].index(
                                 max(current_doc['topic_ids_bottom'], key=lambda x: x['eval'])
                             )]
-            yield current_doc
-            current_doc = None
+            if current_doc:
+                yield current_doc
+                current_doc = None
 
     print("!!!", "Sending to elastic + calculating through generators", datetime.datetime.now())
     # Send to elastic
