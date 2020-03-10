@@ -1,3 +1,4 @@
+from util.util import shards_mapping
 from .calc_topics_info import calc_topics_info
 
 
@@ -451,11 +452,13 @@ def topic_modelling(**kwargs):
         es_index.delete(ignore=404)
 
     if not ES_CLIENT.indices.exists(f"{topic_doc}_{name}"):
+        settings = TopicDocument.Index.settings if not is_dynamic else TopicDocument.Index.settings_dynamic
+        settings['number_of_shards'] = shards_mapping(len(theta_topics)*len(theta_documents))
         ES_CLIENT.indices.create(index=f"{topic_doc}_{name}", body={
-            "settings": TopicDocument.Index.settings if not is_dynamic else TopicDocument.Index.settings_dynamic,
+            "settings": settings,
             "mappings": TopicDocument.Index.mappings
         }
-                                 )
+     )
 
     success, failed = 0, 0
     batch_size = 25000
@@ -499,11 +502,13 @@ def topic_modelling(**kwargs):
             es_index = Index(f"{uniq_topic_doc}_{name}", using=ES_CLIENT)
             es_index.delete(ignore=404)
         if not ES_CLIENT.indices.exists(f"{uniq_topic_doc}_{name}"):
+            settings = TopicDocumentUniqueIDs.Index.settings
+            settings['number_of_shards'] = shards_mapping(len(theta_topics) * len(theta_documents))
             ES_CLIENT.indices.create(index=f"{uniq_topic_doc}_{name}", body={
-                "settings": TopicDocumentUniqueIDs.Index.settings,
+                "settings": settings,
                 "mappings": TopicDocumentUniqueIDs.Index.mappings
             }
-                                     )
+         )
 
         def unique_ids_generator(theta_documents):
             for d in theta_documents:
