@@ -1,4 +1,3 @@
-from util.util import shards_mapping
 from .calc_topics_info import calc_topics_info
 
 
@@ -245,6 +244,7 @@ def topic_modelling(**kwargs):
     from numba import jit
 
     from util.constants import BASE_DAG_DIR
+    from util.util import shards_mapping
 
     from nlpmonitor.settings import ES_CLIENT
     from mainapp.documents import TopicDocument, TopicDocumentUniqueIDs

@@ -1,6 +1,3 @@
-from util.util import shards_mapping
-
-
 def evaluate(**kwargs):
     import datetime
 
@@ -8,6 +5,8 @@ def evaluate(**kwargs):
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL, \
         ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS, ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_TOPIC_DOCUMENT
     from mainapp.documents import DocumentEval, DocumentEvalUniqueIDs
+
+    from util.util import shards_mapping
 
     from elasticsearch_dsl import Search, Index
     from elasticsearch.helpers import parallel_bulk
