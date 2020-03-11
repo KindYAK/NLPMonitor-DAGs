@@ -13,11 +13,12 @@ def bigartm_calc(**kwargs):
         kwargs['uniq_topic_doc'] = ES_INDEX_DYNAMIC_TOPIC_DOCUMENT_UNIQUE_IDS
         kwargs['temp_folder'] = 'dynamic_bigartm_temp'
         kwargs['models_folder'] = 'dynamic_bigartm_models'
-        kwargs['name'] = kwargs['name'] + "_" + str(kwargs['datetime_from'].date()) + "_" + str(
-            kwargs['datetime_to'].date())
+        kwargs['name'] = kwargs['name'] + "_" + str(kwargs['datetime_from'].date()) + \
+                                    "_" + str(kwargs['datetime_to'].date())
         if kwargs['name_translit']:
-            kwargs["name_translit"] = kwargs["name_translit"] + "_" + str(kwargs['datetime_from'].date()) + "_" + str(
-                kwargs['datetime_to'].date())
+            kwargs["name_translit"] = kwargs["name_translit"] + "_" + \
+                                      str(kwargs['datetime_from'].date()) + \
+                                      "_" + str(kwargs['datetime_to'].date())
     else:
         kwargs['index_tm'] = ES_INDEX_TOPIC_MODELLING
         kwargs['topic_doc'] = ES_INDEX_TOPIC_DOCUMENT
@@ -315,12 +316,8 @@ def topic_modelling(**kwargs):
         if not os.path.exists(model_folder):
             os.mkdir(model_folder)
 
-        if is_dynamic:
-            model_artm.save(os.path.join(model_folder,
-                                         f"model_{name if not name_translit else name_translit}.model"))
-        else:
-            model_artm.save(os.path.join(model_folder,
-                                         f"model_{name if not name_translit else name_translit}_{datetime_from}_{datetime_to}.model"))
+        model_artm.save(os.path.join(model_folder,
+                                     f"model_{name if not name_translit else name_translit}.model"))
 
         print("!!!", "Get topics", datetime.datetime.now())
         # Create topics in ES
@@ -405,8 +402,7 @@ def topic_modelling(**kwargs):
         model_artm.load = load
 
         model_artm.load(model_artm,
-                        os.path.join(model_folder,
-                                     f"model_{name if not name_translit else name_translit}_{datetime_from}_{datetime_to}.model"))
+                        os.path.join(model_folder, f"model_{name if not name_translit else name_translit}.model"))
 
     print("!!!", "Get document-topics", datetime.datetime.now())
     if not perform_actualize:
