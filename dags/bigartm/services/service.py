@@ -13,11 +13,12 @@ def bigartm_calc(**kwargs):
         kwargs['uniq_topic_doc'] = ES_INDEX_DYNAMIC_TOPIC_DOCUMENT_UNIQUE_IDS
         kwargs['temp_folder'] = 'dynamic_bigartm_temp'
         kwargs['models_folder'] = 'dynamic_bigartm_models'
-        kwargs['name'] = kwargs['name'] + "_" + str(kwargs['datetime_from'].date()) + "_" + str(
-            kwargs['datetime_to'].date())
+        kwargs['name'] = kwargs['name'] + "_" + str(kwargs['datetime_from'].date()) + \
+                                    "_" + str(kwargs['datetime_to'].date())
         if kwargs['name_translit']:
-            kwargs["name_translit"] = kwargs["name_translit"] + "_" + str(kwargs['datetime_from'].date()) + "_" + str(
-                kwargs['datetime_to'].date())
+            kwargs["name_translit"] = kwargs["name_translit"] + "_" + \
+                                      str(kwargs['datetime_from'].date()) + \
+                                      "_" + str(kwargs['datetime_to'].date())
     else:
         kwargs['index_tm'] = ES_INDEX_TOPIC_MODELLING
         kwargs['topic_doc'] = ES_INDEX_TOPIC_DOCUMENT
@@ -244,6 +245,7 @@ def topic_modelling(**kwargs):
     from numba import jit
 
     from util.constants import BASE_DAG_DIR
+    from util.util import shards_mapping
 
     from nlpmonitor.settings import ES_CLIENT
     from mainapp.documents import TopicDocument, TopicDocumentUniqueIDs
@@ -282,14 +284,13 @@ def topic_modelling(**kwargs):
         return f"No documents to actualize"
     batch_vectorizer = artm.BatchVectorizer(data_path=batches_folder,
                                             data_format='batches')
-    dictionary = artm.Dictionary()
-    dictionary.gather(batch_vectorizer.data_path)
-
     model_folder = os.path.join(BASE_DAG_DIR, models_folder_name)
     model_artm = artm.ARTM(num_topics=index.number_of_topics,
                            class_ids={"text": 1}, theta_columns_naming="title",
                            reuse_theta=True, cache_theta=True, num_processors=4)
     if not perform_actualize:
+        dictionary = artm.Dictionary()
+        dictionary.gather(batch_vectorizer.data_path)
         model_artm.initialize(dictionary)
         # Add scores
         model_artm.scores.add(artm.PerplexityScore(name='PerplexityScore'))
@@ -315,12 +316,8 @@ def topic_modelling(**kwargs):
         if not os.path.exists(model_folder):
             os.mkdir(model_folder)
 
-        if is_dynamic:
-            model_artm.save(os.path.join(model_folder,
-                                         f"model_{name if not name_translit else name_translit}.model"))
-        else:
-            model_artm.save(os.path.join(model_folder,
-                                         f"model_{name if not name_translit else name_translit}_{datetime_from}_{datetime_to}.model"))
+        model_artm.save(os.path.join(model_folder,
+                                     f"model_{name if not name_translit else name_translit}.model"))
 
         print("!!!", "Get topics", datetime.datetime.now())
         # Create topics in ES
@@ -405,8 +402,7 @@ def topic_modelling(**kwargs):
         model_artm.load = load
 
         model_artm.load(model_artm,
-                        os.path.join(model_folder,
-                                     f"model_{name if not name_translit else name_translit}_{datetime_from}_{datetime_to}.model"))
+                        os.path.join(model_folder, f"model_{name if not name_translit else name_translit}.model"))
 
     print("!!!", "Get document-topics", datetime.datetime.now())
     if not perform_actualize:
@@ -452,11 +448,13 @@ def topic_modelling(**kwargs):
         es_index.delete(ignore=404)
 
     if not ES_CLIENT.indices.exists(f"{topic_doc}_{name}"):
+        settings = TopicDocument.Index.settings if not is_dynamic else TopicDocument.Index.settings_dynamic
+        settings['number_of_shards'] = shards_mapping(len(theta_topics)*len(theta_documents))
         ES_CLIENT.indices.create(index=f"{topic_doc}_{name}", body={
-            "settings": TopicDocument.Index.settings if not is_dynamic else TopicDocument.Index.settings_dynamic,
+            "settings": settings,
             "mappings": TopicDocument.Index.mappings
         }
-                                 )
+     )
 
     success, failed = 0, 0
     batch_size = 25000
@@ -500,11 +498,13 @@ def topic_modelling(**kwargs):
             es_index = Index(f"{uniq_topic_doc}_{name}", using=ES_CLIENT)
             es_index.delete(ignore=404)
         if not ES_CLIENT.indices.exists(f"{uniq_topic_doc}_{name}"):
+            settings = TopicDocumentUniqueIDs.Index.settings
+            settings['number_of_shards'] = shards_mapping(len(theta_topics) * len(theta_documents))
             ES_CLIENT.indices.create(index=f"{uniq_topic_doc}_{name}", body={
-                "settings": TopicDocumentUniqueIDs.Index.settings,
+                "settings": settings,
                 "mappings": TopicDocumentUniqueIDs.Index.mappings
             }
-                                     )
+         )
 
         def unique_ids_generator(theta_documents):
             for d in theta_documents:

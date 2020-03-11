@@ -15,11 +15,11 @@ default_args = {
     'retries': 0,
     'retry_delay': timedelta(minutes=15),
     'priority_weight': 50,
-    'pool': 'long_tasks'
+    'pool': 'short_tasks'
 }
 
 dag = DAG('Criterion_by_docs', catchup=False, max_active_runs=1, default_args=default_args,
-          schedule_interval='0 23 * * *')
+          schedule_interval=None)
 
 with dag:
     crit_by_docs = DjangoOperator(
@@ -29,8 +29,8 @@ with dag:
         op_kwargs={
             'num_topics': 200,
             'model_name': 'bigartm_two_years',
-            'criterion_name': "ruhani",
-            'criterion_name_unicode': 'Рухани-Жангыру',
+            'criterion_name': "gosprograms",
+            'criterion_name_unicode': 'Гос. программы',
+            'docs_folder_name': "docs_gosprograms",
         },
     )
-

@@ -110,8 +110,6 @@ def gen_meta_tdm_operator(mydag, dynamic_tm_parameters):
             if iteration == int(date_iterations) - 1:
                 to_d = to_date
 
-            print(f'Iteration num: {iteration}  | from: {from_d} to: {to_d}')
-
             dynamic_tm_parameters['filters']['datetime_from'] = from_d
             dynamic_tm_parameters['filters']['datetime_to'] = to_d
 

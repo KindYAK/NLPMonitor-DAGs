@@ -6,6 +6,8 @@ def evaluate(**kwargs):
         ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS, ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_TOPIC_DOCUMENT
     from mainapp.documents import DocumentEval, DocumentEvalUniqueIDs
 
+    from util.util import shards_mapping
+
     from elasticsearch_dsl import Search, Index
     from elasticsearch.helpers import parallel_bulk
 
@@ -110,8 +112,9 @@ def evaluate(**kwargs):
                         del current_doc['topic_ids_bottom'][current_doc['topic_ids_bottom'].index(
                                 max(current_doc['topic_ids_bottom'], key=lambda x: x['eval'])
                             )]
-            yield current_doc
-            current_doc = None
+            if current_doc:
+                yield current_doc
+                current_doc = None
 
     print("!!!", "Sending to elastic + calculating through generators", datetime.datetime.now())
     # Send to elastic
@@ -119,8 +122,10 @@ def evaluate(**kwargs):
         es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}", using=ES_CLIENT)
         es_index.delete(ignore=404)
     if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}"):
+        settings = DocumentEval.Index.settings
+        settings['number_of_shards'] = shards_mapping(len(ids_to_process))
         ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}", body={
-                "settings": DocumentEval.Index.settings,
+                "settings": settings,
                 "mappings": DocumentEval.Index.mappings
             }
         )
@@ -162,8 +167,10 @@ def evaluate(**kwargs):
         es_index = Index(f"{ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}", using=ES_CLIENT)
         es_index.delete(ignore=404)
     if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}"):
+        settings = DocumentEvalUniqueIDs.Index.settings
+        settings['number_of_shards'] = shards_mapping(len(ids_to_process))
         ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL_UNIQUE_IDS}_{topic_modelling}_{criterion.id}{'_neg' if calc_virt_negative else ''}", body={
-                "settings": DocumentEvalUniqueIDs.Index.settings,
+                "settings": settings,
                 "mappings": DocumentEvalUniqueIDs.Index.mappings
             }
         )

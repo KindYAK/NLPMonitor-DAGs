@@ -323,3 +323,17 @@ def validator(mappings_dict, client, index_theta_one, index_theta_two, datetime_
         scores[items[0]] += [scores_normalized[i]]
 
     return scores
+
+
+def shards_mapping(doc_count: int) -> int:
+    if isinstance(doc_count, str):
+        doc_count = int(doc_count)
+
+    if doc_count > 10_000_000:
+        return 5
+    elif doc_count > 1_000_000:
+        return 3
+    elif doc_count > 100_000:
+        return 2
+    else:
+        return 1
