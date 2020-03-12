@@ -15,7 +15,8 @@ def is_kazakh(text):
 
 
 def is_latin(text):
-    return sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in text]) / len(text) > 0.51 if text else False
+    return sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in text]) / len(
+        text) > 0.51 if text else False
 
 
 def load_obj(name):
@@ -131,6 +132,56 @@ def sim(text1, text2, w_d, w_t, D, eps):
     return corr_matr
 
 
+def cross_similarity_w2v(similarity_matrix, row_weights, col_weights, similarity_threshold, p, neg1, neg2, idx1, idx2):
+    n_rows = len(row_weights)
+    n_cols = len(col_weights)
+    assert (similarity_matrix.shape == (n_rows, n_cols))
+    complete_connection_value = 0
+    true_connection_value = 0
+
+    for i in nb.prange(n_rows):
+        complete_connection_value += (row_weights[i] * col_weights[idx1[i]]) * (similarity_matrix[i, idx1[i]]) * neg1[i]
+        for j in range(n_cols):
+            if i == 0:
+                complete_connection_value += (row_weights[idx2[j]] * col_weights[j]) * (similarity_matrix[idx2[j], j]) * \
+                                             neg2[j]
+
+            if similarity_matrix[i, j] >= similarity_threshold:
+                true_connection_value += (row_weights[i] * col_weights[j]) * (p + similarity_matrix[i, j])
+
+    if complete_connection_value > 0:
+        connection_value = true_connection_value / complete_connection_value
+    else:
+        connection_value = 0
+
+    return connection_value
+
+
+def sim_w2v(text1, text2, w_d, w_t, D, eps, p=-0.4):
+    M = np.zeros((len(text1), len(text2)))
+
+    for d in range(len(text1)):
+        for t in range(len(text2)):
+            M[d, t] = 1 - D[text1[d], text2[t]]
+
+    max1 = np.array([np.amax(M[m, :]) for m in range(M.shape[0])])
+    # max value from each word (index) in sent1 to words (values in list) in sent2
+    indmax1 = [np.where(M[m, :] == max1[m])[0][0] for m in range(M.shape[0])]
+    max2 = np.array([np.amax(M[:, n]) for n in range(M.shape[1])])
+    indmax2 = [np.where(M[:, n] == max2[n])[0][0] for n in range(M.shape[1])]
+
+    # find which max similarities are out of one sigma
+    find1 = (max1 - np.mean(max1) + np.std(max1))
+    find2 = (max2 - np.mean(max2) + np.std(max2))
+
+    # maximum similarity of words in sent1 is significant in regards to words in sent2
+    neg1 = (find1 > 0) * 1
+    neg2 = (find2 > 0) * 1
+
+    sim_output = cross_similarity_w2v(M, w_d, w_t, eps, p, neg1, neg2, indmax1, indmax2)
+    return sim_output
+
+
 def commindex(voc, doc):
     cluster = np.zeros(len(doc), dtype=np.int64)
     for d in range(len(doc)):
@@ -202,12 +253,12 @@ def semantic_jaccard_mapper(topics_dict_1, topics_dict_2, threshhold, corp2ind_d
     topics_delta_counts = {}
     for i, key in enumerate(topics_dict_1.keys()):
         for j, key_1 in enumerate(topics_dict_2.keys()):
-            if sim(text1=corp2ind_data_topics_1[i],
-                   text2=corp2ind_data_topics_2[j],
-                   w_d=w_idf_topics_1[i],
-                   w_t=w_idf_topics_2[j],
-                   D=D,
-                   eps=0.6) > float(threshhold):  # fixed eps=0.6
+            if sim_w2v(text1=corp2ind_data_topics_1[i],
+                       text2=corp2ind_data_topics_2[j],
+                       w_d=w_idf_topics_1[i],
+                       w_t=w_idf_topics_2[j],
+                       D=D,
+                       eps=0.97) > float(threshhold):  # fixed eps=0.6
                 diff_words = list(set(topics_dict_1[key]).difference(topics_dict_2[key_1]))
                 if key in topics_mapping_dict.keys():
                     topics_mapping_dict[key] += [key_1]

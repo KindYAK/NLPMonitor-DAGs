@@ -120,8 +120,6 @@ def score_docs(**kwargs):
     else:
         criterion_id = EvalCriterion.objects.create(name=criterion_name_unicode).id
 
-    print('!!! theta', theta, type(theta))
-    print('!!! mean of not null topics', theta[theta != 0].mean(axis=1))
     value_list = []
     for row in theta.itertuples():
         row_sum = 0
