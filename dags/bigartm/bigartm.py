@@ -336,3 +336,26 @@ with dag3:
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
                          }, is_actualizable=False)
+
+
+dag4 = DAG('NLPmonitor_BigARTMs_small', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+with dag4:
+    wait_for_basic_tms = PythonOperator(
+        task_id="wait_for_basic_tms",
+        python_callable=lambda: 0,
+    )
+
+    for i in range(10, 101, 10):
+        gen_bigartm_operator(name=f"bigartm_two_years_{i}", description="Two lyears", number_of_topics=i,
+                             filters={
+                            "corpus": "main",
+                            "source": None,
+                            "datetime_from": date(2017, 11, 1),
+                            "datetime_to": date(2020, 4, 1),
+                        },
+                             regularization_params={
+                            "SmoothSparseThetaRegularizer": 0.15,
+                            "SmoothSparsePhiRegularizer": 0.15,
+                            "DecorrelatorPhiRegularizer": 0.15,
+                            "ImproveCoherencePhiRegularizer": 0.15
+                        }, is_actualizable=True)
