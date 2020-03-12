@@ -157,7 +157,7 @@ def cross_similarity_w2v(similarity_matrix, row_weights, col_weights, similarity
     return connection_value
 
 
-def sim_w2v(text1, text2, w_d, w_t, D, eps, p=-0.4):
+def sim_w2v(text1, text2, w_d, w_t, D, eps, p=-0.1):
     M = np.zeros((len(text1), len(text2)))
 
     for d in range(len(text1)):
