@@ -258,7 +258,7 @@ def semantic_jaccard_mapper(topics_dict_1, topics_dict_2, threshhold, corp2ind_d
                        w_d=w_idf_topics_1[i],
                        w_t=w_idf_topics_2[j],
                        D=D,
-                       eps=0.9) > float(threshhold):  # fixed eps=0.6
+                       eps=0.97) > float(threshhold):  # fixed eps=0.6
                 diff_words = list(set(topics_dict_1[key]).difference(topics_dict_2[key_1]))
                 if key in topics_mapping_dict.keys():
                     topics_mapping_dict[key] += [key_1]
