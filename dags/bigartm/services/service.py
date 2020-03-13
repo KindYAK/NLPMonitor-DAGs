@@ -49,7 +49,10 @@ def init_tm_index(**kwargs):
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
     from mainapp.documents import TopicModellingIndex, DynamicTopicModellingIndex
 
+    kwargs = kwargs.copy()
     corpus = kwargs['corpus']
+    if type(corpus) != list:
+        corpus = [corpus]
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
@@ -61,7 +64,7 @@ def init_tm_index(**kwargs):
     except TMNotFoundException:
         pass
 
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus)
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpus)
     if source:
         s = s.filter("term", **{"source": source})
     if datetime_from:
@@ -72,6 +75,8 @@ def init_tm_index(**kwargs):
 
     kwargs["number_of_documents"] = number_of_documents
     kwargs["is_ready"] = False
+    kwargs['corpus'] = "_".join(corpus)
+    print("!!!init", kwargs['corpus'])
     if is_dynamic:
         index = DynamicTopicModellingIndex(**kwargs)
     else:
@@ -85,6 +90,8 @@ def get_tm_index(**kwargs):
     from nlpmonitor.settings import ES_CLIENT
     name = kwargs['name']
     corpus = kwargs['corpus']
+    if type(corpus) == list:
+        corpus = "_".join(corpus)
     index_tm = kwargs['index_tm']
 
     # Check if already exists
@@ -134,6 +141,8 @@ def dataset_prepare(**kwargs):
     name = kwargs['name']
     name_translit = kwargs['name_translit']
     corpus = kwargs['corpus']
+    if type(corpus) != list:
+        corpus = [corpus]
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
@@ -145,8 +154,8 @@ def dataset_prepare(**kwargs):
     is_dynamic = 'is_dynamic' in kwargs and kwargs['is_dynamic']
 
     # Extract
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", corpus=corpus).filter('exists',
-                                                                                              field="text_lemmatized")
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpus) \
+                                                        .filter('exists', field="text_lemmatized")
     if source:
         s = s.filter("term", **{"source": source})
     if datetime_from:
@@ -160,7 +169,7 @@ def dataset_prepare(**kwargs):
         group = TopicGroup.objects.get(id=group_id)
         topic_ids = [t.topic_id for t in group.topics.all()]
         if not topic_ids:
-            return 1
+            return "Group is empty"
         topic_modelling_name = group.topic_modelling_name
         st = Search(using=ES_CLIENT, index=f"{topic_doc}_{topic_modelling_name}") \
                  .filter("terms", **{"topic_id": topic_ids}) \
@@ -202,7 +211,7 @@ def dataset_prepare(**kwargs):
 
     formated_data = []
     for id, text, title, source, date in zip(ids, texts, titles, sources, dates):
-        formated_data.append(f'{id}*{source.replace(" ", "_")}*{date}' + ' ' +
+        formated_data.append(f'{id}*{source.replace(" ", "_")}*{date}*{"_".join(corpus)}' + ' ' +
                              '|text' + ' ' + text + ' ' +
                              '|title' + ' ' + title + ' ')
 
@@ -419,7 +428,7 @@ def topic_modelling(**kwargs):
             yield document, theta_values[i]
 
     def topic_document_generator_converter(d, row):
-        id, source, date = d.split("*")
+        id, source, date, corpus = d.split("*")
         document_topics = []
         for j, ind in enumerate(theta_topics):
             es_topic_document = TopicDocument()
@@ -436,6 +445,7 @@ def topic_modelling(**kwargs):
                     es_topic_document.datetime = datetime.datetime.strptime(date[:-3] + date[-2:],
                                                                             "%Y-%m-%dT%H:%M:%S.%f%z")
             es_topic_document.document_source = source.replace("_", " ")
+            es_topic_document.document_corpus = corpus
             document_topics.append(es_topic_document)
         document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[
                           :max(index.number_of_topics // 3, 10)]
@@ -508,7 +518,7 @@ def topic_modelling(**kwargs):
 
         def unique_ids_generator(theta_documents):
             for d in theta_documents:
-                doc_id, _, _ = d.split("*")
+                doc_id, _, _, _ = d.split("*")
                 doc = TopicDocumentUniqueIDs()
                 doc.document_es_id = doc_id
                 yield doc
