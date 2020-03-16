@@ -51,10 +51,10 @@ def init_tm_index(**kwargs):
 
     kwargs = kwargs.copy()
     corpus = kwargs['corpus']
-    kwargs['is_multi_corpus'] = False
+    kwargs['is_multi_corpus'] = True
     if type(corpus) != list:
         corpus = [corpus]
-        kwargs['is_multi_corpus'] = True
+        kwargs['is_multi_corpus'] = False
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
