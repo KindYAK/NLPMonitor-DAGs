@@ -120,7 +120,7 @@ def dataset_prepare(**kwargs):
     import shutil
     import artm
     import datetime
-    from elasticsearch_dsl import Search
+    from elasticsearch_dsl import Search, Q
     from util.util import is_kazakh
     from dags.bigartm.services.cleaners import return_cleaned_array, txt_writer
     from util.constants import BASE_DAG_DIR
@@ -157,13 +157,18 @@ def dataset_prepare(**kwargs):
     # Extract
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpus) \
                                                         .filter('exists', field="text_lemmatized")
+    q_from = Q()
+    q_to = Q()
     if source:
         s = s.filter("term", **{"source": source})
     if datetime_from:
-        s = s.filter('range', datetime={'gte': datetime_from})
+        q_from = Q("range", datetime={"lte": datetime_to})
     if datetime_to and not perform_actualize:
-        s = s.filter('range', datetime={'lt': datetime_to})
-    s = s.source(["id", "text_lemmatized", "title", "source", "datetime"]).sort(('id',))[:5000000]
+        q_to = Q("range", datetime={"lte": datetime_to})
+    q_empty = ~Q('exists', field="datetime")
+    s = s.query((q_to & q_from) | q_empty)
+
+    s = s.source(["id", "text_lemmatized", "title", "source", "datetime", "corpus"])[:5000000]
 
     group_document_es_ids = None
     if group_id:
@@ -183,7 +188,6 @@ def dataset_prepare(**kwargs):
     # Exclude document already in TM if actualizing
     ids_to_skip = None
     if perform_actualize:
-        print("!!!", "Performing actualizing, skipping document already in TM")
         std = Search(using=ES_CLIENT, index=f"{uniq_topic_doc}_{name}").source(['document_es_id'])[:5000000]
         ids_to_skip = set((doc.document_es_id for doc in std.scan()))
 
@@ -192,6 +196,7 @@ def dataset_prepare(**kwargs):
     titles = []
     sources = []
     dates = []
+    corpuses = []
     ids_in_list = set()
     for document in s.scan():
         if document.meta.id in ids_in_list:
@@ -200,7 +205,7 @@ def dataset_prepare(**kwargs):
             continue
         if group_document_es_ids is not None and document.meta.id not in group_document_es_ids:
             continue
-        if is_kazakh(document.text_lemmatized + document.title if document.title else ""):
+        if is_kazakh(document.text_lemmatized + (document.title if document.title else "")):
             continue
         ids.append(document.meta.id)
         ids_in_list.add(document.meta.id)
@@ -208,11 +213,12 @@ def dataset_prepare(**kwargs):
         titles.append(document.title)
         sources.append(document.source)
         dates.append(document.datetime if hasattr(document, "datetime") and document.datetime else "")
+        corpuses.append(document.corpus)
     titles = return_cleaned_array(titles)
 
     formated_data = []
-    for id, text, title, source, date in zip(ids, texts, titles, sources, dates):
-        formated_data.append(f'{id}*{source.replace(" ", "_")}*{date}*{"_".join(corpus)}' + ' ' +
+    for id, text, title, source, date, corpus_d in zip(ids, texts, titles, sources, dates, corpuses):
+        formated_data.append(f'{id}*{source.replace(" ", "_")}*{date}*{corpus_d}' + ' ' +
                              '|text' + ' ' + text + ' ' +
                              '|title' + ' ' + title + ' ')
 
@@ -367,10 +373,6 @@ def topic_modelling(**kwargs):
             "tau_decorrelator_phi": regularization_params['DecorrelatorPhiRegularizer'],
             "tau_coherence_phi": regularization_params['ImproveCoherencePhiRegularizer'],
         }
-
-        # if is_dynamic:
-        #     update_body['meta_dtm_name'] = kwargs['meta_dtm_name']
-
         ES_CLIENT.update(index=index_tm,
                          id=index.meta.id,
                          body={"doc": update_body}
