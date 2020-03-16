@@ -15,8 +15,7 @@ def is_kazakh(text):
 
 
 def is_latin(text):
-    return sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in text]) / len(
-        text) > 0.51 if text else False
+    return sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in text]) / len(text) > 0.51 if text else False
 
 
 def load_obj(name):
