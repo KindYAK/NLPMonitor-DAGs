@@ -353,9 +353,31 @@ with dag4:
                             "datetime_from": date(2017, 11, 1),
                             "datetime_to": date(2020, 4, 1),
                         },
-                             regularization_params={
+                        regularization_params={
                             "SmoothSparseThetaRegularizer": 0.15,
                             "SmoothSparsePhiRegularizer": 0.15,
                             "DecorrelatorPhiRegularizer": 0.15,
                             "ImproveCoherencePhiRegularizer": 0.15
                         }, is_actualizable=True)
+
+
+dag5 = DAG('NLPmonitor_BigARTMs_news_and_gos', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+with dag5:
+    wait_for_basic_tms = PythonOperator(
+        task_id="wait_for_basic_tms",
+        python_callable=lambda: 0,
+    )
+
+    gen_bigartm_operator(name=f"bigartm_two_years_main_and_gos", description="Main and gos 2 yearts", number_of_topics=200,
+                         filters={
+                        "corpus": ["main", "gos"],
+                        "source": None,
+                        "datetime_from": date(2018, 1, 1),
+                        "datetime_to": date(2020, 4, 1),
+                    },
+                    regularization_params={
+                        "SmoothSparseThetaRegularizer": 0.15,
+                        "SmoothSparsePhiRegularizer": 0.15,
+                        "DecorrelatorPhiRegularizer": 0.15,
+                        "ImproveCoherencePhiRegularizer": 0.15
+                    }, is_actualizable=True)

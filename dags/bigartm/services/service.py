@@ -51,8 +51,10 @@ def init_tm_index(**kwargs):
 
     kwargs = kwargs.copy()
     corpus = kwargs['corpus']
+    kwargs['is_multi_corpus'] = False
     if type(corpus) != list:
         corpus = [corpus]
+        kwargs['is_multi_corpus'] = True
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
@@ -76,7 +78,6 @@ def init_tm_index(**kwargs):
     kwargs["number_of_documents"] = number_of_documents
     kwargs["is_ready"] = False
     kwargs['corpus'] = "_".join(corpus)
-    print("!!!init", kwargs['corpus'])
     if is_dynamic:
         index = DynamicTopicModellingIndex(**kwargs)
     else:
