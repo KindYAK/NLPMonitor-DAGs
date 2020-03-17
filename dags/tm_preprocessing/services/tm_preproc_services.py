@@ -35,6 +35,7 @@ def preprocessing_raw_data(**kwargs):
     from pymorphy2 import MorphAnalyzer
     from airflow.models import Variable
     from nltk.stem import WordNetLemmatizer
+    from nltk.corpus import stopwords
     from util.util import is_latin
 
     start = kwargs['start']
@@ -48,7 +49,7 @@ def preprocessing_raw_data(**kwargs):
                        start=int(start/100*number_of_documents), end=int(end/100*number_of_documents)+1).exclude('exists', field="text_lemmatized")
 
     stopwords_ru = get_stop_words('ru')
-    stopwords_eng = get_stop_words('en')
+    stopwords_eng = get_stop_words('en') + stopwords.words('english')
 
     lemmatizer = WordNetLemmatizer()
     morph = MorphAnalyzer()
@@ -61,7 +62,7 @@ def preprocessing_raw_data(**kwargs):
         cleaned_doc = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split())
         if is_latin(cleaned_doc):
             cleaned_words_list = [lemmatizer.lemmatize(word) for word in cleaned_doc.split() if
-                                  len(word) >= 2 and word not in stopwords_eng]
+                                  len(word) > 3 and word not in stopwords_eng]
 
         else:
             cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in cleaned_doc.split() if
