@@ -389,7 +389,7 @@ with dag6:
         python_callable=lambda: 0,
     )
 
-    gen_bigartm_operator(name=f"bigartm_two_years_scientometrics", description="scientometrics 17k", number_of_topics=50,
+    gen_bigartm_operator(name=f"bigartm_two_years_scientometrics", description="scientometrics 17k", number_of_topics=100,
                          filters={
                         "corpus": "scientometrics",
                         "source": None,
