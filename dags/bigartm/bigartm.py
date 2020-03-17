@@ -39,6 +39,7 @@ def gen_bigartm_operator(name, description, number_of_topics, filters, regulariz
             "name": name,
             "name_translit": name_translit,
             "corpus": filters['corpus'],
+            "corpus_datetime_ignore": filters.get('corpus_datetime_ignore', None),
             "source": filters['source'],
             "datetime_from": filters['datetime_from'],
             "datetime_to": filters['datetime_to'],
@@ -347,7 +348,7 @@ with dag4:
 
     for i in range(10, 101, 10):
         gen_bigartm_operator(name=f"bigartm_two_years_{i}", description="Two lyears", number_of_topics=i,
-                             filters={
+                        filters={
                             "corpus": "main",
                             "source": None,
                             "datetime_from": date(2017, 11, 1),
@@ -369,8 +370,9 @@ with dag5:
     )
 
     gen_bigartm_operator(name=f"bigartm_two_years_main_and_gos", description="Main and gos 2 yearts", number_of_topics=200,
-                         filters={
+                    filters={
                         "corpus": ["main", "gos"],
+                        "corpus_datetime_ignore": ["gos"],
                         "source": None,
                         "datetime_from": date(2018, 1, 1),
                         "datetime_to": date(2020, 4, 1),
@@ -381,6 +383,7 @@ with dag5:
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
+
 
 dag6 = DAG('NLPmonitor_BigARTMs_scientometrics', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 with dag6:
@@ -403,7 +406,7 @@ with dag6:
                          }, is_actualizable=True)
 
     gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_25", description="scientometrics 17k", number_of_topics=25,
-                         filters={
+                    filters={
                         "corpus": "scientometrics",
                         "source": None,
                         "datetime_from": date(2004, 1, 1),
@@ -417,7 +420,7 @@ with dag6:
                     }, is_actualizable=True)
 
     gen_bigartm_operator(name=f"bigartm_two_years_scientometrics", description="scientometrics 17k", number_of_topics=50,
-                         filters={
+                    filters={
                         "corpus": "scientometrics",
                         "source": None,
                         "datetime_from": date(2004, 1, 1),
@@ -431,7 +434,7 @@ with dag6:
                     }, is_actualizable=True)
 
     gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_75", description="scientometrics 17k", number_of_topics=75,
-                         filters={
+                    filters={
                         "corpus": "scientometrics",
                         "source": None,
                         "datetime_from": date(2004, 1, 1),
@@ -443,4 +446,3 @@ with dag6:
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
-
