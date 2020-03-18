@@ -39,7 +39,7 @@ def gen_bigartm_operator(name, description, number_of_topics, filters, regulariz
             "name": name,
             "name_translit": name_translit,
             "corpus": filters['corpus'],
-            "corpus_datetime_ignore": filters.get('corpus_datetime_ignore', None),
+            "corpus_datetime_ignore": filters.get('corpus_datetime_ignore', []),
             "source": filters['source'],
             "datetime_from": filters['datetime_from'],
             "datetime_to": filters['datetime_to'],

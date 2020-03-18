@@ -144,7 +144,7 @@ def dataset_prepare(**kwargs):
     corpus = kwargs['corpus']
     if type(corpus) != list:
         corpus = [corpus]
-    corpus_datetime_ignore = kwargs.get('corpus_datetime_ignore', None)
+    corpus_datetime_ignore = kwargs.get('corpus_datetime_ignore', [])
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
