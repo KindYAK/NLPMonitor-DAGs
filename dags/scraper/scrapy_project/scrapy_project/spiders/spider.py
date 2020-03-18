@@ -98,7 +98,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                     if not parse_result:
                         parse_result = dateparser.parse(" ".join(parse_result.split()[:-1]).strip(),
                                                         languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
-                    if parse_result.year < 2000:
+                    if parse_result and parse_result.year < 2000:
                         return None
                 except:
                     return None
