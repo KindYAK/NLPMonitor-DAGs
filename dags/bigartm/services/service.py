@@ -144,6 +144,7 @@ def dataset_prepare(**kwargs):
     corpus = kwargs['corpus']
     if type(corpus) != list:
         corpus = [corpus]
+    corpus_datetime_ignore = kwargs.get('corpus_datetime_ignore', [])
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
@@ -162,11 +163,13 @@ def dataset_prepare(**kwargs):
     if source:
         s = s.filter("term", **{"source": source})
     if datetime_from:
-        q_from = Q("range", datetime={"lte": datetime_to})
+        q_from = Q("range", datetime={"gte": datetime_from})
     if datetime_to and not perform_actualize:
         q_to = Q("range", datetime={"lte": datetime_to})
-    q_empty = ~Q('exists', field="datetime")
-    s = s.query((q_to & q_from) | q_empty)
+    q = (q_to & q_from)
+    for corpus_to_ignore in corpus_datetime_ignore:
+        q = q | (~Q('exists', field="datetime") & Q("term", corpus=corpus_to_ignore))
+    s = s.query(q)
 
     s = s.source(["id", "text_lemmatized", "title", "source", "datetime", "corpus"])[:5000000]
 
