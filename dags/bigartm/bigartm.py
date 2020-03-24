@@ -352,7 +352,7 @@ with dag3:
                              "ImproveCoherencePhiRegularizer": 0.15
                          }, is_actualizable=True)
 
-    gen_bigartm_operator(name="bigartm_education_oct19_march20", description="October 2019 - March 2020", number_of_topics=150,
+    gen_bigartm_operator(name="bigartm_education_oct19_march20_75", description="October 2019 - March 2020", number_of_topics=75,
                          filters={
                              "corpus": "main",
                              "source": None,
