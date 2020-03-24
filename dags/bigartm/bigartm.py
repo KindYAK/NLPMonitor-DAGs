@@ -338,6 +338,19 @@ with dag3:
                              "ImproveCoherencePhiRegularizer": 0.15
                          }, is_actualizable=False)
 
+    gen_bigartm_operator(name="bigartm_oct19_march20", description="October 2019 - March 2020", number_of_topics=150,
+                         filters={
+                             "corpus": "main",
+                             "source": None,
+                             "datetime_from": date(2019, 10, 1),
+                             "datetime_to": date(2020, 4, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         }, is_actualizable=True)
 
 dag4 = DAG('NLPmonitor_BigARTMs_small', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 with dag4:
