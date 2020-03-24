@@ -404,7 +404,7 @@ with dag6:
         task_id="wait_for_basic_tms",
         python_callable=lambda: 0,
     )
-    gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_15", description="scientometrics 17k", number_of_topics=15,
+    gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_15", description="scientometrics 17k 15 topics", number_of_topics=15,
                          filters={
                              "corpus": "scientometrics",
                              "source": None,
@@ -412,50 +412,50 @@ with dag6:
                              "datetime_to": date(2020, 4, 1),
                          },
                          regularization_params={
-                             "SmoothSparseThetaRegularizer": 0.20,
-                             "SmoothSparsePhiRegularizer": 0.20,
-                             "DecorrelatorPhiRegularizer": 0.20,
-                             "ImproveCoherencePhiRegularizer": 0.20
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
                          }, is_actualizable=True)
 
-    gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_25", description="scientometrics 17k", number_of_topics=25,
-                    filters={
+    gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_25", description="scientometrics 17k 25 topics", number_of_topics=25,
+                         filters={
                         "corpus": "scientometrics",
                         "source": None,
                         "datetime_from": date(2004, 1, 1),
                         "datetime_to": date(2020, 4, 1),
-                    },
-                    regularization_params={
-                        "SmoothSparseThetaRegularizer": 0.15,
-                        "SmoothSparsePhiRegularizer": 0.15,
-                        "DecorrelatorPhiRegularizer": 0.15,
-                        "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                        },
+                        regularization_params={
+                            "SmoothSparseThetaRegularizer": 0.15,
+                            "SmoothSparsePhiRegularizer": 0.15,
+                            "DecorrelatorPhiRegularizer": 0.15,
+                            "ImproveCoherencePhiRegularizer": 0.15
+                        }, is_actualizable=True)
 
-    gen_bigartm_operator(name=f"bigartm_two_years_scientometrics", description="scientometrics 17k", number_of_topics=50,
-                    filters={
+    gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_50", description="scientometrics 17k 50 topics", number_of_topics=50,
+                         filters={
                         "corpus": "scientometrics",
                         "source": None,
                         "datetime_from": date(2004, 1, 1),
                         "datetime_to": date(2020, 4, 1),
-                    },
-                    regularization_params={
-                        "SmoothSparseThetaRegularizer": 0.15,
-                        "SmoothSparsePhiRegularizer": 0.15,
-                        "DecorrelatorPhiRegularizer": 0.15,
-                        "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                        },
+                        regularization_params={
+                            "SmoothSparseThetaRegularizer": 0.15,
+                            "SmoothSparsePhiRegularizer": 0.15,
+                            "DecorrelatorPhiRegularizer": 0.15,
+                            "ImproveCoherencePhiRegularizer": 0.15
+                        }, is_actualizable=True)
 
-    gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_75", description="scientometrics 17k", number_of_topics=75,
-                    filters={
+    gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_75", description="scientometrics 17k 75 topics", number_of_topics=75,
+                         filters={
                         "corpus": "scientometrics",
                         "source": None,
                         "datetime_from": date(2004, 1, 1),
                         "datetime_to": date(2020, 4, 1),
-                    },
-                    regularization_params={
-                        "SmoothSparseThetaRegularizer": 0.15,
-                        "SmoothSparsePhiRegularizer": 0.15,
-                        "DecorrelatorPhiRegularizer": 0.15,
-                        "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                        },
+                        regularization_params={
+                            "SmoothSparseThetaRegularizer": 0.15,
+                            "SmoothSparsePhiRegularizer": 0.15,
+                            "DecorrelatorPhiRegularizer": 0.15,
+                            "ImproveCoherencePhiRegularizer": 0.15
+                        }, is_actualizable=True)
