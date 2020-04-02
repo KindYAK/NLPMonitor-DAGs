@@ -75,7 +75,7 @@ def gen_bigartm_operator(name, description, number_of_topics, filters, regulariz
 
 groups = json.loads(Variable.get('topic_groups', default_var="[]"))
 
-dag = DAG('NLPmonitor_BigARTMs_full', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag = DAG('NLPmonitor_BigARTMs_full', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
 with dag:
     wait_for_basic_tms = PythonOperator(
         task_id="wait_for_basic_tms",
@@ -96,7 +96,7 @@ with dag:
                         "ImproveCoherencePhiRegularizer": 0.15
                     }, is_actualizable=True)
 
-dag2 = DAG('NLPmonitor_BigARTMs_two_years_', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag2 = DAG('NLPmonitor_BigARTMs_two_years_', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
 with dag2:
     wait_for_basic_tms = PythonOperator(
         task_id="wait_for_basic_tms",
@@ -284,7 +284,7 @@ with dag2:
                              topic_modelling_translit=group['topic_modelling_name_translit'],
                              )
 
-dag3 = DAG('NLPmonitor_BigARTMs_2019', catchup=False, max_active_runs=1, default_args=default_args,
+dag3 = DAG('NLPmonitor_BigARTMs_2019', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args,
            schedule_interval=None)
 with dag3:
     wait_for_basic_tms = PythonOperator(
@@ -368,7 +368,7 @@ with dag3:
                              "ImproveCoherencePhiRegularizer": 0.15
                          }, is_actualizable=True)
 
-dag4 = DAG('NLPmonitor_BigARTMs_small', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag4 = DAG('NLPmonitor_BigARTMs_small', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
 with dag4:
     wait_for_basic_tms = PythonOperator(
         task_id="wait_for_basic_tms",
@@ -391,7 +391,7 @@ with dag4:
                         }, is_actualizable=True)
 
 
-dag5 = DAG('NLPmonitor_BigARTMs_news_and_gos', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag5 = DAG('NLPmonitor_BigARTMs_news_and_gos', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
 with dag5:
     wait_for_basic_tms = PythonOperator(
         task_id="wait_for_basic_tms",
@@ -414,7 +414,7 @@ with dag5:
                     }, is_actualizable=True)
 
 
-dag6 = DAG('NLPmonitor_BigARTMs_scientometrics', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag6 = DAG('NLPmonitor_BigARTMs_scientometrics', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
 with dag6:
     wait_for_basic_tms = PythonOperator(
         task_id="wait_for_basic_tms",
