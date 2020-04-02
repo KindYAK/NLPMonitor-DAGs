@@ -375,7 +375,7 @@ with dag4:
         python_callable=lambda: 0,
     )
 
-    for i in range(10, 101, 10):
+    for i in range(10, 301, 10):
         gen_bigartm_operator(name=f"bigartm_two_years_{i}", description="Two lyears", number_of_topics=i,
                         filters={
                             "corpus": "main",
