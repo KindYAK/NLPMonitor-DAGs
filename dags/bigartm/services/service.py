@@ -453,8 +453,7 @@ def topic_modelling(**kwargs):
             es_topic_document.document_source = source.replace("_", " ")
             es_topic_document.document_corpus = corpus
             document_topics.append(es_topic_document)
-        document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[
-                          :max(index.number_of_topics // 3, 10)]
+        document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[:max(index.number_of_topics // 3, 10)]
         for es_topic_document in document_topics:
             yield es_topic_document
 

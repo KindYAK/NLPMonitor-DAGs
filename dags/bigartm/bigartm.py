@@ -368,7 +368,7 @@ with dag3:
                              "ImproveCoherencePhiRegularizer": 0.15
                          }, is_actualizable=True)
 
-dag4 = DAG('NLPmonitor_BigARTMs_small', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
+dag4 = DAG('NLPmonitor_BigARTMs_small', catchup=False, max_active_runs=1, concurrency=10, default_args=default_args, schedule_interval=None)
 with dag4:
     wait_for_basic_tms = PythonOperator(
         task_id="wait_for_basic_tms",
