@@ -62,7 +62,7 @@ def evaluate(**kwargs):
         for document_es_id in ids_to_process:
             s = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling}") \
                 .filter("range", topic_weight={"gte": 0.001}).filter("term", document_es_id=document_es_id) \
-                .source(['topic_weight', 'topic_id', "datetime", "document_source"])
+                .source(['topic_weight', 'topic_id', "datetime", "document_source"]).sort('-topic_weight')[:50]
             for td in s.execute():
                 if td.topic_id not in criterions_evals_dict:
                     criterion_value = 0
