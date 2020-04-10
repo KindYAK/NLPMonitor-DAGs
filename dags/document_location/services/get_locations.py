@@ -1,4 +1,5 @@
 def locations_generator(**kwargs):
+    import datetime
 
     from geo.models import Area, District, Locality
     from mainapp.documents import DocumentLocation
@@ -10,7 +11,13 @@ def locations_generator(**kwargs):
 
     for places in (Area, District, Locality):
         location_level = places.objects.first()._meta.verbose_name
-        for geo in places.objects.all():
+        if places == Area:
+            print('!!! Parsing Areas ...', datetime.datetime.now())
+        if places == District:
+            print('!!! Parsing Districts ...', datetime.datetime.now())
+        else:
+            print('!!! Parsing Localities ...', datetime.datetime.now())
+        for i, geo in enumerate(places.objects.all()):
             s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).source(['_id', 'text', 'text_lemmatized', 'title'])
             q = Q(
                 'bool',
@@ -20,6 +27,7 @@ def locations_generator(**kwargs):
                 minimum_should_match=1,
             )
             s = s.query(q)
+            print(f'!!! Scans count for {i} geo inside place: ', s.count(), datetime.datetime.now())
             scans = s.scan()
 
             for scan_obj in scans:
@@ -45,7 +53,8 @@ def locations_generator(**kwargs):
                             location_level=location_level,
                             criterion_value=value,
                             location_weight=1,  # TODO считать эти значения
-                            topic_modelling=tm
+                            topic_modelling=tm,
+                            location_id=geo.id,
                         )
 
 
@@ -53,13 +62,16 @@ def get_locations(**kwargs):
     from elasticsearch.helpers import parallel_bulk
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT_LOCATION
 
+    import datetime
+
     failed = 0
     success = 0
 
     for ok, result in parallel_bulk(ES_CLIENT, (doc.to_dict() for doc in locations_generator(**kwargs)),
                                     index=ES_INDEX_DOCUMENT_LOCATION,
                                     chunk_size=10000, raise_on_error=True, thread_count=4):
-
+        if (failed + success) % 10000 == 0:
+            print(f"!!!{failed + success} processed", datetime.datetime.now())
         if failed > 5:
             raise Exception("Too many failed ES!!!")
         if not ok:
