@@ -24,23 +24,26 @@ def locations_generator(**kwargs):
 
             for scan_obj in scans:
                 for tm, criterion_id in criterion_tm_duos:
-                    evaluated_docs = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion_id}") \
+                    ev_docs = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion_id}") \
                         .filter("term", document_es_id=scan_obj.meta.id) \
                         .source(['value', 'document_datetime', 'document_source']) \
                         .execute()
 
-                    if not evaluated_docs:
+                    if not ev_docs:
                         continue
 
-                    evaluated_docs = evaluated_docs[0]
+                    ev_docs = ev_docs[0]
+
+                    document_datetime = ev_docs.document_datetime if hasattr(ev_docs, "document_datetime") and ev_docs.document_datetime else None
+                    value = ev_docs.value if hasattr(ev_docs, "value") and ev_docs.value else None
 
                     yield DocumentLocation(
                             document_es_id=scan_obj.meta.id,
-                            document_datetime=evaluated_docs.document_datetime,
-                            document_source=evaluated_docs.document_source,
+                            document_datetime=document_datetime,
+                            document_source=document_datetime,
                             location_name=geo.name,
                             location_level=location_level,
-                            criterion_value=evaluated_docs.value,
+                            criterion_value=value,
                             location_weight=1,  # TODO считать эти значения
                             topic_modelling=tm
                         )
