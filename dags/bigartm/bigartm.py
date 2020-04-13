@@ -25,7 +25,7 @@ default_args = {
 
 actualizable_bigartms = []
 bigartm_calc_operators = []
-def gen_bigartm_operator(name, description, number_of_topics, filters, regularization_params, is_actualizable=False, name_translit=None, topic_modelling_translit=None):
+def gen_bigartm_operator(name, description, number_of_topics, filters, regularization_params, wait_for_basic_tms, is_actualizable=False, name_translit=None, topic_modelling_translit=None):
     from dags.bigartm.services.service import bigartm_calc
 
     if not name_translit:
@@ -89,12 +89,14 @@ with dag:
                         "datetime_from": None,
                         "datetime_to": None,
                     },
-                         regularization_params={
+                    regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                    },
+                    wait_for_basic_tms=wait_for_basic_tms,
+                    is_actualizable=True)
 
 dag2 = DAG('NLPmonitor_BigARTMs_two_years_', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
 with dag2:
@@ -110,12 +112,14 @@ with dag2:
                         "datetime_from": date(2017, 11, 1),
                         "datetime_to": date(2019, 12, 1),
                     },
-                         regularization_params={
+                    regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                    },
+                    wait_for_basic_tms=wait_for_basic_tms,
+                    is_actualizable=True)
 
     gen_bigartm_operator(name="bigartm_education_two_years", description="Two last years education", number_of_topics=150,
                          filters={
@@ -126,12 +130,14 @@ with dag2:
                         "group_id": 7,
                         "topic_weight_threshold": 0.05,
                     },
-                         regularization_params={
+                    regularization_params={
                         "SmoothSparseThetaRegularizer": 0.15,
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                    },
+                    wait_for_basic_tms=wait_for_basic_tms,
+                    is_actualizable=True)
 
     gen_bigartm_operator(name="bigartm_education_one_year", description="One last year education", number_of_topics=100,
                          filters={
@@ -147,7 +153,9 @@ with dag2:
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                    },
+                    wait_for_basic_tms=wait_for_basic_tms,
+                    is_actualizable=True)
 
     gen_bigartm_operator(name="bigartm_education_half_year", description="One half year education", number_of_topics=100,
                          filters={
@@ -163,7 +171,9 @@ with dag2:
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                    },
+                    wait_for_basic_tms=wait_for_basic_tms,
+                    is_actualizable=True)
 
     gen_bigartm_operator(name="bigartm_science_two_years", description="Two last years science", number_of_topics=150,
                          filters={
@@ -179,7 +189,9 @@ with dag2:
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                    },
+                    wait_for_basic_tms=wait_for_basic_tms,
+                    is_actualizable=True)
 
     gen_bigartm_operator(name="bigartm_science_one_year", description="One last year science", number_of_topics=100,
                          filters={
@@ -195,7 +207,9 @@ with dag2:
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                    },
+                    wait_for_basic_tms=wait_for_basic_tms,
+                    is_actualizable=True)
 
     gen_bigartm_operator(name="bigartm_science_half_year", description="One half year science", number_of_topics=100,
                          filters={
@@ -211,7 +225,9 @@ with dag2:
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                    },
+                    wait_for_basic_tms=wait_for_basic_tms,
+                    is_actualizable=True)
 
     # BigARTMs for two_year Zhazira's folders
     groups_bigartm_two_years = filter(lambda x: x['topic_modelling_name'] == "bigartm_two_years", groups)
@@ -232,6 +248,7 @@ with dag2:
                                  "DecorrelatorPhiRegularizer": 0.15,
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
+                             wait_for_basic_tms=wait_for_basic_tms,
                              is_actualizable=True,
                              name_translit=f"bigartm_{group['name_translit']}_two_years",
                              topic_modelling_translit=group['topic_modelling_name_translit'],
@@ -255,6 +272,7 @@ with dag2:
                                  "DecorrelatorPhiRegularizer": 0.15,
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
+                             wait_for_basic_tms=wait_for_basic_tms,
                              is_actualizable=True,
                              name_translit=f"bigartm_{group['name_translit']}_it_two_years",
                              topic_modelling_translit=group['topic_modelling_name_translit'],
@@ -279,6 +297,7 @@ with dag2:
                                  "DecorrelatorPhiRegularizer": 0.15,
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
+                             wait_for_basic_tms=wait_for_basic_tms,
                              is_actualizable=True,
                              name_translit=f"bigartm_{group['name_translit']}_2_level_it_two_years",
                              topic_modelling_translit=group['topic_modelling_name_translit'],
@@ -304,7 +323,9 @@ with dag3:
                              "SmoothSparsePhiRegularizer": 0.15,
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
-                         }, is_actualizable=False)
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=False)
 
     gen_bigartm_operator(name="bigartm_education_2019", description="2019 education", number_of_topics=90,
                          filters={
@@ -320,7 +341,9 @@ with dag3:
                              "SmoothSparsePhiRegularizer": 0.15,
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
-                         }, is_actualizable=False)
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=False)
 
     gen_bigartm_operator(name="bigartm_education_2_2019", description="2019 education 2 distilled", number_of_topics=125,
                          filters={
@@ -336,7 +359,9 @@ with dag3:
                              "SmoothSparsePhiRegularizer": 0.15,
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
-                         }, is_actualizable=False)
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=False)
 
     gen_bigartm_operator(name="bigartm_oct19_march20", description="October 2019 - March 2020", number_of_topics=150,
                          filters={
@@ -350,7 +375,9 @@ with dag3:
                              "SmoothSparsePhiRegularizer": 0.15,
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
-                         }, is_actualizable=True)
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
 
     gen_bigartm_operator(name="bigartm_education_oct19_march20_75", description="October 2019 - March 2020", number_of_topics=75,
                          filters={
@@ -366,7 +393,9 @@ with dag3:
                              "SmoothSparsePhiRegularizer": 0.15,
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
-                         }, is_actualizable=True)
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
 
 dag4 = DAG('NLPmonitor_BigARTMs_small', catchup=False, max_active_runs=1, concurrency=10, default_args=default_args, schedule_interval=None)
 with dag4:
@@ -388,7 +417,9 @@ with dag4:
                             "SmoothSparsePhiRegularizer": 0.15,
                             "DecorrelatorPhiRegularizer": 0.15,
                             "ImproveCoherencePhiRegularizer": 0.15
-                        }, is_actualizable=True)
+                        },
+                        wait_for_basic_tms=wait_for_basic_tms,
+                        is_actualizable=True)
 
 
 dag5 = DAG('NLPmonitor_BigARTMs_news_and_gos', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
@@ -411,7 +442,9 @@ with dag5:
                         "SmoothSparsePhiRegularizer": 0.15,
                         "DecorrelatorPhiRegularizer": 0.15,
                         "ImproveCoherencePhiRegularizer": 0.15
-                    }, is_actualizable=True)
+                    },
+                    wait_for_basic_tms=wait_for_basic_tms,
+                    is_actualizable=True)
 
 
 dag6 = DAG('NLPmonitor_BigARTMs_scientometrics', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
@@ -432,7 +465,9 @@ with dag6:
                              "SmoothSparsePhiRegularizer": 0.15,
                              "DecorrelatorPhiRegularizer": 0.15,
                              "ImproveCoherencePhiRegularizer": 0.15
-                         }, is_actualizable=True)
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
 
     gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_25", description="scientometrics 17k 25 topics", number_of_topics=25,
                          filters={
@@ -446,7 +481,9 @@ with dag6:
                             "SmoothSparsePhiRegularizer": 0.15,
                             "DecorrelatorPhiRegularizer": 0.15,
                             "ImproveCoherencePhiRegularizer": 0.15
-                        }, is_actualizable=True)
+                        },
+                        wait_for_basic_tms=wait_for_basic_tms,
+                        is_actualizable=True)
 
     gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_50", description="scientometrics 17k 50 topics", number_of_topics=50,
                          filters={
@@ -460,7 +497,9 @@ with dag6:
                             "SmoothSparsePhiRegularizer": 0.15,
                             "DecorrelatorPhiRegularizer": 0.15,
                             "ImproveCoherencePhiRegularizer": 0.15
-                        }, is_actualizable=True)
+                        },
+                        wait_for_basic_tms=wait_for_basic_tms,
+                        is_actualizable=True)
 
     gen_bigartm_operator(name=f"bigartm_two_years_scientometrics_75", description="scientometrics 17k 75 topics", number_of_topics=75,
                          filters={
@@ -474,4 +513,6 @@ with dag6:
                             "SmoothSparsePhiRegularizer": 0.15,
                             "DecorrelatorPhiRegularizer": 0.15,
                             "ImproveCoherencePhiRegularizer": 0.15
-                        }, is_actualizable=True)
+                        },
+                        wait_for_basic_tms=wait_for_basic_tms,
+                        is_actualizable=True)
