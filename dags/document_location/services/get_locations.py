@@ -3,7 +3,7 @@ def locations_generator(**kwargs):
 
     from geo.models import Area, District, Locality
     from mainapp.documents import DocumentLocation
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_LOCATION, ES_INDEX_DOCUMENT_EVAL
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DOCUMENT_EVAL
 
     from elasticsearch_dsl import Search, Q
 
@@ -18,7 +18,7 @@ def locations_generator(**kwargs):
         else:
             print('!!! Parsing Localities ...', datetime.datetime.now())
         for i, geo in enumerate(places.objects.all()):
-            s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).source(['_id', 'text', 'text_lemmatized', 'title'])
+            s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).source(['text', 'text_lemmatized', 'title'])
             q = Q(
                 'bool',
                 should=[Q("match_phrase", text_lemmatized=geo.name)] +
@@ -27,6 +27,7 @@ def locations_generator(**kwargs):
                 minimum_should_match=1,
             )
             s = s.query(q)
+            s = s.extra(track_scores=True)
             print(f'!!! Scans count for {i} geo inside place: ', s.count(), datetime.datetime.now())
             scans = s.scan()
 
@@ -46,16 +47,16 @@ def locations_generator(**kwargs):
                     value = ev_docs.value if hasattr(ev_docs, "value") and ev_docs.value else None
 
                     yield DocumentLocation(
-                            document_es_id=scan_obj.meta.id,
-                            document_datetime=document_datetime,
-                            document_source=document_datetime,
-                            location_name=geo.name,
-                            location_level=location_level,
-                            criterion_value=value,
-                            location_weight=1,  # TODO считать эти значения
-                            topic_modelling=tm,
-                            location_id=geo.id,
-                        )
+                        document_es_id=scan_obj.meta.id,
+                        document_datetime=document_datetime,
+                        document_source=document_datetime,
+                        location_name=geo.name,
+                        location_level=location_level,
+                        criterion_value=value,
+                        location_weight=scan_obj.meta.score,
+                        topic_modelling=tm,
+                        location_id=geo.id,
+                    )
 
 
 def get_locations(**kwargs):
