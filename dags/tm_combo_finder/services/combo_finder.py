@@ -6,13 +6,24 @@ def find_combos(**kwargs):
     from elasticsearch.helpers import parallel_bulk
     from elasticsearch_dsl import Index, Search
     from mainapp.documents import TopicCombo
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_DOCUMENT, ES_INDEX_TOPIC_COMBOS
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_DOCUMENT, ES_INDEX_TOPIC_COMBOS, ES_INDEX_TOPIC_MODELLING
 
     from util.util import shards_mapping
 
     # #################### INIT ##########################################
     topic_modelling = kwargs['name']
     topic_weight_threshold = 0.05
+    try:
+        tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter("term", name=topic_modelling).execute()[0]
+    except:
+        tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter("term", **{"name.keyword": topic_modelling}).execute()[0]
+    topic_words_dict = dict(
+        (t.id,
+         {
+             "name": ", ".join(w['word'] for w in sorted(t.topic_words, key=lambda x: x.weight, reverse=True)[:5])
+         }
+         ) for t in tm.topics
+    )
 
     # #################### COMBINATIONS ##########################################
     print("!!!", "Topic_docs dict start", datetime.datetime.now())
@@ -38,6 +49,7 @@ def find_combos(**kwargs):
         for L in range(2, MAX_L + 1):
             print(f"L = {L}")
             for topics in itertools.combinations(topic_docs_dict.items(), L):
+                # TODO Skip similiar topics
                 if L >= 3 and not any(any(topic_id in c['topic_ids'] for c in topic_combinations) for topic_id, _ in topics):
                     continue
                 common_docs = None
@@ -51,6 +63,7 @@ def find_combos(**kwargs):
                 if len(common_docs) > average_topic_len / L:
                     topic_combinations.append({
                             "topic_ids": list(topic_ids),
+                            "topic_names": [topic_words_dict[topic_id]['name'] for topic_id in topic_ids],
                             "common_docs_ids": list(common_docs),
                             "common_docs_len": len(common_docs),
                         })
