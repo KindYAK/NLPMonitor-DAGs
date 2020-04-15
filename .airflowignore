@@ -2,6 +2,10 @@
 util/
 venv/
 
+bigartm_temp/
+bigartm_models/
+mussabayev_tm_temp/
+
 dags/examples/
 dags/examples/external_file_example/
 
@@ -21,11 +25,10 @@ dags/generate_dictionary/services/
 dags/add_topics_info/service/
 
 dags/mussabayev_tm/service/
-mussabayev_tm_temp/
 
 dags/bigartm/services/
-bigartm_temp/
-bigartm_models/
+
+dags/tm_combo_finder/services/
 
 dags/bigartm_acualizer/services/
 
