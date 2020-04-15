@@ -11,7 +11,7 @@ def get_proxy_list():
         start_time = datetime.datetime.now()
         while True:
             proxy = await proxies.get()
-            if (datetime.datetime.now() - start_time).seconds / 3600 >= 12:
+            if (datetime.datetime.now() - start_time).seconds / 3600 >= 1:
                 print("!!!", "Timeout!", datetime.datetime.now())
                 break
             if proxy is None:
@@ -27,7 +27,7 @@ def get_proxy_list():
                 ('HTTP', ('Anonymous', 'High')),
                 ('HTTPS', ('Anonymous', 'High'))
             ],
-            limit=250
+            limit=100
         ),
         get_list(proxies, proxy_list)
     )
