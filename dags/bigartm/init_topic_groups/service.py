@@ -1,7 +1,6 @@
-from util.util import transliterate_for_dag_id, clear_symbols
-
-
 def init_topic_groups(**kwargs):
+    from util.util import transliterate_for_dag_id, clear_symbols
+
     from airflow.models import Variable
     from mainapp.models_user import TopicGroup
     import json
