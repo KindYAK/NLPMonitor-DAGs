@@ -94,6 +94,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                         .replace("опубликовано:", "") \
                         .replace("автор:", "") \
                         .replace("автор", "") \
+                        .replace("мск", "") \
                         .replace("(-ов)", "")
                     parse_result = dateparser.parse(parse_result, languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
                     if not parse_result:
