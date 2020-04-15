@@ -8,11 +8,14 @@ def find_combos(**kwargs):
     from mainapp.documents import TopicCombo
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_DOCUMENT, ES_INDEX_TOPIC_COMBOS, ES_INDEX_TOPIC_MODELLING
 
-    from util.util import shards_mapping
+    from util.util import shards_mapping, jaccard_similarity
 
     # #################### INIT ##########################################
+    print("!!!", "Init start", datetime.datetime.now())
     topic_modelling = kwargs['name']
     topic_weight_threshold = 0.05
+    MAX_L = 3
+    MIN_VOLUME = 0.001
     try:
         tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter("term", name=topic_modelling).execute()[0]
     except:
@@ -20,10 +23,14 @@ def find_combos(**kwargs):
     topic_words_dict = dict(
         (t.id,
          {
+             "words": [w['word'] for w in t.topic_words],
              "name": ", ".join(w['word'] for w in sorted(t.topic_words, key=lambda x: x.weight, reverse=True)[:5])
          }
          ) for t in tm.topics
     )
+    jaccard_similarities = [jaccard_similarity(t1['words'], t2['words']) for t1, t2 in itertools.combinations(topic_words_dict.values(), 2)]
+    average_jaccard_similarity = sum(jaccard_similarities) / len(jaccard_similarities)
+    print("!!!", "Average jaccard", average_jaccard_similarity)
 
     # #################### COMBINATIONS ##########################################
     print("!!!", "Topic_docs dict start", datetime.datetime.now())
@@ -42,15 +49,15 @@ def find_combos(**kwargs):
             print(f"{i}/{n} processed")
 
     topic_combinations = []
-    MAX_L = 3
-    MIN_VOLUME = 1 / len(overall_topic_ids)
     average_topic_len = len(overall_docs) * MIN_VOLUME
     def topic_combo_generator():
         for L in range(2, MAX_L + 1):
             print(f"L = {L}")
             for topics in itertools.combinations(topic_docs_dict.items(), L):
-                # TODO Skip similiar topics
                 if L >= 3 and not any(any(topic_id in c['topic_ids'] for c in topic_combinations) for topic_id, _ in topics):
+                    continue
+                if any(jaccard_similarity(topic_words_dict[t1]['words'], topic_words_dict[t2]['words']) > average_jaccard_similarity
+                       for (t1, _), (t2, _) in itertools.combinations(topics, 2)):
                     continue
                 common_docs = None
                 topic_ids = set()

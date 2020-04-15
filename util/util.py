@@ -336,3 +336,11 @@ def shards_mapping(doc_count: int) -> int:
         return 2
     else:
         return 1
+
+
+def jaccard_similarity(list1, list2):
+    if not list1 or not list2:
+        return 0
+    intersection = len(set(list1).intersection(list2))
+    union = (len(list1) + len(list2)) - intersection
+    return intersection / union
