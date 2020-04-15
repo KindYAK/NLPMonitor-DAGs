@@ -1,3 +1,6 @@
+from util.util import transliterate_for_dag_id
+
+
 def init_sources(**kwargs):
     from airflow.models import Variable
     from mainapp.models import Source
@@ -9,7 +12,7 @@ def init_sources(**kwargs):
                          [
                              {
                                  "id": s.id,
-                                 "name": s.name,
+                                 "name": transliterate_for_dag_id(s.name),
                                  "url": s.url
                              } for s in ss
                          ]

@@ -344,3 +344,13 @@ def jaccard_similarity(list1, list2):
     intersection = len(set(list1).intersection(list2))
     union = (len(list1) + len(list2)) - intersection
     return intersection / union
+
+
+def transliterate_for_dag_id(name):
+    from transliterate import translit
+    name_translit = translit(name, 'ru', reversed=True)
+    return clear_symbols(name_translit)
+
+
+def clear_symbols(name):
+    return "".join([c for c in name.replace(" ", "_") if (c.isalnum() or c in ["_", ".", "-"]) and c not in "әғқңөұүі"]).strip().lower()
