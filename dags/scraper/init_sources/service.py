@@ -5,7 +5,7 @@ def init_sources(**kwargs):
     from mainapp.models import Source
     import json
 
-    ss = Source.objects.filter(corpus__name__in=["main", "rus", "rus_propaganda"]).exclude(scraprules=None)
+    ss = Source.objects.exclude(scraprules=None)
     Variable.set("sources",
                      json.dumps(
                          [

@@ -30,4 +30,5 @@ with dag:
     proxy_op = DjangoOperator(
         task_id="get_proxy_list",
         python_callable=get_proxy_list,
+        execution_timeout=timedelta(hours=1)
     )

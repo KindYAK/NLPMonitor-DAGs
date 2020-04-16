@@ -6,7 +6,6 @@ def scrap(**kwargs):
     import pytz
 
     from util.constants import BASE_DAG_DIR
-    from util.util import is_kazakh, is_latin
     from django.db import IntegrityError
 
     from mainapp.models import ScrapRules, Document, Source, Author
