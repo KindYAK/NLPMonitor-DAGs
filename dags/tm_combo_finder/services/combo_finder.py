@@ -14,7 +14,7 @@ def find_combos(**kwargs):
     print("!!!", "Init start", datetime.datetime.now())
     topic_modelling = kwargs['name']
     topic_weight_threshold = 0.05
-    MAX_L = 4
+    MAX_L = 2
     try:
         tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter("term", name=topic_modelling).execute()[0]
     except:

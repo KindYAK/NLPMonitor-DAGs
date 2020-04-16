@@ -27,7 +27,7 @@ actualizable_bigartms = []
 comboable_bigartms = []
 bigartm_calc_operators = []
 def gen_bigartm_operator(name, description, number_of_topics, filters, regularization_params, wait_for_basic_tms,
-                         is_actualizable=False, name_translit=None, topic_modelling_translit=None, is_comboable=False):
+                         is_actualizable=False, name_translit=None, topic_modelling_translit=None, is_comboable=True):
     from dags.bigartm.services.service import bigartm_calc
 
     if not name_translit:
