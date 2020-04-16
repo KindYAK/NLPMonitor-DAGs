@@ -48,7 +48,7 @@ with dag:
 
 with dag_full:
     scrapers_full = []
-    for source in filter(lambda x: x['perform_full'], sources):
+    for source in filter(lambda x: x['perform_full'] if 'perform_full' in x else False, sources):
         filtered_name = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
                                             source['name'].replace(":", "_"))))
         scrapers_full.append(DjangoOperator(
