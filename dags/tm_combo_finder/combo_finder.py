@@ -20,7 +20,7 @@ default_args = {
     'retries': 1,
     'retry_delay': timedelta(minutes=30),
     'priority_weight': 40,
-    'pool': 'long_tasks'
+    'pool': 'short_tasks'
 }
 
 dag = DAG('NLPmonitor_TM_Combo_Finder', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
