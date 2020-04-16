@@ -32,7 +32,7 @@ sources = json.loads(Variable.get('sources', default_var="[]"))
 
 with dag:
     scrapers = []
-    for source in filter(lambda x: not x['perform_full'], sources):
+    for source in sources:
         filtered_name = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
                                             source['name'].replace(":", "_"))))
         scrapers.append(DjangoOperator(
