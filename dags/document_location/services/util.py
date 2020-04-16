@@ -55,6 +55,7 @@ def locations_generator(**kwargs):
                         location_weight=scan_obj.meta.score,
                         topic_modelling=tm,
                         location_id=geo.id,
+                        criterion_id=criterion_id
                     )
 
 
