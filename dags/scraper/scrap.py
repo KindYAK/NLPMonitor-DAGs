@@ -26,10 +26,11 @@ default_args = {
 }
 
 dag = DAG('Scrapers_scrap', catchup=False, max_active_runs=3, default_args=default_args, schedule_interval='15 12 * * *')
+dag_full = DAG('Scrapers_scrap_full', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 
+sources = json.loads(Variable.get('sources', default_var="[]"))
 
 with dag:
-    sources = json.loads(Variable.get('sources', default_var="[]"))
     scrapers = []
     for source in sources:
         filtered_name = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
@@ -39,7 +40,24 @@ with dag:
             python_callable=scrap,
             op_kwargs={
                 "source_url": source['url'],
-                "source_id": source['id']
+                "source_id": source['id'],
+                "perform_full": False
+            }
+        )
+        )
+
+with dag_full:
+    scrapers_full = []
+    for source in filter(lambda x: x['perform_full'], sources):
+        filtered_name = "".join(list(filter(lambda x: x.isalpha() or x in ['.', '-', '_'],
+                                            source['name'].replace(":", "_"))))
+        scrapers_full.append(DjangoOperator(
+            task_id=f"scrap_{filtered_name}",
+            python_callable=scrap,
+            op_kwargs={
+                "source_url": source['url'],
+                "source_id": source['id'],
+                "perform_full": True
             }
         )
         )
