@@ -18,7 +18,7 @@ def locations_generator(**kwargs):
         else:
             print('!!! Parsing Localities ...', datetime.datetime.now())
         for i, geo in enumerate(places.objects.all()):
-            s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).source(['text', 'text_lemmatized', 'title'])
+            s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).source(['datetime', 'source', 'text', 'text_lemmatized', 'title'])
             q = Q(
                 'bool',
                 should=[Q("match_phrase", text_lemmatized=geo.name)] +
@@ -32,6 +32,19 @@ def locations_generator(**kwargs):
             scans = s.scan()
 
             for scan_obj in scans:
+
+                document_datetime, document_source = hit_parser(scan_obj)
+
+                doc = DocumentLocation(
+                    document_es_id=scan_obj.meta.id,
+                    document_datetime=document_datetime,
+                    document_source=document_source,
+                    location_name=geo.name,
+                    location_level=location_level,
+                    location_weight=scan_obj.meta.score,
+                    location_id=geo.id,
+                )
+
                 for tm, criterion_id in criterion_tm_duos:
                     ev_docs = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{tm}_{criterion_id}") \
                         .filter("term", document_es_id=scan_obj.meta.id) \
@@ -43,24 +56,14 @@ def locations_generator(**kwargs):
 
                     ev_docs = ev_docs[0]
 
-                    document_datetime, value, document_source = hit_parser(ev_docs)
+                    value = ev_docs.value if hasattr(ev_docs, "value") and ev_docs.value else None
 
-                    yield DocumentLocation(
-                        document_es_id=scan_obj.meta.id,
-                        document_datetime=document_datetime,
-                        document_source=document_source,
-                        location_name=geo.name,
-                        location_level=location_level,
-                        criterion_value=value,
-                        location_weight=scan_obj.meta.score,
-                        topic_modelling=tm,
-                        location_id=geo.id,
-                        criterion_id=criterion_id
-                    )
+                    doc[f'criterion_{tm}_{criterion_id}'] = value
+
+                yield doc
 
 
 def hit_parser(row):
-    document_datetime = row.document_datetime if hasattr(row, "document_datetime") and row.document_datetime else None
-    value = row.value if hasattr(row, "value") and row.value else None
-    document_source = row.document_source if hasattr(row, "document_source") and row.document_source else None
-    return document_datetime, value, document_source
+    document_datetime = row.datetime if hasattr(row, "datetime") and row.datetime else None
+    document_source = row.source if hasattr(row, "source") and row.source else None
+    return document_datetime, document_source
