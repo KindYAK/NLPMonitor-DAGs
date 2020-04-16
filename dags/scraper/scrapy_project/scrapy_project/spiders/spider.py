@@ -54,6 +54,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         self.start_urls = [kw['url']]
         self.allowed_domains = [kw['url'].split("/")[2]]
         self.latest_date = datetime.datetime.strptime(kw['latest_date'][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
+        self.perform_full = kw['perform_full'] == "yes"
         self.last_depth = None
         self.depth_history = []
         self.depth_history_depth = 1
@@ -72,7 +73,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 self.last_depth = response.meta['depth'] + 1
             self.depth_history_depth = response.meta['depth']
             self.depth_history = []
-        if self.last_depth and response.meta['depth'] > self.last_depth or (datetime.datetime.now() - self.start_time).seconds > 24*60*60:
+        if self.last_depth and response.meta['depth'] > self.last_depth or ((datetime.datetime.now() - self.start_time).seconds > 24*60*60 and not self.perform_full):
             raise CloseSpider('No more new stuff')
 
         simple_fields = ("text", "title", "author", "datetime", "num_views", "num_likes", "num_comments", "num_shares", )
