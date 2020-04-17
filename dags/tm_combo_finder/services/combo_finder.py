@@ -23,6 +23,7 @@ def find_combos(**kwargs):
     topic_words_dict = dict(
         (t.id,
          {
+             "words_full": [w.to_dict() for w in t.topic_words],
              "words": [w['word'] for w in t.topic_words],
              "name": ", ".join(w['word'] for w in sorted(t.topic_words, key=lambda x: x.weight, reverse=True)[:5])
          }
@@ -74,7 +75,7 @@ def find_combos(**kwargs):
                                 {
                                     "id": topic_id,
                                     "name": topic_words_dict[topic_id]['name'],
-                                    "words": topic_words_dict[topic_id]['words'],
+                                    "words": topic_words_dict[topic_id]['words_full'],
                                 } for topic_id in topic_ids
                             ],
                             "common_docs_ids": list(common_docs),
