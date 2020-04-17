@@ -115,7 +115,7 @@ with dag2:
     )
 
     gen_bigartm_operator(name="bigartm_two_years", description="Two last years", number_of_topics=200,
-                         filters={
+                    filters={
                         "corpus": "main",
                         "source": None,
                         "datetime_from": date(2017, 11, 1),
@@ -128,8 +128,7 @@ with dag2:
                         "ImproveCoherencePhiRegularizer": 0.15
                     },
                     wait_for_basic_tms=wait_for_basic_tms,
-                    is_actualizable=True,
-                    is_comboable=True)
+                    is_actualizable=True)
 
     gen_bigartm_operator(name="bigartm_education_two_years", description="Two last years education", number_of_topics=150,
                          filters={
@@ -147,8 +146,7 @@ with dag2:
                         "ImproveCoherencePhiRegularizer": 0.15
                     },
                     wait_for_basic_tms=wait_for_basic_tms,
-                    is_actualizable=True,
-                    is_comboable=True)
+                    is_actualizable=True)
 
     gen_bigartm_operator(name="bigartm_education_one_year", description="One last year education", number_of_topics=100,
                          filters={
@@ -354,8 +352,7 @@ with dag3:
                              "ImproveCoherencePhiRegularizer": 0.15
                          },
                          wait_for_basic_tms=wait_for_basic_tms,
-                         is_actualizable=False,
-                         is_comboable=True)
+                         is_actualizable=False)
 
     gen_bigartm_operator(name="bigartm_education_2_2019", description="2019 education 2 distilled", number_of_topics=125,
                          filters={
@@ -373,8 +370,7 @@ with dag3:
                              "ImproveCoherencePhiRegularizer": 0.15
                          },
                          wait_for_basic_tms=wait_for_basic_tms,
-                         is_actualizable=False,
-                         is_comboable=True)
+                         is_actualizable=False)
 
     gen_bigartm_operator(name="bigartm_oct19_march20", description="October 2019 - March 2020", number_of_topics=150,
                          filters={
@@ -390,8 +386,7 @@ with dag3:
                              "ImproveCoherencePhiRegularizer": 0.15
                          },
                          wait_for_basic_tms=wait_for_basic_tms,
-                         is_actualizable=True,
-                         is_comboable=True)
+                         is_actualizable=True)
 
     gen_bigartm_operator(name="bigartm_education_oct19_march20_75", description="October 2019 - March 2020", number_of_topics=75,
                          filters={
@@ -409,8 +404,7 @@ with dag3:
                              "ImproveCoherencePhiRegularizer": 0.15
                          },
                          wait_for_basic_tms=wait_for_basic_tms,
-                         is_actualizable=True,
-                         is_comboable=True)
+                         is_actualizable=True)
 
 dag4 = DAG('NLPmonitor_BigARTMs_small', catchup=False, max_active_runs=1, concurrency=10, default_args=default_args, schedule_interval=None)
 with dag4:
