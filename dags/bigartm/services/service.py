@@ -1,8 +1,6 @@
-from util.util import is_latin
-from .calc_topics_info import calc_topics_info
-
-
 def bigartm_calc(**kwargs):
+    from dags.bigartm.services.calc_topics_info import calc_topics_info
+
     from nlpmonitor.settings import ES_INDEX_DYNAMIC_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT, \
         ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_DYNAMIC_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_DYNAMIC_TOPIC_DOCUMENT, \
         ES_INDEX_TOPIC_MODELLING
@@ -122,7 +120,7 @@ def dataset_prepare(**kwargs):
     import artm
     import datetime
     from elasticsearch_dsl import Search, Q
-    from util.util import is_kazakh
+    from util.util import is_kazakh, is_latin
     from dags.bigartm.services.cleaners import return_cleaned_array, txt_writer
     from util.constants import BASE_DAG_DIR
 

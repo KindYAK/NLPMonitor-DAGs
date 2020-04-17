@@ -6,10 +6,9 @@ from datetime import datetime, timedelta
 
 from DjangoOperator import DjangoOperator
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
 
 from dags.bigartm.bigartm import actualizable_bigartms
-from dags.bigartm.services.service import calc_topics_info
+from dags.bigartm.services.calc_topics_info import calc_topics_info
 
 default_args = {
     'owner': 'airflow',
