@@ -1,7 +1,6 @@
-from .calc_topics_info import calc_topics_info
-
-
 def bigartm_calc(**kwargs):
+    from dags.bigartm.services.calc_topics_info import calc_topics_info
+
     from nlpmonitor.settings import ES_INDEX_DYNAMIC_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT, \
         ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_DYNAMIC_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_DYNAMIC_TOPIC_DOCUMENT, \
         ES_INDEX_TOPIC_MODELLING
@@ -27,7 +26,7 @@ def bigartm_calc(**kwargs):
         kwargs['models_folder'] = 'bigartm_models'
     dataset_prepare_result = dataset_prepare(**kwargs)
     if dataset_prepare_result == 1:
-        return "TopicsGroup is empty"
+        return dataset_prepare_result
     print("!#!#!#!#", "Dataset Prepare returned: ", dataset_prepare_result)
     print("!#!#!#!#", "Topic modelling Calc returned: ", topic_modelling(**kwargs))
     if 'perform_actualize' not in kwargs and not is_dynamic:
@@ -121,7 +120,7 @@ def dataset_prepare(**kwargs):
     import artm
     import datetime
     from elasticsearch_dsl import Search, Q
-    from util.util import is_kazakh
+    from util.util import is_kazakh, is_latin
     from dags.bigartm.services.cleaners import return_cleaned_array, txt_writer
     from util.constants import BASE_DAG_DIR
 
@@ -166,12 +165,11 @@ def dataset_prepare(**kwargs):
         q_from = Q("range", datetime={"gte": datetime_from})
     if datetime_to and not perform_actualize:
         q_to = Q("range", datetime={"lte": datetime_to})
-    q = (q_to & q_from)
+    q = (q_from & q_to)
     for corpus_to_ignore in corpus_datetime_ignore:
         q = q | (~Q('exists', field="datetime") & Q("term", corpus=corpus_to_ignore))
     s = s.query(q)
-
-    s = s.source(["id", "text_lemmatized", "title", "source", "datetime", "corpus"])[:5000000]
+    s = s.source(["id", "text", "text_lemmatized", "title", "source", "datetime", "corpus"])[:5000000]
 
     group_document_es_ids = None
     if group_id:
@@ -208,7 +206,8 @@ def dataset_prepare(**kwargs):
             continue
         if group_document_es_ids is not None and document.meta.id not in group_document_es_ids:
             continue
-        if is_kazakh(document.text_lemmatized + (document.title if document.title else "")):
+        if is_kazakh(document.text + (document.title if document.title else "")) \
+                or is_latin(document.text + (document.title if document.title else "")):
             continue
         ids.append(document.meta.id)
         ids_in_list.add(document.meta.id)
@@ -243,11 +242,9 @@ def dataset_prepare(**kwargs):
     print("!!!", f"Writing {len(formated_data)} documents")
 
     txt_writer(data=formated_data, filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
-
     artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data.txt"),
                          data_format="vowpal_wabbit",
                          target_folder=os.path.join(data_folder, "batches"))
-
     # TODO ngrams dictionary
     return f"index.number_of_document={index.number_of_documents}, len(ids)={len(ids)}"
 

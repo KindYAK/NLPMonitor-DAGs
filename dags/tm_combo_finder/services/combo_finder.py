@@ -13,16 +13,17 @@ def find_combos(**kwargs):
     # #################### INIT ##########################################
     print("!!!", "Init start", datetime.datetime.now())
     topic_modelling = kwargs['name']
-    topic_weight_threshold = 0.05
+    topic_weight_threshold = 0.1
     MAX_L = 2
     try:
         tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter("term", name=topic_modelling).execute()[0]
     except:
         tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter("term", **{"name.keyword": topic_modelling}).execute()[0]
-    MIN_VOLUME = 1 / tm.number_of_topics
+    MIN_VOLUME = 1 / tm.number_of_topics / 10
     topic_words_dict = dict(
         (t.id,
          {
+             "words_full": [w.to_dict() for w in t.topic_words],
              "words": [w['word'] for w in t.topic_words],
              "name": ", ".join(w['word'] for w in sorted(t.topic_words, key=lambda x: x.weight, reverse=True)[:5])
          }
@@ -68,9 +69,15 @@ def find_combos(**kwargs):
                         common_docs = common_docs.intersection(docs)
                     topic_ids.add(topic_id)
                 if len(common_docs) > average_topic_len / L:
-                    topic_combinations.append({
-                            "topic_ids": list(topic_ids),
-                            "topic_names": [topic_words_dict[topic_id]['name'] for topic_id in topic_ids],
+                    topic_combinations.append(
+                        {
+                            "topics": [
+                                {
+                                    "id": topic_id,
+                                    "name": topic_words_dict[topic_id]['name'],
+                                    "words": topic_words_dict[topic_id]['words_full'],
+                                } for topic_id in topic_ids
+                            ],
                             "common_docs_ids": list(common_docs),
                             "common_docs_len": len(common_docs),
                         })

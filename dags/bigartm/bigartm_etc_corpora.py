@@ -43,3 +43,159 @@ with dag7:
                          },
                          wait_for_basic_tms=wait_for_basic_tms,
                          is_actualizable=True)
+
+    # ############### rus vs rus_propaganda #######################
+    gen_bigartm_operator(name=f"bigartm_full_rus_and_rus_propaganda", description="",
+                         number_of_topics=250,
+                         filters={
+                             "corpus": ["rus", "rus_propaganda"],
+                             "source": None,
+                             "datetime_from": date(2000, 1, 1),
+                             "datetime_to": date(2020, 4, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
+
+    gen_bigartm_operator(name=f"bigartm_two_years_rus_and_rus_propaganda", description="",
+                         number_of_topics=200,
+                         filters={
+                             "corpus": ["rus", "rus_propaganda"],
+                             "source": None,
+                             "datetime_from": date(2018, 1, 1),
+                             "datetime_to": date(2020, 4, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
+
+    gen_bigartm_operator(name=f"bigartm_2020_rus_and_rus_propaganda", description="",
+                         number_of_topics=150,
+                         filters={
+                             "corpus": ["rus", "rus_propaganda"],
+                             "source": None,
+                             "datetime_from": date(2020, 1, 1),
+                             "datetime_to": date(2020, 4, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
+
+    # ############### rus vs kz #######################
+    gen_bigartm_operator(name=f"bigartm_full_rus_and_main", description="",
+                         number_of_topics=250,
+                         filters={
+                             "corpus": ["rus", "main"],
+                             "source": None,
+                             "datetime_from": date(2000, 1, 1),
+                             "datetime_to": date(2020, 4, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
+
+    gen_bigartm_operator(name=f"bigartm_two_years_rus_and_main", description="",
+                         number_of_topics=200,
+                         filters={
+                             "corpus": ["rus", "main"],
+                             "source": None,
+                             "datetime_from": date(2018, 1, 1),
+                             "datetime_to": date(2020, 4, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
+
+    gen_bigartm_operator(name=f"bigartm_2020_rus_and_main", description="",
+                         number_of_topics=150,
+                         filters={
+                             "corpus": ["rus", "main"],
+                             "source": None,
+                             "datetime_from": date(2020, 1, 1),
+                             "datetime_to": date(2020, 4, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
+
+    # ############### rus_propaganda vs kz #######################
+    gen_bigartm_operator(name=f"bigartm_full_rus_propaganda_and_main", description="",
+                         number_of_topics=250,
+                         filters={
+                             "corpus": ["rus_propaganda", "main"],
+                             "source": None,
+                             "datetime_from": date(2000, 1, 1),
+                             "datetime_to": date(2020, 4, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
+
+    gen_bigartm_operator(name=f"bigartm_two_years_rus_propaganda_and_main", description="",
+                         number_of_topics=200,
+                         filters={
+                             "corpus": ["rus_propaganda", "main"],
+                             "source": None,
+                             "datetime_from": date(2018, 1, 1),
+                             "datetime_to": date(2020, 4, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
+
+    gen_bigartm_operator(name=f"bigartm_2020_rus_propaganda_and_main", description="",
+                         number_of_topics=150,
+                         filters={
+                             "corpus": ["rus_propaganda", "main"],
+                             "source": None,
+                             "datetime_from": date(2020, 1, 1),
+                             "datetime_to": date(2020, 4, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=True)
