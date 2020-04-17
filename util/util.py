@@ -11,7 +11,7 @@ def not_implemented():
 
 
 def is_kazakh(text):
-    return sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) / len(text) > 0.07 if text else False
+    return sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) / len(text) > 0.05 if text else False
 
 
 def is_latin(text):
