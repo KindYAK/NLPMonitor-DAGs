@@ -198,9 +198,10 @@ def dataset_prepare(**kwargs):
     sources = []
     dates = []
     corpuses = []
+    meta_ids_in_list = set()
     ids_in_list = set()
     for document in s.scan():
-        if document.meta.id in ids_in_list:
+        if document.meta.id in meta_ids_in_list or document.id in ids_in_list:
             continue
         if ids_to_skip is not None and document.meta.id in ids_to_skip:
             continue
@@ -210,7 +211,8 @@ def dataset_prepare(**kwargs):
                 or is_latin(document.text + (document.title if document.title else "")):
             continue
         ids.append(document.meta.id)
-        ids_in_list.add(document.meta.id)
+        meta_ids_in_list.add(document.meta.id)
+        ids_in_list.add(document.id)
         texts.append(document.text_lemmatized)
         titles.append(document.title)
         sources.append(document.source)
@@ -310,28 +312,22 @@ def topic_modelling(**kwargs):
         model_artm.initialize(dictionary)
         # Add scores
         model_artm.scores.add(artm.PerplexityScore(name='PerplexityScore'))
-        model_artm.scores.add(
-            artm.TopicKernelScore(name='TopicKernelScore', class_id='text', probability_mass_threshold=0.3))
+        model_artm.scores.add(artm.TopicKernelScore(name='TopicKernelScore', class_id='text', probability_mass_threshold=0.3))
         # Regularize
         model_artm.regularizers.add(artm.SmoothSparseThetaRegularizer(name='SparseTheta',
-                                                                      tau=regularization_params[
-                                                                          'SmoothSparseThetaRegularizer']))
+                                                                      tau=regularization_params['SmoothSparseThetaRegularizer']))
         model_artm.regularizers.add(artm.SmoothSparsePhiRegularizer(name='SparsePhi',
-                                                                    tau=regularization_params[
-                                                                        'SmoothSparsePhiRegularizer']))
+                                                                    tau=regularization_params['SmoothSparsePhiRegularizer']))
         model_artm.regularizers.add(artm.DecorrelatorPhiRegularizer(name='DecorrelatorPhi',
-                                                                    tau=regularization_params[
-                                                                        'DecorrelatorPhiRegularizer']))
+                                                                    tau=regularization_params['DecorrelatorPhiRegularizer']))
         model_artm.regularizers.add(artm.ImproveCoherencePhiRegularizer(name='ImproveCoherencePhi',
-                                                                        tau=regularization_params[
-                                                                            'ImproveCoherencePhiRegularizer']))
+                                                                        tau=regularization_params['ImproveCoherencePhiRegularizer']))
 
         print("!!!", "Start model train", datetime.datetime.now())
         # Fit model
         model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
         if not os.path.exists(model_folder):
             os.mkdir(model_folder)
-
         model_artm.save(os.path.join(model_folder,
                                      f"model_{name if not name_translit else name_translit}.model"))
 
@@ -361,7 +357,6 @@ def topic_modelling(**kwargs):
         coherence = np.mean(model_artm.score_tracker['TopicKernelScore'].average_coherence)
         perplexity = model_artm.score_tracker['PerplexityScore'].last_value
         print("!!!", "Write topics", datetime.datetime.now())
-
         update_body = {
             "topics": topics,
             "purity": purity,
@@ -377,7 +372,6 @@ def topic_modelling(**kwargs):
                          id=index.meta.id,
                          body={"doc": update_body}
                          )
-
     else:
         print("!!!", "Loading existing model")
         # Monkey patching stupid BigARTM bug
