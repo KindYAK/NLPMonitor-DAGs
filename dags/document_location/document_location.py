@@ -22,7 +22,7 @@ default_args = {
     'pool': 'short_tasks'
 }
 
-dag = DAG('Generate_document_locations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='0 23 * * *')
+dag = DAG('Generate_document_locations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 
 with dag:
 
