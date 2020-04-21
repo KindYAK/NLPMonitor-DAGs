@@ -46,10 +46,10 @@ def preprocessing_raw_data(**kwargs):
     if number_of_documents is None:
         raise Exception("No variable!")
 
-    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'],
-                       start=int(start/100*number_of_documents), end=int(end/100 * number_of_documents) + 1, )\
-                       .exclude('exists', field="text_lemmatized_yandex")
-    print('!!! start end number_of_docs', int(start/100*number_of_documents), int(end/100*number_of_documents)+1, len(documents))
+    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True)\
+        .exclude('exists', field="text_lemmatized_yandex")[int(start/100*number_of_documents): int(end/100 * number_of_documents) + 1].execute()
+
+    print('!!! len docs', len(documents))
     stopwords_ru = get_stop_words('ru')
     stopwords_eng = get_stop_words('en') + stopwords.words('english')
 
