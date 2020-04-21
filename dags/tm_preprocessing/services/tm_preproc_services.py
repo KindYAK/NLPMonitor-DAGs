@@ -48,7 +48,7 @@ def preprocessing_raw_data(**kwargs):
 
     documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_scan_obj=True,
                        start=int(start/100*number_of_documents), end=int(end/100*number_of_documents)+1).exclude('exists', field="text_lemmatized_yandex")
-
+    print('!!! start end number_of_documents', start, end, number_of_documents, documents.count())
     stopwords_ru = get_stop_words('ru')
     stopwords_eng = get_stop_words('en') + stopwords.words('english')
 
