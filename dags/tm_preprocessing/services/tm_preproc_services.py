@@ -3,7 +3,7 @@ def init_last_datetime():
     from elasticsearch_dsl import Search
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
 
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).exclude('exists', field='text_lemmatized')
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).exclude('exists', field='text_lemmatized_yandex')
     Variable.set("lemmatize_number_of_documents", s.count())
 
 
@@ -33,6 +33,7 @@ def preprocessing_raw_data(**kwargs):
     from elasticsearch.helpers import streaming_bulk
     from stop_words import get_stop_words
     from pymorphy2 import MorphAnalyzer
+    from pymystem3 import Mystem
     from airflow.models import Variable
     from nltk.stem import WordNetLemmatizer
     from nltk.corpus import stopwords
@@ -46,13 +47,14 @@ def preprocessing_raw_data(**kwargs):
         raise Exception("No variable!")
 
     documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_scan_obj=True,
-                       start=int(start/100*number_of_documents), end=int(end/100*number_of_documents)+1).exclude('exists', field="text_lemmatized")
+                       start=int(start/100*number_of_documents), end=int(end/100*number_of_documents)+1).exclude('exists', field="text_lemmatized_yandex")
 
     stopwords_ru = get_stop_words('ru')
     stopwords_eng = get_stop_words('en') + stopwords.words('english')
 
     lemmatizer = WordNetLemmatizer()
     morph = MorphAnalyzer()
+    m = Mystem()
 
     s = Search(using=ES_CLIENT, index=ES_INDEX_CUSTOM_DICTIONARY_WORD)
     r = s[:1000000].scan()
@@ -67,8 +69,10 @@ def preprocessing_raw_data(**kwargs):
         else:
             cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in cleaned_doc.split() if
                                   len(word) > 2 and word not in stopwords_ru]
+            cwl_yandex = filter(lambda word: len(word) > 2 and word not in stopwords_ru, m.lemmatize(cleaned_doc))
+            cleaned_doc_yandex = " ".join(cwl_yandex)
+            doc['text_lemmatized_yandex'] = cleaned_doc_yandex
 
-        cleaned_words_list = [word for word in cleaned_words_list if len(word) > 2]
         cleaned_doc = " ".join(cleaned_words_list)
         doc['text_lemmatized'] = cleaned_doc
 
