@@ -2,7 +2,10 @@ import datetime
 
 
 def es_filter_term(search, key, value):
-    query = 'term'
+    if type(value) == list:
+        query = "terms"
+    else:
+        query = "term"
     return search.filter(query, **{key: value})
 
 
@@ -21,7 +24,7 @@ def search(client, index, query, start=None, end=None, source=None, sort=None, g
         s = s.sort(*sort)
     s = s[start:end]
     if get_scan_obj:
-        return s.sort()
+        return s.scan()
     elif get_search_obj:
         return s
     else:
