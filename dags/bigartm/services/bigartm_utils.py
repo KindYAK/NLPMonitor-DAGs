@@ -21,6 +21,7 @@ def send_tds_to_es_wrapper(model_artm, perform_actualize, tm_index, batch_vector
         theta = model_artm.transform(batch_vectorizer)
     theta_documents = theta.columns.array.to_numpy().astype(str)
     number_of_documents = len(theta_documents)
+    print("!!!!!", f"Documents {number_of_documents}, topics {tm_index.number_of_topics}")
     if not ES_CLIENT.indices.exists(f"{topic_doc}_{name}"):
         settings = TopicDocument.Index.settings if not is_dynamic else TopicDocument.Index.settings_dynamic
         settings['number_of_shards'] = shards_mapping(tm_index.number_of_topics * number_of_documents)
