@@ -6,7 +6,7 @@ from airflow import DAG
 from DjangoOperator import DjangoOperator
 from datetime import datetime, timedelta
 
-from dags.tm_preprocessing.services.tm_preproc_services import preprocessing_raw_data, init_last_datetime
+from dags.tm_preprocessing_lemmatize.services.tm_preproc_services import preprocessing_raw_data, init_last_datetime
 
 default_args = {
     'owner': 'airflow',

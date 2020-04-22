@@ -44,7 +44,7 @@ def score_docs(**kwargs):
     from sklearn.preprocessing import MinMaxScaler
 
     from dags.bigartm.services.cleaners import txt_writer
-    from dags.tm_preprocessing.services.tm_preproc_services import morph_with_dictionary
+    from dags.tm_preprocessing_lemmatize.services.tm_preproc_services import morph_with_dictionary
     from util.constants import BASE_DAG_DIR
     from mainapp.models_user import TopicID
     import numpy as np

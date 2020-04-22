@@ -27,16 +27,18 @@ def morph_with_dictionary(morph, word, custom_dict):
 
 def preprocessing_raw_data(**kwargs):
     import re
-    from util.service_es import search, update_generator
+
+    from airflow.models import Variable
+    from elasticsearch.helpers import streaming_bulk
     from elasticsearch_dsl import Search
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_CUSTOM_DICTIONARY_WORD
-    from elasticsearch.helpers import streaming_bulk
-    from stop_words import get_stop_words
+    from nltk.corpus import stopwords
+    from nltk.stem import WordNetLemmatizer
     from pymorphy2 import MorphAnalyzer
     from pymystem3 import Mystem
-    from airflow.models import Variable
-    from nltk.stem import WordNetLemmatizer
-    from nltk.corpus import stopwords
+    from stop_words import get_stop_words
+
+    from util.service_es import search, update_generator
     from util.util import is_latin
 
     start = kwargs['start']

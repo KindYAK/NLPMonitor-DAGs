@@ -101,7 +101,7 @@ def generate_dictionary_batch(**kwargs):
         word_in_doc = set()
         cleaned_words = [x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split()]
         for n_gram_len in range(1, max_n_gram_len + 1):
-            n_grams = [cleaned_words[i:i+n_gram_len] for i in range(len(cleaned_words)-n_gram_len+1)]
+            n_grams = [cleaned_words[i:i + n_gram_len] for i in range(len(cleaned_words) - n_gram_len + 1)]
             for n_gram in n_grams:
                 word = "_".join(n_gram)
                 is_first_upper = word[0].isupper()
@@ -117,6 +117,7 @@ def generate_dictionary_batch(**kwargs):
                         "is_stop_word": word in stopwords or parse[0].normal_form in stopwords,
                         "is_latin": any([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in word]),
                         "is_kazakh": any([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in word]),
+                        "n_gram_len": n_gram_len,
                         "pos_tag": parse[0].tag.POS,
                         "word_len": len(word),
                         "word_frequency": 1,
@@ -216,7 +217,7 @@ def aggregate_dicts(**kwargs):
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=kwargs['corpuses']).source([])[:0]
     number_of_documents = s.count()
     print("!!!", "Number of documents", number_of_documents)
-    dictionary_words_final = filter(lambda x: x['document_frequency'] > len(number_of_documents) // 33_333, dictionary_words_final.values())
+    dictionary_words_final = filter(lambda x: x['document_frequency'] > number_of_documents // 33_333, dictionary_words_final.values())
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words_final,
                                     index=f"{ES_INDEX_DICTIONARY_WORD}_{name}",
                                     chunk_size=10000, raise_on_error=True, thread_count=6):
@@ -225,7 +226,7 @@ def aggregate_dicts(**kwargs):
         else:
             success += 1
         if success % 10000 == 0:
-            print(print(f"{success}/{len_dictionary} processed, {datetime.datetime.now()}"))
+            print(f"{success}/{len_dictionary} processed, {datetime.datetime.now()}")
         if failed > 3:
             raise Exception("Too many failed!!")
     ES_CLIENT.update(index=ES_INDEX_DICTIONARY_INDEX, id=dictionary_index.meta.id, body={"doc": {"is_ready": True}})
