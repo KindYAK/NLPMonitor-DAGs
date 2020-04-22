@@ -17,33 +17,43 @@ default_args = {
     'email_on_retry': False,
     'retries': 0,
     'retry_delay': timedelta(minutes=15),
-    'priority_weight': 60,
+    'priority_weight': 40,
     'pool': 'long_tasks'
 }
 
 dag = DAG('Nlpmonitor_Dictionary_Generation', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 
 with dag:
+    corpuses = ["main", "rus", "rus_propaganda"]
+    name = "kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985"
+    max_n_gram_len = 3
+    field_to_parse = "text_lemmatized"
     init_dictionary_index = DjangoOperator(
         task_id="init_dictionary_index",
         python_callable=init_dictionary_index,
         op_kwargs={
-            "corpus": "main",
-            "name": "default_dict_pymorphy_2_4_393442_3710985",
+            "corpuses": corpuses,
+            "name": name,
             "datetime": datetime.now(),
+            "max_n_gram_len": max_n_gram_len,
+            "field_to_parse": field_to_parse,
         }
     )
 
-    concurrency = 24
+    # concurrency = 36
+    concurrency = 3
     dictionary_operators = []
     for i in range(concurrency):
         dictionary_operators.append(DjangoOperator(
             task_id=f"dictionary_{i}",
             python_callable=generate_dictionary_batch,
             op_kwargs={
-                "name": "default_dict_pymorphy_2_4_393442_3710985",
+                "name": name,
                 "start": (100 / concurrency) * i,
-                "end": (100 / concurrency) * (i + 1)
+                "end": (100 / concurrency) * (i + 1),
+                "corpuses": corpuses,
+                "max_n_gram_len": max_n_gram_len,
+                "field_to_parse": field_to_parse,
             }
         ))
 
@@ -51,7 +61,7 @@ with dag:
             task_id=f"aggragate_dicts",
             python_callable=aggregate_dicts,
             op_kwargs={
-                "name": "default_dict_pymorphy_2_4_393442_3710985",
+                "name": name,
                 "concurrency": concurrency,
             }
         )
