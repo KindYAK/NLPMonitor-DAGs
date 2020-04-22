@@ -1,29 +1,52 @@
 def init_dictionary_index(**kwargs):
-    from elasticsearch_dsl import Search
+    from elasticsearch_dsl import Search, Index
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DICTIONARY_INDEX
-    from mainapp.documents import Dictionary
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_DICTIONARY_INDEX, ES_INDEX_DICTIONARY_WORD
+    from mainapp.documents import Dictionary, DictionaryWord
 
     from util.service_es import search
 
-    corpuses = kwargs['corpuses']
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpuses)
+    name = kwargs['name']
+    es_index = Index(f"{ES_INDEX_DICTIONARY_WORD}_{name}", using=ES_CLIENT)
+    es_index.delete(ignore=404)
+    settings = DictionaryWord.Index.settings
+    ES_CLIENT.indices.create(
+        index=f"{ES_INDEX_DICTIONARY_WORD}_{name}",
+        body={
+            "settings": settings,
+            "mappings": DictionaryWord.Index.mappings
+        }
+    )
+
+    es_index = Index(f"{ES_INDEX_DICTIONARY_WORD}_{name}_temp", using=ES_CLIENT)
+    es_index.delete(ignore=404)
+    settings = DictionaryWord.Index.settings
+    ES_CLIENT.indices.create(
+        index=f"{ES_INDEX_DICTIONARY_WORD}_{name}_temp",
+        body={
+            "settings": settings,
+            "mappings": DictionaryWord.Index.mappings
+        }
+    )
+
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=kwargs['corpuses'])
     number_of_documents = s.count()
 
+    kwargs['corpuses'] = ",".join(kwargs['corpuses'])
     # Check if already exists
     if ES_CLIENT.indices.exists(ES_INDEX_DICTIONARY_INDEX):
         query = {
-            "corpus": ",".join(corpuses),
-            "name": kwargs['name'],
-            "is_ready": False,
+            "corpus": kwargs['corpuses'],
+            "name": kwargs['name']
         }
         if search(ES_CLIENT, ES_INDEX_DICTIONARY_INDEX, query):
-            return ("!!!", "Already exists")
+            return "Already exists"
 
     kwargs["number_of_documents"] = number_of_documents
     kwargs["is_ready"] = False
     dictionary = Dictionary(**kwargs)
     dictionary.save()
+    return "Created"
 
 
 def generate_dictionary_batch(**kwargs):
@@ -127,6 +150,7 @@ def aggregate_dicts(**kwargs):
 
     from util.service_es import search
     from elasticsearch.helpers import parallel_bulk
+    from elasticsearch_dsl import Index
     from nlpmonitor.settings import ES_INDEX_DICTIONARY_INDEX, ES_INDEX_DICTIONARY_WORD, ES_CLIENT
 
     name = kwargs['name']
@@ -197,4 +221,6 @@ def aggregate_dicts(**kwargs):
         if failed > 3:
             raise Exception("Too many failed!!")
     ES_CLIENT.update(index=ES_INDEX_DICTIONARY_INDEX, id=dictionary_index.meta.id, body={"doc": {"is_ready": True}})
+    es_index = Index(f"{ES_INDEX_DICTIONARY_WORD}_{name}_temp", using=ES_CLIENT)
+    es_index.delete(ignore=404)
     return 0
