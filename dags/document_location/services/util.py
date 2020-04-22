@@ -18,12 +18,14 @@ def locations_generator(**kwargs):
         else:
             print('!!! Parsing Localities ...', datetime.datetime.now())
         for i, geo in enumerate(places.objects.all()):
-            s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).source(['datetime', 'source', 'text', 'text_lemmatized', 'title'])
+            s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)\
+                .source(['datetime', 'source', 'text', 'text_lemmatized', 'title', 'text_lemmatized_yandex'])
             q = Q(
                 'bool',
                 should=[Q("match_phrase", text_lemmatized=geo.name)] +
                        [Q("match_phrase", text=geo.name)] +
-                       [Q("match_phrase", title=geo.name)],
+                       [Q("match_phrase", title=geo.name)] +
+                       [Q("match_phrase", text_lemmatized_yandex=geo.name)],
                 minimum_should_match=1,
             )
             s = s.query(q)
