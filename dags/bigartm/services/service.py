@@ -152,11 +152,12 @@ def dataset_prepare(**kwargs):
     topic_doc = kwargs['topic_doc']
     uniq_topic_doc = kwargs['uniq_topic_doc']
     temp_folder = kwargs['temp_folder']
+    text_field = kwargs['text_field']
     is_dynamic = 'is_dynamic' in kwargs and kwargs['is_dynamic']
 
     # Extract
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpus) \
-                                                        .filter('exists', field="text_lemmatized")
+                                                        .filter('exists', field=text_field)
     q_from = Q()
     q_to = Q()
     if source:
@@ -169,7 +170,7 @@ def dataset_prepare(**kwargs):
     for corpus_to_ignore in corpus_datetime_ignore:
         q = q | (~Q('exists', field="datetime") & Q("term", corpus=corpus_to_ignore))
     s = s.query(q)
-    s = s.source(["id", "text", "text_lemmatized", "title", "source", "datetime", "corpus"])[:5000000]
+    s = s.source(["id", "text", text_field, "title", "source", "datetime", "corpus"])[:5000000]
 
     group_document_es_ids = None
     if group_id:
@@ -213,7 +214,7 @@ def dataset_prepare(**kwargs):
         ids.append(document.meta.id)
         meta_ids_in_list.add(document.meta.id)
         ids_in_list.add(document.id)
-        texts.append(document.text_lemmatized)
+        texts.append(document[text_field])
         titles.append(document.title)
         sources.append(document.source)
         dates.append(document.datetime if hasattr(document, "datetime") and document.datetime else "")

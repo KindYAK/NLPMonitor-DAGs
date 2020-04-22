@@ -27,7 +27,8 @@ actualizable_bigartms = []
 comboable_bigartms = []
 bigartm_calc_operators = []
 def gen_bigartm_operator(name, description, number_of_topics, filters, regularization_params, wait_for_basic_tms,
-                         is_actualizable=False, name_translit=None, topic_modelling_translit=None, is_comboable=True):
+                         is_actualizable=False, name_translit=None, topic_modelling_translit=None, is_comboable=True,
+                         text_field="text_lemmatized"):
     from dags.bigartm.services.service import bigartm_calc
 
     if not name_translit:
@@ -40,6 +41,7 @@ def gen_bigartm_operator(name, description, number_of_topics, filters, regulariz
         op_kwargs={
             "name": name,
             "name_translit": name_translit,
+            "text_field": text_field,
             "corpus": filters['corpus'],
             "corpus_datetime_ignore": filters.get('corpus_datetime_ignore', []),
             "source": filters['source'],
@@ -69,6 +71,7 @@ def gen_bigartm_operator(name, description, number_of_topics, filters, regulariz
             {
                 "name": name,
                 "name_translit": name_translit,
+                "text_field": text_field,
                 "regularization_params": regularization_params,
                 "filters": filters
             }
@@ -78,6 +81,7 @@ def gen_bigartm_operator(name, description, number_of_topics, filters, regulariz
             {
                 "name": name,
                 "name_translit": name_translit,
+                "text_field": text_field,
             }
         )
 
