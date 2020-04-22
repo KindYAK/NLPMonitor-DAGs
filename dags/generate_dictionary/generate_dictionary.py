@@ -62,6 +62,7 @@ with dag:
             python_callable=aggregate_dicts,
             op_kwargs={
                 "name": name,
+                "corpuses": corpuses,
                 "concurrency": concurrency,
             }
         )

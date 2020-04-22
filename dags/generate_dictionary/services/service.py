@@ -78,6 +78,7 @@ def generate_dictionary_batch(**kwargs):
     if not number_of_documents:
         raise Exception("No variable!")
 
+    print("!!!", "Getting documents from ES", datetime.datetime.now())
     documents = search(ES_CLIENT, ES_INDEX_DOCUMENT,
                        query={"corpus": corpuses},
                        source=[field_to_parse, 'title'],
@@ -89,6 +90,7 @@ def generate_dictionary_batch(**kwargs):
     stopwords = get_stop_words('ru')
     morph = MorphAnalyzer()
     dictionary_words = {}
+    print("!!!", "Iterating through documents", datetime.datetime.now())
     for doc in documents:
         text = doc[field_to_parse]
         if len(text) == 0:
@@ -98,7 +100,6 @@ def generate_dictionary_batch(**kwargs):
             continue
         word_in_doc = set()
         cleaned_words = [x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split()]
-
         for n_gram_len in range(1, max_n_gram_len + 1):
             n_grams = [cleaned_words[i:i+n_gram_len] for i in range(len(cleaned_words)-n_gram_len+1)]
             for n_gram in n_grams:
@@ -129,17 +130,19 @@ def generate_dictionary_batch(**kwargs):
                         dictionary_words[word]['document_frequency'] += 1
                 word_in_doc.add(word)
 
+    len_dictionary = len(dictionary_words)
+    dictionary_words = filter(lambda x: x['document_frequency'] > len(documents) // 10_000, dictionary_words.values())
     success = 0
     failed = 0
     print("!!!", "Writing to ES", datetime.datetime.now())
-    for ok, result in parallel_bulk(ES_CLIENT, dictionary_words.values(), index=f"{ES_INDEX_DICTIONARY_WORD}_{name}_temp",
+    for ok, result in parallel_bulk(ES_CLIENT, dictionary_words, index=f"{ES_INDEX_DICTIONARY_WORD}_{name}_temp",
                                     chunk_size=10000, raise_on_error=True, thread_count=6):
         if not ok:
             failed += 1
         else:
             success += 1
         if success % 10000 == 0:
-            print(f"{success}/{len(dictionary_words.keys())} processed, {datetime.datetime.now()}")
+            print(f"{success}/{len_dictionary} processed, {datetime.datetime.now()}")
         if failed > 3:
             raise Exception("Too many failed!!")
     return len(documents)
@@ -150,8 +153,8 @@ def aggregate_dicts(**kwargs):
 
     from util.service_es import search
     from elasticsearch.helpers import parallel_bulk
-    from elasticsearch_dsl import Index
-    from nlpmonitor.settings import ES_INDEX_DICTIONARY_INDEX, ES_INDEX_DICTIONARY_WORD, ES_CLIENT
+    from elasticsearch_dsl import Search, Index
+    from nlpmonitor.settings import ES_INDEX_DICTIONARY_INDEX, ES_INDEX_DICTIONARY_WORD, ES_CLIENT, ES_INDEX_DOCUMENT
 
     name = kwargs['name']
     query = {
@@ -209,7 +212,12 @@ def aggregate_dicts(**kwargs):
     success = 0
     failed = 0
     print("!!!", "Writing to ES", datetime.datetime.now())
-    for ok, result in parallel_bulk(ES_CLIENT, dictionary_words_final.values(),
+    len_dictionary = len(dictionary_words_final)
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=kwargs['corpuses']).source([])[:0]
+    number_of_documents = s.count()
+    print("!!!", "Number of documents", number_of_documents)
+    dictionary_words_final = filter(lambda x: x['document_frequency'] > len(number_of_documents) // 33_333, dictionary_words_final.values())
+    for ok, result in parallel_bulk(ES_CLIENT, dictionary_words_final,
                                     index=f"{ES_INDEX_DICTIONARY_WORD}_{name}",
                                     chunk_size=10000, raise_on_error=True, thread_count=6):
         if not ok:
@@ -217,10 +225,10 @@ def aggregate_dicts(**kwargs):
         else:
             success += 1
         if success % 10000 == 0:
-            print(print(f"{success}/{len(dictionary_words_final.keys())} processed, {datetime.datetime.now()}"))
+            print(print(f"{success}/{len_dictionary} processed, {datetime.datetime.now()}"))
         if failed > 3:
             raise Exception("Too many failed!!")
     ES_CLIENT.update(index=ES_INDEX_DICTIONARY_INDEX, id=dictionary_index.meta.id, body={"doc": {"is_ready": True}})
     es_index = Index(f"{ES_INDEX_DICTIONARY_WORD}_{name}_temp", using=ES_CLIENT)
     es_index.delete(ignore=404)
-    return 0
+    return success
