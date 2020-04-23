@@ -14,12 +14,10 @@ def find_combos(**kwargs):
     print("!!!", "Init start", datetime.datetime.now())
     topic_modelling = kwargs['name']
     topic_weight_threshold = 0.1
-    MAX_L = 2
     try:
         tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter("term", name=topic_modelling).execute()[0]
     except:
         tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter("term", **{"name.keyword": topic_modelling}).execute()[0]
-    MIN_VOLUME = 1 / tm.number_of_topics / 10
     topic_words_dict = dict(
         (t.id,
          {
@@ -49,26 +47,24 @@ def find_combos(**kwargs):
         if i % 10000 == 0:
             print(f"{i}/{n} processed")
 
-    topic_combinations = []
-    average_topic_len = len(overall_docs) * MIN_VOLUME
     def topic_combo_generator():
-        for L in range(2, MAX_L + 1):
-            print(f"L = {L}")
-            for topics in itertools.combinations(topic_docs_dict.items(), L):
-                if L >= 3 and not any(any(topic_id in c['topic_ids'] for c in topic_combinations) for topic_id, _ in topics):
+        sent_combos = []
+        for topic1 in topic_docs_dict.items():
+            topic_combinations = []
+            for topic2 in topic_docs_dict.items():
+                if topic1[0] == topic2[0]:
                     continue
-                if any(jaccard_similarity(topic_words_dict[t1]['words'], topic_words_dict[t2]['words']) > average_jaccard_similarity
-                       for (t1, _), (t2, _) in itertools.combinations(topics, 2)):
+                if jaccard_similarity(topic_words_dict[topic1[0]]['words'], topic_words_dict[topic2[0]]['words']) > average_jaccard_similarity:
                     continue
                 common_docs = None
                 topic_ids = set()
-                for topic_id, docs in topics:
+                for topic_id, docs in [topic1, topic2]:
                     if common_docs is None:
                         common_docs = set(docs)
                     else:
                         common_docs = common_docs.intersection(docs)
                     topic_ids.add(topic_id)
-                if len(common_docs) > average_topic_len / L:
+                if len(common_docs) > 0:
                     topic_combinations.append(
                         {
                             "topics": [
@@ -81,7 +77,16 @@ def find_combos(**kwargs):
                             "common_docs_ids": list(common_docs),
                             "common_docs_len": len(common_docs),
                         })
-                    yield topic_combinations[-1]
+            topic_combinations = sorted(topic_combinations, key=lambda x: x['common_docs_len'], reverse=True)
+            sent = 0
+            traversed = 0
+            while sent < 5 and traversed < len(topic_combinations):
+                topic_ids_set = set([topic["id"] for topic in topic_combinations[traversed]["topics"]])
+                if topic_ids_set not in sent_combos:
+                    yield topic_combinations[traversed]
+                    sent += 1
+                    sent_combos.append(topic_ids_set)
+                traversed += 1
 
     print("!!!", "Write document-topics", datetime.datetime.now())
     es_index = Index(f"{ES_INDEX_TOPIC_COMBOS}_{topic_modelling}", using=ES_CLIENT)
