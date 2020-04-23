@@ -214,7 +214,10 @@ def dataset_prepare(**kwargs):
         ids.append(document.meta.id)
         meta_ids_in_list.add(document.meta.id)
         ids_in_list.add(document.id)
-        texts.append(document[text_field])
+        # Clean junk
+        text = document[text_field]
+        text = " ".join([w for w in text.split() if not is_latin(w)])
+        texts.append(text)
         titles.append(document.title)
         sources.append(document.source)
         dates.append(document.datetime if hasattr(document, "datetime") and document.datetime else "")
