@@ -81,7 +81,7 @@ def generate_dictionary_batch(**kwargs):
     print("!!!", "Getting documents from ES", datetime.datetime.now())
     documents = search(ES_CLIENT, ES_INDEX_DOCUMENT,
                        query={"corpus": corpuses},
-                       source=[field_to_parse, 'title'],
+                       source=[field_to_parse],
                        sort=['id'],
                        start=int(start / 100 * number_of_documents),
                        end=int(end / 100 * number_of_documents) + 1
@@ -92,17 +92,15 @@ def generate_dictionary_batch(**kwargs):
     dictionary_words = {}
     print("!!!", "Iterating through documents", datetime.datetime.now())
     for doc in documents:
-        text = doc[field_to_parse]
-        if len(text) == 0:
+        if len(doc[field_to_parse]) == 0:
             print("!!! WTF", doc.meta.id)
             continue
-        if is_kazakh(text) or is_latin(text):
+        if is_kazakh(doc[field_to_parse]) or is_latin(doc[field_to_parse]):
             continue
         word_in_doc = set()
-        cleaned_words = [x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split()]
+        cleaned_words = [x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', doc[field_to_parse]).split()).split()]
         for n_gram_len in range(1, max_n_gram_len + 1):
-            n_grams = [cleaned_words[i:i + n_gram_len] for i in range(len(cleaned_words) - n_gram_len + 1)]
-            for n_gram in n_grams:
+            for n_gram in (cleaned_words[i:i + n_gram_len] for i in range(len(cleaned_words) - n_gram_len + 1)):
                 word = "_".join(n_gram)
                 is_first_upper = word[0].isupper()
                 word = word.lower()
@@ -130,7 +128,6 @@ def generate_dictionary_batch(**kwargs):
                     if word not in word_in_doc:
                         dictionary_words[word]['document_frequency'] += 1
                 word_in_doc.add(word)
-
     len_dictionary = len(dictionary_words)
     dictionary_words = filter(lambda x: x['document_frequency'] > len(documents) // 10_000, dictionary_words.values())
     success = 0
