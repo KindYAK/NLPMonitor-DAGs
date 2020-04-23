@@ -41,6 +41,7 @@ with dag:
                 "perform_actualize": True,
                 "name": tm['name'],
                 "name_translit": tm['name_translit'],
+                "text_field": tm['text_field'],
                 "corpus": tm["filters"]['corpus'],
                 "datetime_from": tm["filters"]['datetime_from'],
                 "datetime_to": tm["filters"]['datetime_to'],
