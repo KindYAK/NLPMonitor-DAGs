@@ -39,7 +39,7 @@ def send_tds_to_es_wrapper(model_artm, perform_actualize, tm_index, batch_vector
         if not perform_actualize:
             theta = model_artm.get_theta([f"topic_{j}" for j in range(int(start / 100 * tm_index.number_of_topics),
                                                                       int(end / 100 * tm_index.number_of_topics))])
-        send_tds_to_es(theta, topic_doc, name, tm_index)
+        send_tds_to_es(theta, topic_doc, name, tm_index, n_iterations=n_iterations)
     print("!!!", "Done writing", datetime.datetime.now())
 
     if perform_actualize:
@@ -56,7 +56,7 @@ def send_tds_to_es_wrapper(model_artm, perform_actualize, tm_index, batch_vector
     return theta_documents
 
 
-def send_tds_to_es(theta, topic_doc, name, tm_index):
+def send_tds_to_es(theta, topic_doc, name, tm_index, n_iterations=1):
     import datetime
     from elasticsearch.helpers import parallel_bulk
     from numba import jit
@@ -94,8 +94,7 @@ def send_tds_to_es(theta, topic_doc, name, tm_index):
             es_topic_document.document_source = source.replace("_", " ")
             es_topic_document.document_corpus = corpus
             document_topics.append(es_topic_document)
-        document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[
-                          :max(tm_index.number_of_topics // 3, 10)]
+        document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[:max(tm_index.number_of_topics // 3 // n_iterations, 10 // n_iterations)]
         for es_topic_document in document_topics:
             yield es_topic_document
 
