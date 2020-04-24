@@ -459,6 +459,24 @@ with dag5:
                     wait_for_basic_tms=wait_for_basic_tms,
                     is_actualizable=True)
 
+    gen_bigartm_operator(name=f"bigartm_two_years_main_and_gos2", description="Main and gos2 2 yearts", number_of_topics=200,
+                    filters={
+                        "corpus": ["main", "gos2"],
+                        "corpus_datetime_ignore": ["gos2"],
+                        "source": None,
+                        "datetime_from": date(2018, 1, 1),
+                        "datetime_to": date(2020, 4, 1),
+                    },
+                    regularization_params={
+                        "SmoothSparseThetaRegularizer": 0.15,
+                        "SmoothSparsePhiRegularizer": 0.15,
+                        "DecorrelatorPhiRegularizer": 0.15,
+                        "ImproveCoherencePhiRegularizer": 0.15
+                    },
+                    wait_for_basic_tms=wait_for_basic_tms,
+                    is_actualizable=True)
+
+
 
 dag6 = DAG('NLPmonitor_BigARTMs_scientometrics', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
 with dag6:
