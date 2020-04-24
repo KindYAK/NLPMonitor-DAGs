@@ -84,8 +84,10 @@ def generate_dictionary_batch(**kwargs):
                        source=[field_to_parse],
                        sort=['id'],
                        start=int(start / 100 * number_of_documents),
-                       end=int(end / 100 * number_of_documents) + 1
+                       end=int(end / 100 * number_of_documents) + 1,
+                       get_search_obj=True,
                        )
+    documents = documents.filter("exists", field=field_to_parse).execute()
 
     stopwords = get_stop_words('ru')
     morph = MorphAnalyzer()
