@@ -550,7 +550,7 @@ with dag6:
 
 
 dag7 = DAG('NLPmonitor_BigARTMs_ngramized', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
-with dag2:
+with dag7:
     wait_for_basic_tms = PythonOperator(
         task_id="wait_for_basic_tms",
         python_callable=lambda: 0,
