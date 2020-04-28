@@ -571,7 +571,7 @@ with dag7:
                          },
                          wait_for_basic_tms=wait_for_basic_tms,
                          is_actualizable=True,
-                         text_field="kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
+                         text_field="text_ngramized_kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
                          )
 
     gen_bigartm_operator(name="bigartm_two_years_ngram", description="Two last years", number_of_topics=200,
@@ -589,7 +589,7 @@ with dag7:
                     },
                     wait_for_basic_tms=wait_for_basic_tms,
                     is_actualizable=True,
-                    text_field="kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
+                    text_field="text_ngramized_kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
                     )
 
     gen_bigartm_operator(name="bigartm_education_two_years_ngram", description="Two last years education", number_of_topics=150,
@@ -609,5 +609,5 @@ with dag7:
                     },
                     wait_for_basic_tms=wait_for_basic_tms,
                     is_actualizable=True,
-                    text_field="kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
+                    text_field="text_ngramized_kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
                     )
