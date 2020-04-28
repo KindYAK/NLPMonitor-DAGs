@@ -17,7 +17,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 0,
     'retry_delay': timedelta(minutes=15),
-    'priority_weight': 60,
+    'priority_weight': 40,
     'pool': 'long_tasks'
     # 'queue': 'bash_queue',
     # 'priority_weight': 10,
@@ -41,8 +41,7 @@ with dag:
         }
     )
 
-    # concurrency = 30
-    concurrency = 3
+    concurrency = 30
     lemmatize_operators = []
     for i in range(concurrency):
         lemmatize_operators.append(DjangoOperator(
