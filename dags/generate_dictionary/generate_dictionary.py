@@ -21,13 +21,14 @@ default_args = {
     'pool': 'long_tasks'
 }
 
-dag = DAG('Nlpmonitor_Dictionary_Generation', catchup=False, concurrency=4, max_active_runs=1, default_args=default_args, schedule_interval=None)
+dag = DAG('Nlpmonitor_Dictionary_Generation', catchup=False, concurrency=7, max_active_runs=1, default_args=default_args, schedule_interval=None)
 
 with dag:
     corpuses = ["main", "rus", "rus_propaganda"]
-    name = "kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985"
+    # name = "kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985"
+    name = "kz_rus_yandex_ngrams_dict"
     max_n_gram_len = 3
-    field_to_parse = "text_lemmatized"
+    field_to_parse = "text_lemmatized_yandex"
     init_dictionary_index = DjangoOperator(
         task_id="init_dictionary_index",
         python_callable=init_dictionary_index,
@@ -40,7 +41,7 @@ with dag:
         }
     )
 
-    concurrency = 52
+    concurrency = 100
     dictionary_operators = []
     for i in range(concurrency):
         dictionary_operators.append(DjangoOperator(
@@ -53,6 +54,7 @@ with dag:
                 "corpuses": corpuses,
                 "max_n_gram_len": max_n_gram_len,
                 "field_to_parse": field_to_parse,
+                "min_relative_document_frequency": 1 / 33_333,
             }
         ))
 
@@ -62,7 +64,7 @@ with dag:
             op_kwargs={
                 "name": name,
                 "corpuses": corpuses,
-                "concurrency": concurrency,
+                "min_relative_document_frequency": 1 / 100_000,
             }
         )
     init_dictionary_index >> dictionary_operators >> aggregate_dicts

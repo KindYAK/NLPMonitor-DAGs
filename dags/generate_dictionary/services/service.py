@@ -67,6 +67,7 @@ def generate_dictionary_batch(**kwargs):
     end = kwargs['end']
     corpuses = kwargs['corpuses']
     max_n_gram_len = kwargs['max_n_gram_len']
+    min_relative_document_frequency = kwargs['min_relative_document_frequency']
     field_to_parse = kwargs['field_to_parse']
 
     query = {
@@ -131,7 +132,7 @@ def generate_dictionary_batch(**kwargs):
                         dictionary_words[word]['document_frequency'] += 1
                 word_in_doc.add(word)
     len_dictionary = len(dictionary_words)
-    dictionary_words = filter(lambda x: x['document_frequency'] > len(documents) // 10_000, dictionary_words.values())
+    dictionary_words = filter(lambda x: x['document_frequency'] > len(documents) * min_relative_document_frequency, dictionary_words.values())
     success = 0
     failed = 0
     print("!!!", "Writing to ES", datetime.datetime.now())
@@ -157,6 +158,8 @@ def aggregate_dicts(**kwargs):
     from nlpmonitor.settings import ES_INDEX_DICTIONARY_INDEX, ES_INDEX_DICTIONARY_WORD, ES_CLIENT, ES_INDEX_DOCUMENT
 
     name = kwargs['name']
+    corpuses = kwargs['corpuses']
+    min_relative_document_frequency = kwargs['min_relative_document_frequency']
     query = {
         "dictionary": name,
     }
@@ -213,10 +216,10 @@ def aggregate_dicts(**kwargs):
     failed = 0
     print("!!!", "Writing to ES", datetime.datetime.now())
     len_dictionary = len(dictionary_words_final)
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=kwargs['corpuses']).source([])[:0]
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpuses).source([])[:0]
     number_of_documents = s.count()
     print("!!!", "Number of documents", number_of_documents)
-    dictionary_words_final = filter(lambda x: x['document_frequency'] > number_of_documents // 33_333, dictionary_words_final.values())
+    dictionary_words_final = filter(lambda x: x['document_frequency'] > number_of_documents * min_relative_document_frequency, dictionary_words_final.values())
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words_final,
                                     index=f"{ES_INDEX_DICTIONARY_WORD}_{name}",
                                     chunk_size=10000, raise_on_error=True, thread_count=6):

@@ -27,8 +27,9 @@ default_args = {
 dag = DAG('Nlpmonitor_NGramize', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None) # '15 22 * * *'
 
 with dag:
-    dict_name = "kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985"
-    source_field = "text_lemmatized"
+    # dict_name = "kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985"
+    dict_name = "kz_rus_yandex_ngrams_dict"
+    source_field = "text_lemmatized_yandex"
     min_document_frequency_relative = 1 / 1000
     max_n_gram_len = 3
 
