@@ -30,7 +30,7 @@ def preprocessing_raw_data(**kwargs):
 
     from airflow.models import Variable
     from elasticsearch.helpers import streaming_bulk
-    from elasticsearch_dsl import Search
+    from elasticsearch_dsl import Search, Q
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_CUSTOM_DICTIONARY_WORD
     from nltk.corpus import stopwords
     from nltk.stem import WordNetLemmatizer
@@ -48,8 +48,10 @@ def preprocessing_raw_data(**kwargs):
     if number_of_documents is None:
         raise Exception("No variable!")
 
-    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True)\
-        .exclude('exists', field="text_lemmatized_yandex")[int(start/100*number_of_documents): int(end/100 * number_of_documents) + 1].execute()
+    s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True)
+    s = s.query(~Q('exists', field="text_lemmatized_yandex") | ~Q('exists', field="text_lemmatized"))
+    s = s[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1]
+    documents = s.execute()
 
     print('!!! len docs', len(documents))
     stopwords_ru = get_stop_words('ru')
