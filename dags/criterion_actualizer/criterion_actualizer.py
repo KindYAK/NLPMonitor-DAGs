@@ -8,6 +8,7 @@ from DjangoOperator import DjangoOperator
 from airflow import DAG
 
 from dags.criterion_eval.criterions_eval import actualizable_criterion_evals
+from dags.bigartm_actualizer.bigartm_actualizer import fast_tms
 from dags.criterion_eval.evaluate.service import evaluate
 
 default_args = {
@@ -24,10 +25,36 @@ default_args = {
 }
 
 dag = DAG('Criterion_actualize_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='0 23 * * *')
+dag_fast = DAG('Criterion_actualize_evaluations_fast', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='30 * * * *')
 
 actualizers_evaluators = []
 with dag:
     for eval in actualizable_criterion_evals:
+        evaluator = DjangoOperator(
+            task_id=f"eval_actualize_{eval['criterion_name']}_{eval['topic_modelling_translit']}",
+            python_callable=evaluate,
+            op_kwargs={
+                "perform_actualize": True,
+                "criterion_id": eval["criterion_id"],
+                "topic_modelling": eval["topic_modelling"],
+            }
+        )
+        actualizers_evaluators.append(evaluator)
+        if 'calc_virt_negative' in eval:
+            evaluator = DjangoOperator(
+                task_id=f"eval_actualize_{eval['criterion_name']}_{eval['topic_modelling_translit']}_neg",
+                python_callable=evaluate,
+                op_kwargs={
+                    "perform_actualize": True,
+                    "criterion_id": eval["criterion_id"],
+                    "topic_modelling": eval["topic_modelling"],
+                    "calc_virt_negative": True,
+                }
+            )
+
+actualizers_evaluators_fast = []
+with dag_fast:
+    for eval in filter(lambda x: x['topic_modelling'] in fast_tms, actualizable_criterion_evals):
         evaluator = DjangoOperator(
             task_id=f"eval_actualize_{eval['criterion_name']}_{eval['topic_modelling_translit']}",
             python_callable=evaluate,
