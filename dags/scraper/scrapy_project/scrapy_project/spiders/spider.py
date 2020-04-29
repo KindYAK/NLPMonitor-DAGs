@@ -55,7 +55,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         self.allowed_domains = [kw['url'].split("/")[2]]
         self.latest_date = datetime.datetime.strptime(kw['latest_date'][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
         self.perform_full = kw['perform_full'] == "yes"
-        self.last_depth = None
+        self.last_depth = kw.get("max_depth", None)
         self.depth_history = []
         self.depth_history_depth = 1
         self.start_time = datetime.datetime.now()
@@ -67,15 +67,15 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         #     self.i = 0
         # if self.i > 50:
         #     raise CloseSpider('No more new stuff')
-        if self.depth_history_depth < response.meta['depth']:
+        if not self.perform_full and not self.last_depth and self.depth_history_depth < response.meta['depth']:
             fails_ratio = sum(self.depth_history) / len(self.depth_history) if len(self.depth_history) else 0
-            if fails_ratio > 0.9 and not self.last_depth:
+            if fails_ratio > 0.9:
                 self.last_depth = response.meta['depth'] + 1
             self.depth_history_depth = response.meta['depth']
             self.depth_history = []
-        if not self.perform_full and \
-                (self.last_depth and response.meta['depth'] > self.last_depth or
-                 (datetime.datetime.now() - self.start_time).seconds > 24 * 60 * 60):
+        depth_exceeded = self.last_depth and response.meta['depth'] > self.last_depth
+        runtime_exceeded = (datetime.datetime.now() - self.start_time).seconds > 24 * 60 * 60
+        if not self.perform_full and (depth_exceeded or runtime_exceeded):
             raise CloseSpider('No more new stuff')
 
         simple_fields = ("text", "title", "author", "datetime", "num_views", "num_likes", "num_comments", "num_shares", )
@@ -109,10 +109,11 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 date_now = datetime.datetime.now().date()
                 if parse_result.year == date_now.year and parse_result.month > date_now.month:
                     parse_result = parse_result.replace(year=parse_result.year - 1)
-                if parse_result < self.latest_date:
-                    self.depth_history.append(1)
-                else:
-                    self.depth_history.append(0)
+                if not self.perform_full and not self.last_depth:
+                    if parse_result < self.latest_date:
+                        self.depth_history.append(1)
+                    else:
+                        self.depth_history.append(0)
             if field.startswith("num_"):
                 try:
                     parse_result = int(parse_result)

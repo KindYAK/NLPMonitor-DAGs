@@ -14,6 +14,7 @@ def scrap(**kwargs):
     source_url = kwargs['source_url']
     source_id = kwargs['source_id']
     perform_full = kwargs['perform_full']
+    perform_fast = kwargs['perform_fast']
     source = Source.objects.get(id=source_id)
     rules = ScrapRules.objects.filter(source=source)
     if not rules.exists() or not rules.filter(type=1).exists():
@@ -36,11 +37,14 @@ def scrap(**kwargs):
     if not latest_date:
         latest_date = datetime.datetime.now() - datetime.timedelta(days=365)
     else:
-        latest_date -= datetime.timedelta(days=30)
+        latest_date -= datetime.timedelta(days=7)
     run_args.append("-a")
     run_args.append(f"latest_date={latest_date.isoformat()}")
     run_args.append("-a")
     run_args.append(f"perform_full={'yes' if perform_full else 'no'}")
+    if perform_fast:
+        run_args.append("-a")
+        run_args.append(f"max_depth=5")
     try:
         print(f"Run command: {run_args}")
     except:
