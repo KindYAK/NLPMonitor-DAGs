@@ -56,6 +56,8 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         self.latest_date = datetime.datetime.strptime(kw['latest_date'][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
         self.perform_full = kw['perform_full'] == "yes"
         self.last_depth = kw.get("max_depth", None)
+        if self.last_depth:
+            self.depth_history = int(self.last_depth)
         self.depth_history = []
         self.depth_history_depth = 1
         self.start_time = datetime.datetime.now()
