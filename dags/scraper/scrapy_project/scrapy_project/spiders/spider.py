@@ -57,7 +57,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         self.perform_full = kw['perform_full'] == "yes"
         self.last_depth = kw.get("max_depth", None)
         if self.last_depth:
-            self.depth_history = int(self.last_depth)
+            self.last_depth = int(self.last_depth)
         self.depth_history = []
         self.depth_history_depth = 1
         self.start_time = datetime.datetime.now()
