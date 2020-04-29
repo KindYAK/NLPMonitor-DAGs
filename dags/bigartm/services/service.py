@@ -216,7 +216,7 @@ def dataset_prepare(**kwargs):
         ids_in_list.add(document.id)
         # Clean junk
         text = document[text_field]
-        text = " ".join([w for w in text.split() if not is_latin(w)])
+        text = " ".join([w for w in text.split() if not is_latin(w, threshold=0.1)])
         texts.append(text)
         titles.append(document.title)
         sources.append(document.source)

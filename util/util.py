@@ -10,12 +10,14 @@ def not_implemented():
     raise Exception("Not implemented")
 
 
-def is_kazakh(text):
-    return sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) / len(text) > 0.05 if text else False
+def is_kazakh(text, threshold=0.05):
+    kazakh_ratio = sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) / len(text)
+    return kazakh_ratio > threshold if text else False
 
 
-def is_latin(text):
-    return sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in text]) / len(text) > 0.51 if text else False
+def is_latin(text, threshold=0.51):
+    latin_ratio = sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in text]) / len(text)
+    return latin_ratio > threshold if text else False
 
 
 def load_obj(name):
