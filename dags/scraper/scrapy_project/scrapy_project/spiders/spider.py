@@ -56,6 +56,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         self.latest_date = datetime.datetime.strptime(kw['latest_date'][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
         self.perform_full = kw['perform_full'] == "yes"
         self.last_depth = kw.get("max_depth", None)
+        self.perform_fast = bool(kw.get("max_depth", False))
         if self.last_depth:
             self.last_depth = int(self.last_depth)
         self.depth_history = []
@@ -76,7 +77,11 @@ class TheSpider(scrapy.spiders.CrawlSpider):
             self.depth_history_depth = response.meta['depth']
             self.depth_history = []
         depth_exceeded = self.last_depth and response.meta['depth'] > self.last_depth
-        runtime_exceeded = (datetime.datetime.now() - self.start_time).seconds > 24 * 60 * 60
+        if self.perform_fast:
+            max_runtime = 30 * 60
+        else:
+            max_runtime = 12 * 60 * 60
+        runtime_exceeded = (datetime.datetime.now() - self.start_time).seconds > max_runtime
         if not self.perform_full and (depth_exceeded or runtime_exceeded):
             raise CloseSpider('No more new stuff')
 

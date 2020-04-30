@@ -44,7 +44,7 @@ def scrap(**kwargs):
     run_args.append(f"perform_full={'yes' if perform_full else 'no'}")
     if perform_fast:
         run_args.append("-a")
-        run_args.append(f"max_depth=5")
+        run_args.append(f"max_depth=3")
     try:
         print(f"Run command: {run_args}")
     except:
