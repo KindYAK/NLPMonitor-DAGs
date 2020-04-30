@@ -18,13 +18,14 @@ def find_combos(**kwargs):
         tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter("term", name=topic_modelling).execute()[0]
     except:
         tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter("term", **{"name.keyword": topic_modelling}).execute()[0]
+    MIN_VOLUME = 1 / tm.number_of_topics / 1
     topic_words_dict = dict(
         (t.id,
-         {
-             "words_full": [w.to_dict() for w in t.topic_words],
-             "words": [w['word'] for w in t.topic_words],
-             "name": ", ".join(w['word'] for w in sorted(t.topic_words, key=lambda x: x.weight, reverse=True)[:5])
-         }
+             {
+                 "words_full": [w.to_dict() for w in t.topic_words],
+                 "words": [w['word'] for w in t.topic_words],
+                 "name": ", ".join(w['word'] for w in sorted(t.topic_words, key=lambda x: x.weight, reverse=True)[:5])
+             }
          ) for t in tm.topics
     )
     jaccard_similarities = [jaccard_similarity(t1['words'], t2['words']) for t1, t2 in itertools.combinations(topic_words_dict.values(), 2)]
@@ -49,6 +50,7 @@ def find_combos(**kwargs):
 
     def topic_combo_generator():
         sent_combos = []
+        average_topic_len = len(overall_docs) * MIN_VOLUME
         for topic1 in topic_docs_dict.items():
             topic_combinations = []
             for topic2 in topic_docs_dict.items():
@@ -80,7 +82,7 @@ def find_combos(**kwargs):
             topic_combinations = sorted(topic_combinations, key=lambda x: x['common_docs_len'], reverse=True)
             sent = 0
             traversed = 0
-            while sent < 5 and traversed < len(topic_combinations):
+            while traversed < len(topic_combinations) and (sent < 5 or topic_combinations[traversed]['common_docs_len'] > average_topic_len / 2):
                 topic_ids_set = set([topic["id"] for topic in topic_combinations[traversed]["topics"]])
                 if topic_ids_set not in sent_combos:
                     yield topic_combinations[traversed]
