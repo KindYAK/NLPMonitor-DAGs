@@ -25,12 +25,15 @@ default_args = {
     'pool': 'long_tasks',
 }
 
-dag = DAG('Scrapers_scrap', catchup=False, max_active_runs=3, default_args=default_args, schedule_interval='15 12 * * *')
+default_args_normal = default_args.copy()
+default_args_normal['execution_timeout'] = timedelta(hours=36)
+dag = DAG('Scrapers_scrap', catchup=False, max_active_runs=3, default_args=default_args_normal, schedule_interval='15 12 * * *')
 dag_full = DAG('Scrapers_scrap_full', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 default_args_fast = default_args.copy()
 default_args_fast['pool'] = 'short_tasks'
 default_args_fast['priority_weight'] = 60
 default_args_fast['retry_delay'] = timedelta(minutes=1)
+default_args_fast['execution_timeout'] = timedelta(hours=2)
 dag_fast = DAG('Scrapers_scrap_fast', catchup=False, max_active_runs=1, default_args=default_args_fast, schedule_interval='0 * * * *')
 
 sources = json.loads(Variable.get('sources', default_var="[]"))
