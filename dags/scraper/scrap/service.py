@@ -83,6 +83,11 @@ def scrap(**kwargs):
                         new['datetime'] = new['datetime'].replace(month=new['datetime'].day, day=new['datetime'].month)
                     new['date'] = new['datetime'].date()
                 try:
+                    if not 'datetime' in new: # TODO Remove after Document model uniques rework
+                        if Document.objects.filter(url=new['url']).exists():
+                            raise IntegrityError("Already Exists")
+                        if Document.objects.filter(title=new['title'], source=source).exists():
+                            raise IntegrityError("Already Exists")
                     Document.objects.create(**new)
                     new_news += 1
                 except IntegrityError:
