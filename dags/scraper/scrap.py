@@ -22,7 +22,7 @@ default_args = {
     'retries': 1,
     'retry_delay': timedelta(minutes=30),
     'priority_weight': 50,
-    'pool': 'long_tasks',
+    'pool': 'scraper_tasks',
 }
 
 default_args_normal = default_args.copy()
