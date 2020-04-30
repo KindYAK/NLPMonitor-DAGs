@@ -45,6 +45,14 @@ def scrap(**kwargs):
     if perform_fast:
         run_args.append("-a")
         run_args.append(f"max_depth=3")
+    if perform_full:
+        spider_timeout = 0
+    elif perform_fast:
+        spider_timeout = 90 * 60
+    else:
+        spider_timeout = 33 * 60 * 60
+    run_args.append("-s")
+    run_args.append(f"CLOSESPIDER_TIMEOUT={spider_timeout}")
     try:
         print(f"Run command: {run_args}")
     except:
