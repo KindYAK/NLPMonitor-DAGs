@@ -12,7 +12,7 @@ def test_connections_to_bert_service(created):
     from elasticsearch_dsl import Search
 
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)
-    r = s.scan(scroll="5m")
+    r = s.scan()
     for ind, res in enumerate(r):
         if ind % 10000 == 0:
             print(ind)
