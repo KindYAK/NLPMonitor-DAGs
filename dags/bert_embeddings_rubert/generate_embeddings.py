@@ -4,6 +4,29 @@ from DjangoOperator import DjangoOperator
 # from airflow.operators.python_operator import PythonVirtualenvOperator
 # from PythonVirtualenvCachedOperator import PythonVirtualenvCachedOperator
 
+from gensim import utils
+import gensim.parsing.preprocessing as gsp
+
+
+def replaces_special_chars(s):
+    return s.replace('_', '').replace('\ufeff', '')
+
+
+filters = [
+    gsp.strip_tags,
+    gsp.strip_multiple_whitespaces,
+    gsp.strip_short,
+    replaces_special_chars
+]
+
+
+def clean_text(s):
+    s = s.lower()
+    s = utils.to_unicode(s)
+    for f in filters:
+        s = f(s)
+    return s
+
 
 def test_connections_to_bert_service(created):
     print(f'starting task at {created}')
@@ -11,16 +34,27 @@ def test_connections_to_bert_service(created):
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
     from elasticsearch_dsl import Search
 
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)
-    r = s.scan()
-    for ind, res in enumerate(r):
-        if ind % 10000 == 0:
-            print(ind)
-
     bc = BertClient(ip="bert_as_service")
-    vec = bc.encode(['First do it', 'then do it right', 'then do it better'])
-    print('-'*10)
-    print(vec.shape)
+
+    ind_doc_search = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)
+    ind_doc_search = ind_doc_search.source(['id', 'text'])
+    ind_doc_scan = ind_doc_search.scan()
+
+    elastic_results = []
+
+    for ind, res in enumerate(ind_doc_scan):
+        if ind % 100 == 0:
+            break
+        if ind % 25 == 0 and not ind == 0:
+            vecs = bc.encode(
+                [i['text'] for i in elastic_results]
+            ).tolist()
+            for ind, vector in enumerate(vecs):
+                elastic_results[ind].update({'rubert_embedding': vector})
+            elastic_results = []
+
+        elastic_results.append({'id': res.id, 'text': clean_text(res.text)})
+        print(elastic_results)
 
 
 default_args = {
@@ -28,12 +62,12 @@ default_args = {
     'depends_on_past': False,
     'start_date': datetime(2020, 5, 3),
     'email': ['bekbaganbetov.abay@gmail.com'],
-    'email_on_failure': True,
-    'email_on_retry': True,
-    'retries': 1,
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 0,
     'retry_delay': timedelta(minutes=5),
-    'priority_weight': 99,
-    'pool': 'short_tasks',
+    'priority_weight': 20,
+    'pool': 'long_tasks',
 }
 
 
