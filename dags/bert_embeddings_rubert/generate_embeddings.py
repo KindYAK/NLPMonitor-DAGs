@@ -9,7 +9,7 @@ def test_connections_to_bert_service(created):
     print(f'starting task at {created}')
     from bert_serving.client import BertClient
 
-    bc = BertClient()
+    bc = BertClient(ip="bert_as_service")
     vec = bc.encode(['First do it', 'then do it right', 'then do it better'])
     print('-'*10)
     print(vec.shape)
