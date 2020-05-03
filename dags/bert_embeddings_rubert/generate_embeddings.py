@@ -1,6 +1,7 @@
 from airflow import DAG
 from datetime import datetime, timedelta
-from PythonVirtualenvCachedOperator import PythonVirtualenvCachedOperator
+from airflow.operators.python_operator import PythonVirtualenvOperator
+# from PythonVirtualenvCachedOperator import PythonVirtualenvCachedOperator
 
 
 def test_connections_to_bert_service(created):
@@ -22,7 +23,7 @@ default_args = {
     'email_on_retry': True,
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
-    'priority_weight': 20,
+    'priority_weight': 99,
     'pool': 'short_tasks',
 }
 
@@ -34,7 +35,7 @@ dag = DAG(
 
 with dag:
     # Word
-    init_word_index = PythonVirtualenvCachedOperator(
+    init_word_index = PythonVirtualenvOperator(
         task_id="test_connections_to_bert_service",
         python_callable=test_connections_to_bert_service,
         pool="short_tasks",
