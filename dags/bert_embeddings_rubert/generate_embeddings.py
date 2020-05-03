@@ -8,6 +8,14 @@ from DjangoOperator import DjangoOperator
 def test_connections_to_bert_service(created):
     print(f'starting task at {created}')
     from bert_serving.client import BertClient
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
+    from elasticsearch_dsl import Search
+
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)
+    r = s.scan(scroll="5m")
+    for ind, res in enumerate(r):
+        if ind % 10000 == 0:
+            print(ind)
 
     bc = BertClient(ip="bert_as_service")
     vec = bc.encode(['First do it', 'then do it right', 'then do it better'])
