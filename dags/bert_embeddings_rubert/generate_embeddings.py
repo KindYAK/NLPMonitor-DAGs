@@ -40,7 +40,7 @@ def test_connections_to_bert_service(created):
     elastic_results = []
 
     for ind, res in enumerate(ind_doc_scan):
-        if ind % 100 == 0:
+        if ind % 100 == 0 and not ind == 0:
             break
         if ind % 25 == 0 and not ind == 0:
             vecs = bc.encode(
