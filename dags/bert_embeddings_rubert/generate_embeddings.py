@@ -1,6 +1,7 @@
 from airflow import DAG
 from datetime import datetime, timedelta
-from airflow.operators.python_operator import PythonVirtualenvOperator
+from DjangoOperator import DjangoOperator
+# from airflow.operators.python_operator import PythonVirtualenvOperator
 # from PythonVirtualenvCachedOperator import PythonVirtualenvCachedOperator
 
 
@@ -35,11 +36,11 @@ dag = DAG(
 
 with dag:
     # Word
-    init_word_index = PythonVirtualenvOperator(
+    init_word_index = DjangoOperator(
         task_id="test_connections_to_bert_service",
         python_callable=test_connections_to_bert_service,
         pool="short_tasks",
-        python_version="3.6",
+        # python_version="3.6",
         requirements=[
             "bert-serving-client==1.10.0"
         ],
