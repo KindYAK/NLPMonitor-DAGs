@@ -51,7 +51,7 @@ def test_connections_to_bert_service(created):
             elastic_results = []
 
         elastic_results.append({'id': res.id, 'text': clean_text(res.text)})
-        print(elastic_results)
+        print(len(elastic_results))
 
 
 default_args = {
