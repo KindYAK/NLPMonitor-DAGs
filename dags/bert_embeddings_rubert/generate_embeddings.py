@@ -42,7 +42,7 @@ def test_connections_to_bert_service(created):
     from bert_serving.client import BertClient
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
     from elasticsearch_dsl import Search
-    _TEMP_INDEX = "_temp_rubert_index"
+    _TEMP_INDEX = "temp_rubert_index"
     bc = BertClient(ip="bert_as_service", check_length=False)
 
     ind_doc_search = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)
