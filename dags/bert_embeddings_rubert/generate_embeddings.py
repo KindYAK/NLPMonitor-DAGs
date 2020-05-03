@@ -4,23 +4,20 @@ from DjangoOperator import DjangoOperator
 # from airflow.operators.python_operator import PythonVirtualenvOperator
 # from PythonVirtualenvCachedOperator import PythonVirtualenvCachedOperator
 
-from gensim import utils
-import gensim.parsing.preprocessing as gsp
-
-
-def replaces_special_chars(s):
-    return s.replace('_', '').replace('\ufeff', '')
-
-
-filters = [
-    gsp.strip_tags,
-    gsp.strip_multiple_whitespaces,
-    gsp.strip_short,
-    replaces_special_chars
-]
-
 
 def clean_text(s):
+    from gensim import utils
+    import gensim.parsing.preprocessing as gsp
+
+    def replaces_special_chars(s):
+        return s.replace('_', '').replace('\ufeff', '')
+
+    filters = [
+        gsp.strip_tags,
+        gsp.strip_multiple_whitespaces,
+        gsp.strip_short,
+        replaces_special_chars
+    ]
     s = s.lower()
     s = utils.to_unicode(s)
     for f in filters:
