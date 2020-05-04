@@ -49,28 +49,29 @@ def test_connections_to_bert_service(created):
     ind_doc_search = ind_doc_search.source(['id', 'text'])
     ind_doc_scan = ind_doc_search.scan()
 
-    if not ES_CLIENT.indices.exists(_TEMP_INDEX):
-        ES_CLIENT.indices.create(index=_TEMP_INDEX)
+    if ES_CLIENT.indices.exists(_TEMP_INDEX):
+        ES_CLIENT.indices.delete(index=_TEMP_INDEX, ignore=[400, 404])
+
+    ES_CLIENT.indices.create(index=_TEMP_INDEX)
 
     elastic_results = []
 
     for ind, res in enumerate(ind_doc_scan):
-        if ind % 100 == 0 and not ind == 0:
-            persist_in_elastic(ES_CLIENT, elastic_results, _TEMP_INDEX)
-            break
+        if ind % 1000 == 0:
+            print(f"Current index is {ind}")
         if ind % 25 == 0 and not ind == 0:
             vecs = bc.encode(
                 [i['text'] for i in elastic_results]
             ).tolist()
             for ind, vector in enumerate(vecs):
                 elastic_results[ind].update({'rubert_embedding': vector})
+            persist_in_elastic(ES_CLIENT, elastic_results, _TEMP_INDEX)
             elastic_results = []
 
         cleaned_text = clean_text(res.text)
         if len(cleaned_text) > 20:
             elastic_results.append(
                 {'id': res.id, 'text': cleaned_text})
-        print(len(elastic_results))
 
 
 default_args = {
