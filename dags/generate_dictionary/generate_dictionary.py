@@ -41,7 +41,7 @@ with dag:
         }
     )
 
-    concurrency = 100
+    concurrency = 75
     dictionary_operators = []
     for i in range(concurrency):
         dictionary_operators.append(DjangoOperator(
@@ -54,7 +54,7 @@ with dag:
                 "corpuses": corpuses,
                 "max_n_gram_len": max_n_gram_len,
                 "field_to_parse": field_to_parse,
-                "min_relative_document_frequency": 1 / 33_333,
+                "min_relative_document_frequency": 1 / 10_000,
             }
         ))
 
