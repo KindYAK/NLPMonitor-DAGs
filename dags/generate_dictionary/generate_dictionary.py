@@ -64,7 +64,7 @@ with dag:
             op_kwargs={
                 "name": name,
                 "corpuses": corpuses,
-                "min_relative_document_frequency": 1 / 50_000,
+                "min_relative_document_frequency": 1 / 33_333,
             }
         )
     init_dictionary_index >> dictionary_operators >> aggregate_dicts
