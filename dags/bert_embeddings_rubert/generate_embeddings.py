@@ -66,7 +66,10 @@ def test_connections_to_bert_service(created):
                 elastic_results[ind].update({'rubert_embedding': vector})
             elastic_results = []
 
-        elastic_results.append({'id': res.id, 'text': clean_text(res.text)})
+        cleaned_text = clean_text(res.text)
+        if len(cleaned_text) > 20:
+            elastic_results.append(
+                {'id': res.id, 'text': cleaned_text})
         print(len(elastic_results))
 
 
