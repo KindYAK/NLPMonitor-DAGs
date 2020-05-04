@@ -25,7 +25,7 @@ default_args = {
 }
 
 dag = DAG('Criterion_actualize_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='0 23 * * *')
-dag_fast = DAG('Criterion_actualize_evaluations_fast', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='45 * * * *')
+dag_fast = DAG('Criterion_actualize_evaluations_fast', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='50 * * * *')
 
 actualizers_evaluators = []
 with dag:
