@@ -49,7 +49,7 @@ with dag:
     ))
 
     cluster_operators.append(DjangoOperator(
-        task_id=f"cluster_rus_kz",
+        task_id=f"cluster_kz",
         python_callable=run_cluster,
         op_kwargs={
             "tm_name": "bigartm_two_years",
