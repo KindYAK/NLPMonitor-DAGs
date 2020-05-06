@@ -22,6 +22,10 @@ dags/tm_preprocessing/services/
 
 dags/generate_dictionary/services/
 
+dags/document_location/services/
+
+dags/cluster_sources/services/
+
 dags/add_topics_info/service/
 
 dags/mussabayev_tm/service/
