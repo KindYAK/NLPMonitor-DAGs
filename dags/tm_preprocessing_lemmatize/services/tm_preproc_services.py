@@ -39,7 +39,7 @@ def preprocessing_raw_data(**kwargs):
     from stop_words import get_stop_words
 
     from util.service_es import search, update_generator
-    from util.util import is_latin
+    from util.util import is_latin, is_word
 
     start = kwargs['start']
     end = kwargs['end']
@@ -70,11 +70,10 @@ def preprocessing_raw_data(**kwargs):
         if is_latin(cleaned_doc):
             cleaned_words_list = [lemmatizer.lemmatize(word) for word in cleaned_doc.split() if
                                   len(word) > 3 and word not in stopwords_eng]
-
         else:
             cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in cleaned_doc.split() if
                                   len(word) > 2 and word not in stopwords_ru]
-            cwl_yandex = filter(lambda word: len(word) > 2 and word not in stopwords_ru, m.lemmatize(cleaned_doc))
+            cwl_yandex = filter(lambda word: is_word(word) and len(word) > 2 and word not in stopwords_ru, m.lemmatize(cleaned_doc))
             cleaned_doc_yandex = " ".join(cwl_yandex)
             doc['text_lemmatized_yandex'] = cleaned_doc_yandex
 
