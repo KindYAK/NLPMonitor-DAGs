@@ -10,6 +10,12 @@ def not_implemented():
     raise Exception("Not implemented")
 
 
+def is_word(text, threshold=0.5):
+    word_ratio = sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMАаБбВвГгДдЕ"
+                           "еЁёЖжЗзИиЙйКкЛлМмНнОоПпСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯя" for c in text]) / len(text)
+    return word_ratio > threshold if text else False
+
+
 def is_kazakh(text, threshold=0.05):
     kazakh_ratio = sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) / len(text)
     return kazakh_ratio > threshold if text else False
