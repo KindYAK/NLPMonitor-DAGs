@@ -75,7 +75,7 @@ def send_tds_to_es(theta, topic_doc, name, tm_index, n_iterations=1):
             yield document, theta_values[i]
 
     def topic_document_generator_converter(d, row):
-        id, source, date, corpus = d.split("*")
+        id, source, date, corpus, num_views, num_comments = d.split("*")
         document_topics = []
         for j, ind in enumerate(theta_topics):
             es_topic_document = TopicDocument()
@@ -93,6 +93,8 @@ def send_tds_to_es(theta, topic_doc, name, tm_index, n_iterations=1):
                                                                             "%Y-%m-%dT%H:%M:%S.%f%z")
             es_topic_document.document_source = source.replace("_", " ")
             es_topic_document.document_corpus = corpus
+            es_topic_document.document_num_views = num_views
+            es_topic_document.document_num_comments = num_comments
             document_topics.append(es_topic_document)
         document_topics = sorted(document_topics, key=lambda x: x.topic_weight, reverse=True)[:max(tm_index.number_of_topics // 3 // n_iterations, 10 // n_iterations)]
         for es_topic_document in document_topics:
@@ -144,7 +146,7 @@ def send_unique_ids_to_es(theta_documents, tm_index, is_dynamic, perform_actuali
 
         def unique_ids_generator(theta_documents):
             for d in theta_documents:
-                doc_id, _, _, _ = d.split("*")
+                doc_id, _, _, _, _, _ = d.split("*")
                 doc = TopicDocumentUniqueIDs()
                 doc.document_es_id = doc_id
                 yield doc
