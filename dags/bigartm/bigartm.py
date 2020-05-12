@@ -134,6 +134,22 @@ with dag2:
                     wait_for_basic_tms=wait_for_basic_tms,
                     is_actualizable=True)
 
+    gen_bigartm_operator(name="bigartm_two_years_old_parse", description="Two last years old parse", number_of_topics=200,
+                         filters={
+                             "corpus": "main",
+                             "source": None,
+                             "datetime_from": date(2017, 6, 1),
+                             "datetime_to": date(2019, 6, 1),
+                         },
+                         regularization_params={
+                             "SmoothSparseThetaRegularizer": 0.15,
+                             "SmoothSparsePhiRegularizer": 0.15,
+                             "DecorrelatorPhiRegularizer": 0.15,
+                             "ImproveCoherencePhiRegularizer": 0.15
+                         },
+                         wait_for_basic_tms=wait_for_basic_tms,
+                         is_actualizable=False)
+
     gen_bigartm_operator(name="bigartm_education_two_years", description="Two last years education", number_of_topics=150,
                          filters={
                         "corpus": "main",
