@@ -20,13 +20,19 @@ def is_word(text, threshold=0.5):
 
 
 def is_kazakh(text, threshold=0.05):
-    kazakh_ratio = sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) / len(text)
-    return kazakh_ratio > threshold if text else False
+    if text:
+        kazakh_ratio = sum([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in text]) / len(text)
+        return kazakh_ratio > threshold
+    else:
+        return False
 
 
 def is_latin(text, threshold=0.51):
-    latin_ratio = sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in text]) / len(text)
-    return latin_ratio > threshold if text else False
+    if text:
+        latin_ratio = sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in text]) / len(text)
+        return latin_ratio > threshold
+    else:
+        return False
 
 
 def load_obj(name):
