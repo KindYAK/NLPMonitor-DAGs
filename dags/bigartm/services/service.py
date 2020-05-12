@@ -170,7 +170,7 @@ def dataset_prepare(**kwargs):
     for corpus_to_ignore in corpus_datetime_ignore:
         q = q | (~Q('exists', field="datetime") & Q("term", corpus=corpus_to_ignore))
     s = s.query(q)
-    s = s.source(["id", "text", text_field, "title", "source", "datetime", "corpus"])[:5000000]
+    s = s.source(["id", "text", text_field, "title", "source", "num_views", "num_comments", "datetime", "corpus"])[:5000000]
 
     group_document_es_ids = None
     if group_id:
@@ -199,6 +199,8 @@ def dataset_prepare(**kwargs):
     sources = []
     dates = []
     corpuses = []
+    num_views = []
+    num_comments = []
     meta_ids_in_list = set()
     ids_in_list = set()
     for document in s.scan():
@@ -214,19 +216,22 @@ def dataset_prepare(**kwargs):
         ids.append(document.meta.id)
         meta_ids_in_list.add(document.meta.id)
         ids_in_list.add(document.id)
-        # Clean junk
-        text = document[text_field]
-        text = " ".join([w for w in text.split() if not is_latin(w, threshold=0.1)])
-        texts.append(text)
         titles.append(document.title)
         sources.append(document.source)
         dates.append(document.datetime if hasattr(document, "datetime") and document.datetime else "")
         corpuses.append(document.corpus)
+        num_views.append(document.num_views if hasattr(document, "num_views") else -1)
+        num_comments.append(document.num_comments if hasattr(document, "num_comments") else -1)
+
+        # Clean junk
+        text = document[text_field]
+        text = " ".join([w for w in text.split() if not is_latin(w, threshold=0.1)])
+        texts.append(text)
     titles = return_cleaned_array(titles)
 
     formated_data = []
-    for id, text, title, source, date, corpus_d in zip(ids, texts, titles, sources, dates, corpuses):
-        formated_data.append(f'{id}*{source.replace(" ", "_")}*{date}*{corpus_d}' + ' ' +
+    for id, text, title, source, date, corpus_d, views, comments in zip(ids, texts, titles, sources, dates, corpuses, num_views, num_comments):
+        formated_data.append(f'{id}*{source.replace(" ", "_")}*{date}*{corpus_d}*{views}*{comments}' + ' ' +
                              '|text' + ' ' + text + ' ' +
                              '|title' + ' ' + title + ' ')
 
