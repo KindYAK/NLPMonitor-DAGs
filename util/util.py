@@ -11,9 +11,12 @@ def not_implemented():
 
 
 def is_word(text, threshold=0.5):
-    word_ratio = sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMАаБбВвГгДдЕ"
+    if text:
+        word_ratio = sum([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMАаБбВвГгДдЕ"
                            "еЁёЖжЗзИиЙйКкЛлМмНнОоПпСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯя" for c in text]) / len(text)
-    return word_ratio > threshold if text else False
+        return word_ratio > threshold
+    else:
+        return False
 
 
 def is_kazakh(text, threshold=0.05):
