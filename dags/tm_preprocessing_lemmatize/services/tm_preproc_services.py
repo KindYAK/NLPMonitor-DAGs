@@ -48,9 +48,8 @@ def preprocessing_raw_data(**kwargs):
     if number_of_documents is None:
         raise Exception("No variable!")
 
-    s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={'corpus': 'main'}, source=['text'], sort=['id'], get_search_obj=True)
-    number_of_documents = 2_398_221
-    # s = s.query(~Q('exists', field="text_lemmatized_yandex") | ~Q('exists', field="text_lemmatized"))
+    s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True)
+    s = s.query(~Q('exists', field="text_lemmatized_yandex") | ~Q('exists', field="text_lemmatized"))
     s = s[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1]
     documents = s.execute()
 
