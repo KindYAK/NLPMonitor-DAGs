@@ -5,6 +5,7 @@ venv/
 bigartm_temp/
 bigartm_models/
 mussabayev_tm_temp/
+tmp/
 
 dags/examples/
 dags/examples/external_file_example/
