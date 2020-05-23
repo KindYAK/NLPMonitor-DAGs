@@ -5,7 +5,7 @@ def init_last_datetime(**kwargs):
 
     dict_name = kwargs['dict_name']
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)
-    # s = s.exclude('exists', field=f'text_ngramized_{dict_name}') # TODO Return
+    s = s.exclude('exists', field=f'text_ngramized_{dict_name}')
     Variable.set(f"ngramize_number_of_documents_{dict_name}", s.count())
 
 
@@ -33,7 +33,7 @@ def ngramize(**kwargs):
 
     print("!!!", "Getting documents", datetime.datetime.now())
     documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=(source_field,), sort=('id',), get_search_obj=True)
-    # documents = documents.exclude('exists', field=f'text_ngramized_{dict_name}') # TODO Return
+    documents = documents.exclude('exists', field=f'text_ngramized_{dict_name}')
     documents = documents.filter('exists', field=source_field)
     documents = documents[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1].execute()
     print('!!! len docs', len(documents))

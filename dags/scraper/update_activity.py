@@ -25,7 +25,7 @@ default_args = {
     'pool': 'scraper_tasks',
 }
 
-dag = DAG('Scrapers_update_activity', catchup=False, max_active_runs=2, default_args=default_args, schedule_interval='0 6 * * *')
+dag = DAG('Scrapers_update_activity', catchup=False, max_active_runs=2, default_args=default_args, schedule_interval='0 0 * * *')
 
 with dag:
     scrapers = []

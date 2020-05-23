@@ -24,7 +24,6 @@ default_args = {
     'pool': 'long_tasks',
 }
 
-# dag = DAG('Criterion_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='30 14 * * *')
 dag = DAG('Criterion_evaluations', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None)
 
 actualizable_criterion_evals = []

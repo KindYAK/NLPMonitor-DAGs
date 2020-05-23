@@ -24,7 +24,7 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('Nlpmonitor_NGramize', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval=None) # '15 22 * * *'
+dag = DAG('Nlpmonitor_NGramize', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='15 22 * * *')
 
 with dag:
     # dict_name = "kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985"
