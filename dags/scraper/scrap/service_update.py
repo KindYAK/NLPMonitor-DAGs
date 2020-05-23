@@ -54,6 +54,8 @@ def update(**kwargs):
 
     filename_suffix = f"{now.date()}_{start}_{end}"
     url_filename = f"url_list_update_{filename_suffix}.txt"
+    if not os.path.exists(os.path.join(BASE_DAG_DIR, "tmp")):
+        os.mkdir(os.path.join(BASE_DAG_DIR, "tmp"))
     url_path = os.path.join(BASE_DAG_DIR, "tmp", url_filename)
     with open(url_path, "w", encoding='utf-8') as f:
         for doc in qs:
