@@ -118,9 +118,9 @@ def update(**kwargs):
         Document.objects.bulk_update(qs, fields=['datetime_activity_parsed', 'num_views', 'num_comments'])
     except Exception as e:
         print("!!!!!!", "Updating DB exception", e)
-    finally:
-        os.remove(filename)
-        os.remove(url_path)
+    # finally:
+        # os.remove(filename)
+        # os.remove(url_path)
 
     # Write to ES
     print("!!!", "Writing to ES", datetime.datetime.now())
