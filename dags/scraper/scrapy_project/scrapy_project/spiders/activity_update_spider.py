@@ -71,8 +71,12 @@ class TheActivityUpdateSpider(scrapy.spiders.Spider):
         if not "text" in response.headers['Content-Type'].decode('utf-8'):
             return None
 
-        url = response.__dict__['_url']
-        meta = self.urls_dict[url]
+        url = response.request.url
+        try:
+            meta = self.urls_dict[url]
+        except:
+            print("Missing url", url)
+            return None
 
         result = {}
         if meta['rule_views']:
