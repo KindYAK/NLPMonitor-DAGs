@@ -13,6 +13,10 @@ def update(**kwargs):
 
     from util.constants import BASE_DAG_DIR
 
+    import logging
+    es_logger = logging.getLogger('elasticsearch')
+    es_logger.setLevel(logging.ERROR)
+
     # Init
     start = kwargs['start']
     end = kwargs['end']
@@ -114,7 +118,7 @@ def update(**kwargs):
                 })
                 news_updated += 1
             if news_updated % 1000 == 0:
-                print(f"Updated {news_updated}, currently id={doc.id} new")
+                print(f"Updated {news_updated}, currently id={doc.id}")
         Document.objects.bulk_update(qs, fields=['datetime_activity_parsed', 'num_views', 'num_comments'])
     except Exception as e:
         print("!!!!!!", "Updating DB exception", e)
