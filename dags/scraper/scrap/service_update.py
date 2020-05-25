@@ -47,7 +47,7 @@ def update(**kwargs):
     number_of_documents = qs.count()
     if number_of_documents == 0:
         return "Nothing to update"
-    qs = qs[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1]
+    qs = qs.order_by('id')[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1]
     print("!!!", number_of_documents, "to process", datetime.datetime.now())
 
     filename_suffix = f"{now.date()}_{start}_{end}"
