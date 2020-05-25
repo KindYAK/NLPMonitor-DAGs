@@ -88,7 +88,7 @@ def update(**kwargs):
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
         news_update_dict = dict(
-            (new['id'],
+            (int(new['id']),
              {
                  "num_views": new.get('num_views', None),
                  "num_comments": new.get('num_comments', None),
@@ -118,9 +118,9 @@ def update(**kwargs):
         Document.objects.bulk_update(qs, fields=['datetime_activity_parsed', 'num_views', 'num_comments'])
     except Exception as e:
         print("!!!!!!", "Updating DB exception", e)
-    # finally:
-        # os.remove(filename)
-        # os.remove(url_path)
+    finally:
+        os.remove(filename)
+        os.remove(url_path)
 
     # Write to ES
     print("!!!", "Writing to ES", datetime.datetime.now())
