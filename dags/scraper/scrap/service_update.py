@@ -5,9 +5,7 @@ def update(**kwargs):
     import subprocess
     from collections import defaultdict
 
-    import pytz
     from elasticsearch_dsl import Search
-    from django.db import IntegrityError
     from django.db.models import Q, F, ExpressionWrapper, fields, Value
     from django.utils import timezone
     from mainapp.models import ScrapRules, Document, Source, Author
@@ -88,31 +86,34 @@ def update(**kwargs):
     try:
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
-            news_update_dict = dict(
-                (new['id'],
-                 {
-                     "num_views": new.get('num_views', None),
-                     "num_comments": new.get('num_comments', None),
-                 }) for new in news
-            )
-            for doc in qs:
-                if doc.id not in news_update_dict:
-                    news_skipped += 1
-                    continue
-                doc.datetime_activity_parsed = timezone.now()
-                is_updated = False
-                if news_update_dict[doc.id]['num_views'] is not None:
-                    is_updated = True
-                    doc.num_views = news_update_dict[doc.id]['num_views']
-                if news_update_dict[doc.id]['num_comments'] is not None:
-                    is_updated = True
-                    doc.num_comments = news_update_dict[doc.id]['num_comments']
-                if is_updated:
-                    to_udpate_es.append({
-                        "id": doc.id,
-                        "num_views": news_update_dict[doc.id]['num_views'],
-                        "num_comments": news_update_dict[doc.id]['num_comments'],
-                    })
+        news_update_dict = dict(
+            (new['id'],
+             {
+                 "num_views": new.get('num_views', None),
+                 "num_comments": new.get('num_comments', None),
+             }) for new in news
+        )
+        for doc in qs:
+            if doc.id not in news_update_dict:
+                news_skipped += 1
+                continue
+            doc.datetime_activity_parsed = now
+            is_updated = False
+            if news_update_dict[doc.id]['num_views'] is not None:
+                is_updated = True
+                doc.num_views = news_update_dict[doc.id]['num_views']
+            if news_update_dict[doc.id]['num_comments'] is not None:
+                is_updated = True
+                doc.num_comments = news_update_dict[doc.id]['num_comments']
+            if is_updated:
+                to_udpate_es.append({
+                    "id": doc.id,
+                    "num_views": news_update_dict[doc.id]['num_views'],
+                    "num_comments": news_update_dict[doc.id]['num_comments'],
+                })
+                news_updated += 1
+            if news_updated % 1000 == 0:
+                print(f"Updated {news_updated}, currently id={doc.id} new")
         Document.objects.bulk_update(qs, fields=['datetime_activity_parsed', 'num_views', 'num_comments'])
     finally:
         os.remove(filename)
@@ -120,7 +121,7 @@ def update(**kwargs):
 
     # Write to ES
     print("!!!", "Writing to ES", datetime.datetime.now())
-    for doc in to_udpate_es:
+    for i, doc in enumerate(to_udpate_es):
         update_body = {}
         if doc['num_views'] is not None:
             update_body['num_views'] = doc['num_views']
@@ -133,7 +134,6 @@ def update(**kwargs):
                              id=_id,
                              body={"doc": update_body}
                              )
-
-    if news_updated < news_skipped:
-        raise Exception(f"Seems like parser is broken - {news_updated} updated, {news_skipped} skipped")
+        if i % 1000 == 0:
+            print(f"Writing {i}, current id={doc['id']}")
     return f"Parse complete, {news_updated} updated, {news_skipped} skipped"
