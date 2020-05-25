@@ -115,6 +115,8 @@ def update(**kwargs):
             if news_updated % 1000 == 0:
                 print(f"Updated {news_updated}, currently id={doc.id} new")
         Document.objects.bulk_update(qs, fields=['datetime_activity_parsed', 'num_views', 'num_comments'])
+    except Exception as e:
+        print("!!!!!!", "Updating DB exception", e)
     finally:
         os.remove(filename)
         os.remove(url_path)
