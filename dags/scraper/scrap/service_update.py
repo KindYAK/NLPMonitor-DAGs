@@ -80,7 +80,7 @@ def update(**kwargs):
         print(f"Run command: {run_args}")
     except:
         pass
-    output = subprocess.run(run_args, capture_output=True, universal_newlines=True)
+    output = subprocess.run(run_args, universal_newlines=True)
     print("!!!", "Output:", output.stdout)
     print("!!!", "Output Error:", output.stderr)
 
