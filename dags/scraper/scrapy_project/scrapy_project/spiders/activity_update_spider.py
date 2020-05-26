@@ -15,6 +15,12 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 
+def normalize_url(url):
+    url = url.replace("https://", "").replace("http://", "")
+    url = url.replace("/", "")
+    return url
+
+
 class TheActivityUpdateSpider(scrapy.spiders.Spider):
     name = "activity_update_spider"
     custom_settings = {
@@ -57,7 +63,7 @@ class TheActivityUpdateSpider(scrapy.spiders.Spider):
             for lines in chunks(f.readlines(), 4):
                 id, url, rule_views, rule_comments = lines
                 id = id.strip()
-                url = url.strip()
+                url = normalize_url(url.strip())
                 rule_views = rule_views.strip()
                 rule_comments = rule_comments.strip()
                 self.urls_dict[url] = {
@@ -71,11 +77,11 @@ class TheActivityUpdateSpider(scrapy.spiders.Spider):
         if not "text" in response.headers['Content-Type'].decode('utf-8'):
             return None
 
-        url = response.request.url
+        url = response.request.url.strip()
         try:
-            meta = self.urls_dict[url]
+            meta = self.urls_dict[normalize_url(url)]
         except:
-            print("Missing url", url)
+            print("Missing url:", url, "Normalized url:", normalize_url(url))
             return None
 
         result = {}
