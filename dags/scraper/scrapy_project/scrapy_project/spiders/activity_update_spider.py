@@ -63,10 +63,10 @@ class TheActivityUpdateSpider(scrapy.spiders.Spider):
             for lines in chunks(f.readlines(), 4):
                 id, url, rule_views, rule_comments = lines
                 id = id.strip()
-                url = normalize_url(url.strip())
+                url = url.strip()
                 rule_views = rule_views.strip()
                 rule_comments = rule_comments.strip()
-                self.urls_dict[url] = {
+                self.urls_dict[normalize_url(url.strip())] = {
                     "id": id,
                     "rule_views": rule_views if rule_views != "None" else None,
                     "rule_comments": rule_comments if rule_comments != "None" else None,
