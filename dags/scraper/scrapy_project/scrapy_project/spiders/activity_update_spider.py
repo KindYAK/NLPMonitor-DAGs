@@ -112,4 +112,7 @@ class TheActivityUpdateSpider(scrapy.spiders.Spider):
                 parse_result = 0
             result['num_comments'] = parse_result
         result['id'] = meta['id']
+        if not 'num_views' in result and not 'num_comments' in result:
+            print("!!!Parser URL failed - ", url)
+            return None
         yield result
