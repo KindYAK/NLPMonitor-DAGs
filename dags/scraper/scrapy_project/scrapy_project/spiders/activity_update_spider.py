@@ -78,11 +78,19 @@ class TheActivityUpdateSpider(scrapy.spiders.Spider):
             return None
 
         url = response.request.url.strip()
+        meta = None
         try:
             meta = self.urls_dict[normalize_url(url)]
         except:
-            print("Missing url:", url, "Normalized url:", normalize_url(url))
-            return None
+            for url_candidate in response.request.meta['redirect_urls']:
+                try:
+                    print("Candidate URL:", url_candidate, "normalized:", normalize_url(url_candidate))
+                    meta = self.urls_dict[normalize_url(url_candidate)]
+                except:
+                    continue
+            if not meta:
+                print("Missing url:", url, "Normalized url:", normalize_url(url))
+                return None
 
         result = {}
         if meta['rule_views']:
