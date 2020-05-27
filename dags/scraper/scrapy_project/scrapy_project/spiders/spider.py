@@ -101,14 +101,14 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 return None
             if field == "datetime":
                 try:
+                    if "dw.com" in url:
+                        parse_result = parse_result.split("дата")[1].split("автор")[0].strip()
                     parse_result = parse_result.lower().strip() \
                         .replace("опубликовано:", "") \
                         .replace("автор:", "") \
                         .replace("автор", "") \
                         .replace("мск", "") \
                         .replace("(-ов)", "")
-                    if "dw.com" in url:
-                        parse_result = parse_result.split("дата")[1].split("автор")[0].strip()
                     parse_result = dateparser.parse(parse_result, languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
                     if not parse_result:
                         parse_result = dateparser.parse(" ".join(parse_result.split()[:-1]).strip(), languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
