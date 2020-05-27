@@ -1,8 +1,40 @@
+def set_update_datetime():
+    import datetime
+
+    from airflow.models import Variable
+    from django.db.models import F, ExpressionWrapper, fields
+
+    from mainapp.models import Document
+
+    update_datetime = Variable.get("es_activity_update_datetime")
+    qs = Document.objects.exclude(
+        id__in=(d.id for d in Document.objects.filter(num_views=None, num_comments=None))
+    )
+    qs = qs.only('id', 'datetime_activity_es_updated')
+    qs = qs.annotate(
+        timedelta_parsed_to_updated=ExpressionWrapper(
+            F('datetime_activity_parsed') - F('datetime_activity_es_updated'),
+            output_field=fields.DurationField()
+        )
+    )
+    qs = qs.filter(timedelta_parsed_to_updated__gte=datetime.timedelta(minutes=1))
+    for doc in qs:
+        doc.datetime_activity_es_updated = update_datetime
+    Document.objects.bulk_update(qs, fields=['datetime_activity_es_updated'])
+
+
+def init_update_datetime():
+    from django.utils import timezone
+    from airflow.models import Variable
+
+    Variable.set("es_activity_update_datetime", timezone.now().isoformat())
+
+
 def es_update(**kwargs):
     import datetime
 
     from elasticsearch_dsl import Search
-    from django.db.models import Q, F, ExpressionWrapper, fields
+    from django.db.models import F, ExpressionWrapper, fields
     from django.utils import timezone
 
     from mainapp.models import Document
