@@ -25,7 +25,7 @@ default_args = {
     'pool': 'long_tasks',
 }
 
-dag = DAG('NLPMonitor_es_activity_update', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='15 6 * * *')
+dag = DAG('NLPMonitor_es_activity_update', catchup=False, max_active_runs=1, concurrency=5, default_args=default_args, schedule_interval='15 6 * * *')
 
 indices = json.loads(Variable.get('indices_update_activity', default_var="[]"))
 
