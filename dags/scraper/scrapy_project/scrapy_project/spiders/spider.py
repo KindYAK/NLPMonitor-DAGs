@@ -113,9 +113,11 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                     if not parse_result:
                         parse_result = dateparser.parse(" ".join(parse_result.split()[:-1]).strip(), languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
                     if parse_result and parse_result.year < 2000:
-                        return None
+                        parse_result = None
+                        continue
                 except:
-                    return None
+                    print("Datetime parse Exception", url)
+                    continue
                 date_now = datetime.datetime.now().date()
                 if parse_result.year == date_now.year and parse_result.month > date_now.month:
                     parse_result = parse_result.replace(year=parse_result.year - 1)
