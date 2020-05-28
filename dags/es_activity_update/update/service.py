@@ -81,11 +81,9 @@ def es_update(**kwargs):
                                  id=_td_id,
                                  body={"doc": update_body}
                                  )
-        doc.datetime_activity_es_updated = now
         docs_processed += 1
-        if updated != 0 and updated % 100000 == 0:
+        if updated != 0 and updated % 10000 == 0:
             print(f"{updated} updated")
         if docs_processed != 0 and docs_processed % 10000 == 0:
             print(f"{docs_processed}/{number_of_documents} processed", datetime.datetime.now())
-    Document.objects.bulk_update(qs, fields=['datetime_activity_es_updated'])
     return f"{updated} docs updated"
