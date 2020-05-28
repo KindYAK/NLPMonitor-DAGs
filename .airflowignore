@@ -5,6 +5,7 @@ venv/
 bigartm_temp/
 bigartm_models/
 mussabayev_tm_temp/
+tmp/
 
 dags/examples/
 dags/examples/external_file_example/
@@ -37,3 +38,5 @@ dags/tm_combo_finder/services/
 dags/bigartm_acualizer/services/
 
 dags/get_proxy_list/services/
+
+dags/es_activity_update/services/

@@ -88,6 +88,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         simple_fields = ("text", "title", "author", "datetime", "num_views", "num_likes", "num_comments", "num_shares", )
         complex_fields = ("tags", "categories", )
 
+        url = response.__dict__['_url']
         result = {}
         for field in simple_fields:
             if not hasattr(self, field):
@@ -100,6 +101,8 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 return None
             if field == "datetime":
                 try:
+                    if "dw.com" in url:
+                        parse_result = parse_result.split("дата")[1].split("автор")[0].strip()
                     parse_result = parse_result.lower().strip() \
                         .replace("опубликовано:", "") \
                         .replace("автор:", "") \
@@ -127,7 +130,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 except:
                     parse_result = 0
             result[field] = parse_result
-        result['url'] = response.__dict__['_url']
+        result['url'] = url
         result['html'] = "\n".join(response.css(self.text).extract())
         result['datetime_created'] = datetime.datetime.now().replace(tzinfo=pytz.timezone('Asia/Almaty'))
         # self.i += 1

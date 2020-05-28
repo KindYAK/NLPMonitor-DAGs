@@ -8,13 +8,13 @@ from airflow.operators.python_operator import PythonVirtualenvOperator, PythonOp
 from DjangoOperator import DjangoOperator
 from datetime import datetime, timedelta
 
-from dags.scraper.init_sources.service import init_sources
+from dags.es_activity_update.init_indices.service import init_indices
 
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2019, 9, 4),
+    'start_date': datetime(2020, 5, 22),
     'email': ['airflow@example.com'],
     'email_on_failure': False,
     'email_on_retry': False,
@@ -27,14 +27,11 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('Scrapers_init_sources', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='0 12 * * *')
+dag = DAG('NLPMonitor_es_activity_update_init_indices', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='0 6 * * *')
 
 
 with dag:
     init_sources = DjangoOperator(
-        task_id="init_sources",
-        python_callable=init_sources,
-        op_kwargs={
-            "sources_full": {54, 57, 70, 71},
-        }
+        task_id="init_indices",
+        python_callable=init_indices
     )
