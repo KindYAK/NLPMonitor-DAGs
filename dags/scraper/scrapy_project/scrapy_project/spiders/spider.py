@@ -102,7 +102,7 @@ class TheSpider(scrapy.spiders.CrawlSpider):
             if field == "datetime":
                 try:
                     if "dw.com" in url:
-                        parse_result = parse_result.split("дата")[1].split("автор")[0].strip()
+                        parse_result = parse_result.lower().strip().split("дата")[1].split("автор")[0].strip()
                     parse_result = parse_result.lower().strip() \
                         .replace("опубликовано:", "") \
                         .replace("автор:", "") \
