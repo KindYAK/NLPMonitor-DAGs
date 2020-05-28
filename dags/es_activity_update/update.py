@@ -37,10 +37,10 @@ with dag:
     updaters = []
     for index in indices:
         updaters.append(DjangoOperator(
-            task_id=f"update_{index}",
+            task_id=f"update_{index['name_translit']}",
             python_callable=es_update,
             op_kwargs={
-                "index": index,
+                "index": index['name'],
             }
         )
         )

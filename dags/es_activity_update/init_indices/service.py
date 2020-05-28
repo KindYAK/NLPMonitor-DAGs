@@ -8,7 +8,13 @@ def init_indices(**kwargs):
 
     indices = ES_CLIENT.indices.get_alias(f"{ES_INDEX_TOPIC_DOCUMENT}_*").keys()
     Variable.set("indices_update_activity",
-                     json.dumps(
-                         [transliterate_for_dag_id(index) for index in indices]
-                     )
+                 json.dumps(
+                     [
+                         {
+                             "name": index,
+                             "name_tranlit": transliterate_for_dag_id(index),
+                         }
+                         for index in indices
+                     ]
+                 )
                  )
