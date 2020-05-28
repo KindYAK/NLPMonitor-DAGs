@@ -12,7 +12,7 @@ def init_indices(**kwargs):
                      [
                          {
                              "name": index,
-                             "name_tranlit": transliterate_for_dag_id(index),
+                             "name_translit": transliterate_for_dag_id(index),
                          }
                          for index in indices
                      ]
