@@ -34,7 +34,7 @@ def es_update(**kwargs):
     import datetime
 
     from elasticsearch_dsl import Search
-    from django.db.models import F, ExpressionWrapper, fields
+    from django.db.models import F, ExpressionWrapper, fields, Q
     from django.utils import timezone
 
     from mainapp.models import Document
@@ -48,9 +48,7 @@ def es_update(**kwargs):
     index = kwargs['index']
     now = timezone.now()
     print("!!!", "Getting documents to update", datetime.datetime.now())
-    qs = Document.objects.exclude(
-        id__in=(d.id for d in Document.objects.filter(num_views=None, num_comments=None))
-    )
+    qs = Document.objects.exclude(Q(num_views=None) & Q(num_comments=None))
     qs = qs.only('id', 'num_views', 'num_comments', 'datetime_activity_parsed', 'datetime_activity_es_updated')
     qs = qs.annotate(
         timedelta_parsed_to_updated=ExpressionWrapper(
@@ -58,7 +56,7 @@ def es_update(**kwargs):
             output_field=fields.DurationField()
         )
     )
-    qs = qs.filter(timedelta_parsed_to_updated__gte=datetime.timedelta(minutes=1))
+    qs = qs.filter(Q(timedelta_parsed_to_updated__gte=datetime.timedelta(minutes=1)) | Q(datetime_activity_es_updated=None))
     number_of_documents = qs.count()
     if number_of_documents == 0:
         return "Nothing to update"

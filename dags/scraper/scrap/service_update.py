@@ -44,9 +44,9 @@ def update(**kwargs):
         )
     )
     qg7 = Q(days_since_publication__gte=datetime.timedelta(days=7))
-    ql7 = Q(days_update_to_publication__lte=datetime.timedelta(days=7))
+    ql7 = Q(days_update_to_publication__lte=datetime.timedelta(days=7)) | Q(datetime_activity_parsed=None)
     qg30 = Q(days_since_publication__gte=datetime.timedelta(days=30))
-    ql30 = Q(days_update_to_publication__lte=datetime.timedelta(days=30))
+    ql30 = Q(days_update_to_publication__lte=datetime.timedelta(days=30)) | Q(datetime_activity_parsed=None)
     qs = qs.filter((qg7 & ql7) | (qg30 & ql30))
     number_of_documents = qs.count()
     if number_of_documents == 0:
