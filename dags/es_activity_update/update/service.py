@@ -61,7 +61,7 @@ def es_update(**kwargs):
     if number_of_documents == 0:
         return "Nothing to update"
 
-    print("!!!", "Start updating ES index", index, number_of_documents, "docs to update", datetime.datetime.now())
+    print("!!!", "Start updating ES index", number_of_documents, "docs to update", datetime.datetime.now())
     updated = 0
     docs_processed = 0
     for doc in qs:
