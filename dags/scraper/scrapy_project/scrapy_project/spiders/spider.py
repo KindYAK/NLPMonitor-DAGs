@@ -103,6 +103,8 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                 try:
                     if "dw.com" in url:
                         parse_result = parse_result.lower().strip().split("дата")[1].split("автор")[0].strip()
+                    if "bfm.ru" in url:
+                        parse_result = " ".join(parse_result.lower().strip().split()[:4])
                     parse_result = parse_result.lower().strip() \
                         .replace("опубликовано:", "") \
                         .replace("автор:", "") \
