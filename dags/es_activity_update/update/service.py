@@ -35,7 +35,6 @@ def es_update(**kwargs):
 
     from elasticsearch_dsl import Search
     from django.db.models import F, ExpressionWrapper, fields, Q
-    from django.utils import timezone
 
     from mainapp.models import Document
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
@@ -46,7 +45,6 @@ def es_update(**kwargs):
 
     # Init
     index = kwargs['index']
-    now = timezone.now()
     print("!!!", "Getting documents to update", datetime.datetime.now())
     qs = Document.objects.exclude(Q(num_views=None) & Q(num_comments=None))
     qs = qs.only('id', 'num_views', 'num_comments', 'datetime_activity_parsed', 'datetime_activity_es_updated')
@@ -70,10 +68,10 @@ def es_update(**kwargs):
             update_body['num_views'] = doc.num_views
         if doc.num_comments is not None:
             update_body['num_comments'] = doc.num_comments
-        s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", id=str(doc.id))
+        s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", id=doc.id)[:100]
         _ids = (hit.meta.id for hit in s.execute())
         for _id in _ids:
-            s = Search(using=ES_CLIENT, index=index).filter("term", document_es_id=_id)
+            s = Search(using=ES_CLIENT, index=index).filter("term", document_es_id=_id)[:100]
             _td_ids = (hit.meta.id for hit in s.execute())
             for _td_id in _td_ids:
                 updated += 1
