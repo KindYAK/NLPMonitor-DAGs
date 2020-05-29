@@ -35,6 +35,6 @@ with dag:
         task_id="init_sources",
         python_callable=init_sources,
         op_kwargs={
-            "sources_full": {58, 57, 70, 71},
+            "sources_full": {70},
         }
     )
