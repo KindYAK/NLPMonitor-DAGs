@@ -89,6 +89,8 @@ class TheSpider(scrapy.spiders.CrawlSpider):
         complex_fields = ("tags", "categories", )
 
         url = response.__dict__['_url']
+        if "dw.com" in url and "dw.com/ru/" not in url:
+            return None
         result = {}
         for field in simple_fields:
             if not hasattr(self, field):
@@ -115,7 +117,6 @@ class TheSpider(scrapy.spiders.CrawlSpider):
                     if not parse_result:
                         parse_result = dateparser.parse(" ".join(parse_result.split()[:-1]).strip(), languages=['ru']).replace(tzinfo=pytz.timezone('Asia/Almaty'))
                     if parse_result and parse_result.year < 2000:
-                        parse_result = None
                         continue
                 except:
                     print("Datetime parse Exception", url)
