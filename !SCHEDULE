@@ -1,10 +1,12 @@
 !!! Please update this document when you update DAGs schedules !!!
 
 Name - Schedule (UTC) - Schedule (Almaty)
+Weekly:
+NLPMonitor_es_activity_update - 15 6 * * 5 - 12:15 on Friday
+
 Daily:
 Scrapers_update_activity - 0 0 * * * - 6:00
 NLPMonitor_es_activity_update_init_indices - 0 6 * * * - 12:00
-NLPMonitor_es_activity_update - 15 6 * * * - 12:15
 NLPmonitor_init_topic_group - 0 12 * * * - 18:00
 Criterion_init_var - 0 12 * * * - 18:00
 Scrapers_get_proxy_list - 0 12 * * * - 18:00
