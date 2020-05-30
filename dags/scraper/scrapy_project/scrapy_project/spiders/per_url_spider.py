@@ -40,6 +40,7 @@ class PerUrlSpider(scrapy.spiders.Spider):
         super().__init__(*a, **kw)
         url_filename = kw['url_filename']
         self.start_urls = []
+        self.perform_full = True
         with open(url_filename, "r", encoding='utf-8') as f:
             for url in f.readlines():
                 self.start_urls.append(url)
