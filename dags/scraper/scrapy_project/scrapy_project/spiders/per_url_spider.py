@@ -1,3 +1,4 @@
+import datetime
 import scrapy
 
 from .utils import parse_response
@@ -41,6 +42,12 @@ class PerUrlSpider(scrapy.spiders.Spider):
         url_filename = kw['url_filename']
         self.start_urls = []
         self.perform_full = True
+        self.latest_date = None
+        self.last_depth = None
+        self.perform_fast = False
+        self.depth_history = []
+        self.depth_history_depth = 1
+        self.start_time = datetime.datetime.now()
         with open(url_filename, "r", encoding='utf-8') as f:
             for url in f.readlines():
                 self.start_urls.append(url)
