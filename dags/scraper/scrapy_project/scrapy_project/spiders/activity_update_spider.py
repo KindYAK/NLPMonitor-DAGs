@@ -1,12 +1,4 @@
 import scrapy
-import datetime
-import pytz
-import dateparser
-
-from scrapy.exceptions import CloseSpider
-from scrapy.http import HtmlResponse
-from scrapy.linkextractors import LinkExtractor
-from scrapy_splash import SplashJsonResponse, SplashTextResponse
 
 
 def chunks(lst, n):

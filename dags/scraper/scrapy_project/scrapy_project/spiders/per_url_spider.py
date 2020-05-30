@@ -1,24 +1,14 @@
-import datetime
-
-import pytz
 import scrapy
-from scrapy.linkextractors import LinkExtractor
 
 from .utils import parse_response
 
 
-class TheSpider(scrapy.spiders.CrawlSpider):
-    name = "spider"
+class PerUrlSpider(scrapy.spiders.Spider):
+    name = "per_url_spider"
     custom_settings = {
-        'DEPTH_LIMIT': 100,
+        'DEPTH_LIMIT': 1,
         'DEPTH_PRIORITY': 1
     }
-    rules = (scrapy.spiders.Rule(LinkExtractor(),
-                                 callback="parse_item",
-                                 follow=True,
-                                 # process_request="splash_request"
-                                 ),
-             )
     rotate_user_agent = True
 
     def splash_request(self, request):
@@ -48,18 +38,11 @@ class TheSpider(scrapy.spiders.CrawlSpider):
 
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
+        url_filename = kw['url_filename']
+        self.start_urls = []
+        with open(url_filename, "r", encoding='utf-8') as f:
+            for url in f.readlines():
+                self.start_urls.append(url)
 
-        self.start_urls = [kw['url']]
-        self.allowed_domains = [kw['url'].split("/")[2]]
-        self.latest_date = datetime.datetime.strptime(kw['latest_date'][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
-        self.perform_full = kw['perform_full'] == "yes"
-        self.last_depth = kw.get("max_depth", None)
-        self.perform_fast = bool(kw.get("max_depth", False))
-        if self.last_depth:
-            self.last_depth = int(self.last_depth)
-        self.depth_history = []
-        self.depth_history_depth = 1
-        self.start_time = datetime.datetime.now()
-
-    def parse_item(self, response):
+    def parse(self, response):
         return parse_response(self, response)
