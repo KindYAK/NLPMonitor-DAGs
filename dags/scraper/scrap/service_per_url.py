@@ -20,7 +20,7 @@ def scrap(**kwargs):
     # Scrap
     os.chdir(os.path.join(BASE_DAG_DIR, "dags", "scraper", "scrapy_project"))
     safe_source_name = source.name.replace('https://', '').replace('http://', '').replace('/', '')
-    filename = f"{safe_source_name}_{str(datetime.datetime.now()).replace(':', '-')}.json"
+    filename = f"{source_id}_{str(datetime.datetime.now()).replace(':', '-')}.json"
     run_args = ["scrapy", "crawl", "per_url_spider", "-o", filename]
     for rule in rules:
         run_args.append("-a")
