@@ -26,11 +26,28 @@ default_args = {
 
 dag = DAG('Scrapers_scrap_per_url', catchup=False, max_active_runs=2, default_args=default_args, schedule_interval=None)
 
+# os.path.join(BASE_DAG_DIR, "tmp", f"urls_{source_id}.txt")
 with dag:
-    scraper = DjangoOperator(
-        task_id=f"scrap_dw",
+    scraper1 = DjangoOperator(
+        task_id=f"scrap_svoboda",
         python_callable=scrap,
         op_kwargs={
-            "source_id": 70,
+            "source_id": 67,
+        }
+    )
+
+    scraper2 = DjangoOperator(
+        task_id=f"scrap_rt",
+        python_callable=scrap,
+        op_kwargs={
+            "source_id": 60,
+        }
+    )
+
+    scraper3 = DjangoOperator(
+        task_id=f"scrap_sputnik",
+        python_callable=scrap,
+        op_kwargs={
+            "source_id": 71,
         }
     )
