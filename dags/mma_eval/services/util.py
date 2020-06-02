@@ -30,7 +30,6 @@ def calc_p1(topic_modelling_name, criterion_ids, topics_number):
             continue
         p1_matrix = np.hstack((p1_matrix, column))
     print('!!! p1 matrix calculated', p1_matrix.shape, datetime.now())
-    print('!!!! p1', p1_matrix)
     return p1_matrix
 
 
@@ -46,7 +45,8 @@ def calc_p2(topic_modelling_name, topics_number):
 
     theta = Search(using=ES_CLIENT, index=f'{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}') \
         .source(['document_es_id', 'datetime', 'document_source']).scan()
-    document_es_ids = {t.document_es_id: {'datetime': t.datetime, 'document_source': t.document_source} for t in theta}
+    document_es_ids = {t.document_es_id: {'datetime': getattr(t, "datetime", None),
+                                          'document_source': getattr(t, 'document_source', None)} for t in theta}
     theta_dict = defaultdict(list)
     theta = Search(using=ES_CLIENT, index=f'{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}')\
         .source(['document_es_id', 'topic_weight', 'topic_id']).sort('document_es_id').scan()
@@ -65,7 +65,6 @@ def calc_p2(topic_modelling_name, topics_number):
         else:
             p2_matrix = np.hstack((p2_matrix, column))
     print('!!! p2 matrix calculated', p2_matrix.shape, datetime.now())
-    print('!!!! p2 matrix', p2_matrix)
     return p2_matrix, document_es_ids
 
 
@@ -124,7 +123,7 @@ def calcH2_direct_log2(p5, E):
 
     ######### peIh1=p2   it's work
     peI_h1 = np.ones((c, m)) / 2
-    for i in range(len(E)):
+    for i in E:
         # print ('peIh1[:,i]=',peIh1[:,i])
 
         # ph1Ie= peIh1[:,i]*ph1  /  (peIh1[:,i]*ph1  + peI_h1[:,i]*p_h1)
@@ -167,7 +166,7 @@ def calcH3_direct_log2(p6, E):
     peIh1 = p6 + 2 ** -21
 
     peI_h1 = np.ones((q, m)) / 2
-    for i in range(len(E)):
+    for i in E:
         # print ('peIh1[:,i]=',peIh1[:,i])
 
         # ph1Ie= peIh1[:,i]*ph1  /  (peIh1[:,i]*ph1  + peI_h1[:,i]*p_h1)
@@ -190,27 +189,28 @@ def calcH3_direct_log2(p6, E):
 
 
 def parse_documents(p5, p6, document_es_ids, criterion_ids, class_ids):
-    import numpy as np
 
     class_dict = dict()
     criterion_dict = dict()
 
-    for document_es_id in document_es_ids:
-        document_index_to_calc = [document_es_id]
-        minMin = 2
-        maxMax = 20
+    for ind, document_es_id in enumerate(document_es_ids):
+        document_index_to_calc = [ind]
+        # minMin = 2
+        # maxMax = 20
         Ps = calcH2_direct_log2(p5, document_index_to_calc)
-        a = 0
-        b = 1
-        Ps_norm2 = a + (((Ps) - np.min(Ps - minMin) * (b - a)) / (np.max(Ps + maxMax) - np.min(Ps)))
-        char_dict = dict(zip(class_ids, Ps_norm2))
+        # a = 0
+        # b = 1
+        # Ps_norm2 = a + (((Ps) - np.min(Ps - minMin) * (b - a)) / (np.max(Ps + maxMax) - np.min(Ps)))
+        char_dict = dict(zip(class_ids, Ps))
         class_dict[document_es_id] = char_dict
 
         Ps = calcH3_direct_log2(p6, document_index_to_calc)
-        Ps_norm2 = a + (((Ps) - np.min(Ps - minMin) * (b - a)) / (np.max(Ps + maxMax) - np.min(Ps)))
-        char_dict1 = dict(zip(criterion_ids, Ps_norm2))
-        char_dict.update(char_dict1)
+        # Ps_norm2 = a + (((Ps) - np.min(Ps - minMin) * (b - a)) / (np.max(Ps + maxMax) - np.min(Ps)))
+        char_dict = dict(zip(criterion_ids, Ps))
         criterion_dict[document_es_id] = char_dict
+
+    class_dict = scale_output_dict(input_dict=class_dict, crit_or_class_ids=class_ids)
+    criterion_dict = scale_output_dict(input_dict=criterion_dict, crit_or_class_ids=criterion_ids)
 
     return class_dict, criterion_dict
 
@@ -330,3 +330,24 @@ def custom_dot(matrix_1, matrix_2):
                 new_matrix[index, col] = 0.5 * (col_elem - min_up) / (max_up - min_up) + 0.5
 
     return new_matrix
+
+
+def scale_output_dict(input_dict, crit_or_class_ids):
+    from sklearn.preprocessing import MinMaxScaler
+    import numpy as np
+
+    keys = input_dict.keys()
+    values = input_dict.values()
+    for crit in crit_or_class_ids:
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        values_to_scale = list()
+        for val in values:
+            values_to_scale.append(val[crit])
+        assert len(values_to_scale) == len(values)
+        values_to_scale = np.array(values_to_scale)
+        scaled_values = scaler.fit_transform(values_to_scale.reshape(-1, 1)).reshape(1, -1)[0]
+        for i, val in enumerate(values):
+            val[crit] = scaled_values[i]
+    output_dict = dict(zip(keys, values))
+
+    return output_dict

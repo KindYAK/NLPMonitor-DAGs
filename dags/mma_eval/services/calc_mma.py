@@ -4,6 +4,10 @@ def calc_mma(**kwargs):
     import numpy as np
     from .util import calc_p1, calc_p2, calc_p4, calc_p5, calc_p6, parse_documents, create_delete_index, bulk_factory
 
+    import logging
+    es_logger = logging.getLogger('elasticsearch')
+    es_logger.setLevel(logging.ERROR)
+
     topic_modellings_list = kwargs['topic_modellings_list']
     criterion_ids_list = kwargs['criterion_ids_list']
     perform_actualize = kwargs['perform_actualize']
@@ -48,7 +52,7 @@ def calc_mma(**kwargs):
         p2_matrix, document_es_guide = calc_p2(topic_modelling_name=topic_modelling_name,
                                                topics_number=topics_number)
 
-        p3_matrix = np.ones(shape=(1, 1))  # TODO embedding for class
+        p3_matrix = np.array([0.44, 0.33, 0.23]).reshape(-1, 1)  # TODO embedding for class tonalnost, rezonansnost, gos
 
         p4_matrix = calc_p4(p1=p1_matrix, p3=p3_matrix)
 
@@ -56,9 +60,11 @@ def calc_mma(**kwargs):
 
         p6_matrix = calc_p6(p1=p1_matrix, p2=p2_matrix)
 
-        scored_class_documents, scored_criterion_documents = parse_documents(p5=p5_matrix, p6=p6_matrix,
+        scored_class_documents, scored_criterion_documents = parse_documents(p5=p5_matrix,
+                                                                             p6=p6_matrix,
                                                                              document_es_ids=list(document_es_guide.keys()),
-                                                                             criterion_ids=criterion_ids, class_ids=(0, ))
+                                                                             criterion_ids=criterion_ids,
+                                                                             class_ids=(0, ))
 
         index_kwargs = {
             'perform_actualize': perform_actualize,
@@ -74,6 +80,7 @@ def calc_mma(**kwargs):
 
         index_kwargs['crit_or_class_ids'] = class_ids
         index_kwargs['is_criterion'] = False
+        index_kwargs['scored_documents'] = scored_class_documents
         create_delete_index(**index_kwargs)
         bulk_factory(**index_kwargs)
 
