@@ -4,6 +4,10 @@ def calc_mma(**kwargs):
     import numpy as np
     from .util import calc_p1, calc_p2, calc_p4, calc_p5, calc_p6, parse_documents, create_delete_index, bulk_factory
 
+    import logging
+    es_logger = logging.getLogger('elasticsearch')
+    es_logger.setLevel(logging.ERROR)
+
     topic_modellings_list = kwargs['topic_modellings_list']
     criterion_ids_list = kwargs['criterion_ids_list']
     perform_actualize = kwargs['perform_actualize']
