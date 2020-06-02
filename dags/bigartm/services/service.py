@@ -143,7 +143,6 @@ def dataset_prepare(**kwargs):
     corpus = kwargs['corpus']
     if type(corpus) != list:
         corpus = [corpus]
-    corpus_datetime_ignore = kwargs.get('corpus_datetime_ignore', [])
     source = kwargs['source']
     datetime_from = kwargs['datetime_from']
     datetime_to = kwargs['datetime_to']
@@ -167,8 +166,7 @@ def dataset_prepare(**kwargs):
     if datetime_to and not perform_actualize:
         q_to = Q("range", datetime={"lte": datetime_to})
     q = (q_from & q_to)
-    for corpus_to_ignore in corpus_datetime_ignore:
-        q = q | (~Q('exists', field="datetime") & Q("term", corpus=corpus_to_ignore))
+    q = q | ~Q('exists', field="datetime")
     s = s.query(q)
     s = s.source(["id", "text", text_field, "title", "source", "num_views", "num_comments", "datetime", "corpus"])[:5000000]
 
