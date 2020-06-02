@@ -78,6 +78,7 @@ def calc_mma(**kwargs):
 
         index_kwargs['crit_or_class_ids'] = class_ids
         index_kwargs['is_criterion'] = False
+        index_kwargs['scored_documents'] = scored_class_documents
         create_delete_index(**index_kwargs)
         bulk_factory(**index_kwargs)
 
