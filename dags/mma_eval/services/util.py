@@ -30,7 +30,6 @@ def calc_p1(topic_modelling_name, criterion_ids, topics_number):
             continue
         p1_matrix = np.hstack((p1_matrix, column))
     print('!!! p1 matrix calculated', p1_matrix.shape, datetime.now())
-    print('!!!! p1', p1_matrix)
     return p1_matrix
 
 
@@ -65,7 +64,6 @@ def calc_p2(topic_modelling_name, topics_number):
         else:
             p2_matrix = np.hstack((p2_matrix, column))
     print('!!! p2 matrix calculated', p2_matrix.shape, datetime.now())
-    print('!!!! p2 matrix', p2_matrix)
     return p2_matrix, document_es_ids
 
 
@@ -195,7 +193,7 @@ def parse_documents(p5, p6, document_es_ids, criterion_ids, class_ids):
     class_dict = dict()
     criterion_dict = dict()
 
-    for document_es_id in document_es_ids:
+    for ind, document_es_id in enumerate(document_es_ids):
         document_index_to_calc = [document_es_id]
         minMin = 2
         maxMax = 20
