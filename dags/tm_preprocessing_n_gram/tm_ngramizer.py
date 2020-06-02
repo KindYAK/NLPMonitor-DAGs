@@ -42,7 +42,7 @@ with dag:
         }
     )
 
-    concurrency = 30
+    concurrency = 5
     lemmatize_operators = []
     for i in range(concurrency):
         lemmatize_operators.append(DjangoOperator(
