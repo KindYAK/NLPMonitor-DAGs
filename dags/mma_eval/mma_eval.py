@@ -12,7 +12,7 @@ default_args = {
     'email': ['airflow@example.com'],
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 1,
+    'retries': 0,
     'retry_delay': timedelta(minutes=30),
     'priority_weight': 90,
     'pool': 'short_tasks'
@@ -26,8 +26,8 @@ with dag:
         task_id=f"calculate_mma",
         python_callable=calc_mma,
         op_kwargs={
-            "topic_modellings_list": ("bigartm_two_years", ),
-            "criterion_ids_list": ((1, ), ),
+            "topic_modellings_list": ("bigartm_two_years_main_and_gos2", ),
+            "criterion_ids_list": ((1, 35, 34), ),
             "perform_actualize": False
         }
     )
