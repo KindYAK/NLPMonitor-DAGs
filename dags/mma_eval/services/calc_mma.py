@@ -60,9 +60,11 @@ def calc_mma(**kwargs):
 
         p6_matrix = calc_p6(p1=p1_matrix, p2=p2_matrix)
 
-        scored_class_documents, scored_criterion_documents = parse_documents(p5=p5_matrix, p6=p6_matrix,
+        scored_class_documents, scored_criterion_documents = parse_documents(p5=p5_matrix,
+                                                                             p6=p6_matrix,
                                                                              document_es_ids=list(document_es_guide.keys()),
-                                                                             criterion_ids=criterion_ids, class_ids=(0, ))
+                                                                             criterion_ids=criterion_ids,
+                                                                             class_ids=(0, ))
 
         index_kwargs = {
             'perform_actualize': perform_actualize,
