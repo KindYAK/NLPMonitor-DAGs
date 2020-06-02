@@ -45,7 +45,9 @@ def calc_p2(topic_modelling_name, topics_number):
 
     theta = Search(using=ES_CLIENT, index=f'{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}') \
         .source(['document_es_id', 'datetime', 'document_source']).scan()
-    document_es_ids = {t.document_es_id: {'datetime': t.datetime, 'document_source': t.document_source} for t in theta}
+    document_es_ids = {t.document_es_id: {'datetime': t.datetime if hasattr(t, "datetime") else None,
+                                          'document_source': t.document_source if hasattr(t, 'document_source')
+                                          else None} for t in theta}
     theta_dict = defaultdict(list)
     theta = Search(using=ES_CLIENT, index=f'{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}')\
         .source(['document_es_id', 'topic_weight', 'topic_id']).sort('document_es_id').scan()
