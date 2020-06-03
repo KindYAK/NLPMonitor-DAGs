@@ -138,6 +138,7 @@ def dataset_prepare(**kwargs):
     lc.minloglevel = 3  # 0 = INFO, 1 = WARNING, 2 = ERROR, 3 = FATAL
     lib.ArtmConfigureLogging(lc)
     perform_actualize = 'perform_actualize' in kwargs
+    fast = 'fast' in kwargs
     name = kwargs['name']
     name_translit = kwargs['name_translit']
     corpus = kwargs['corpus']
@@ -240,10 +241,10 @@ def dataset_prepare(**kwargs):
 
     if is_dynamic:
         data_folder = os.path.join(data_folder,
-                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}_{datetime_from.date()}_{datetime_to.date()}")
+                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
     else:
         data_folder = os.path.join(data_folder,
-                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}_{datetime_from}_{datetime_to}")
+                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
     shutil.rmtree(data_folder, ignore_errors=True)
     os.mkdir(data_folder)
     if perform_actualize and len(formated_data) == 0:
@@ -290,16 +291,17 @@ def topic_modelling(**kwargs):
     datetime_to = kwargs['datetime_to']
     regularization_params = kwargs['regularization_params']
     is_actualizable = 'is_actualizable' in kwargs and kwargs['is_actualizable']
+    fast = 'fast' in kwargs and kwargs['fast']
     index_tm = kwargs['index_tm']
     tm_index = get_tm_index(**kwargs)
 
     data_folder = os.path.join(BASE_DAG_DIR, temp_folder)
     if is_dynamic:
         data_folder = os.path.join(data_folder,
-                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}_{datetime_from.date()}_{datetime_to.date()}")
+                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
     else:
         data_folder = os.path.join(data_folder,
-                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}_{datetime_from}_{datetime_to}")
+                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
 
     batches_folder = os.path.join(data_folder, "batches")
     if perform_actualize and not os.path.exists(batches_folder):
