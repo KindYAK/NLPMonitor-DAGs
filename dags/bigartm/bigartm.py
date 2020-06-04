@@ -10,7 +10,7 @@ from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.python_operator import PythonOperator
 
-import dags.bigartm.bigartm_etc_corpora
+# from dags.bigartm.bigartm_etc_corpora import dag7 as dag_etc
 
 default_args = {
     'owner': 'airflow',

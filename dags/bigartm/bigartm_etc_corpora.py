@@ -1,10 +1,23 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
-from dags.bigartm.bigartm import default_args, gen_bigartm_operator
+from dags.bigartm.bigartm import gen_bigartm_operator
 
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2019, 9, 12),
+    'email': ['airflow@example.com'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 0,
+    'retry_delay': timedelta(minutes=15),
+    'priority_weight': 50,
+    'pool': 'long_tasks'
+}
 
 dag7 = DAG('NLPmonitor_BigARTMs_rus', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args, schedule_interval=None)
 with dag7:
