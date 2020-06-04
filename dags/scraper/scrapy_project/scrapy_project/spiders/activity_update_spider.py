@@ -76,12 +76,10 @@ class TheActivityUpdateSpider(scrapy.spiders.Spider):
         except:
             for url_candidate in response.request.meta['redirect_urls']:
                 try:
-                    print("Candidate URL:", url_candidate, "normalized:", normalize_url(url_candidate))
                     meta = self.urls_dict[normalize_url(url_candidate)]
                 except:
                     continue
             if not meta:
-                print("Missing url:", url, "Normalized url:", normalize_url(url))
                 return None
 
         result = {}

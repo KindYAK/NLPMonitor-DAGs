@@ -88,6 +88,7 @@ with dag_fast:
                 "group_id": tm["filters"]['group_id'] if 'group_id' in tm["filters"] else None,
                 "topic_weight_threshold": tm["filters"]['topic_weight_threshold'] if 'topic_weight_threshold' in tm["filters"] else None,
                 "regularization_params": tm["regularization_params"],
+                "fast": True,
             }
         )
         actualizers_calcs.append(bigartm_calc_operator)

@@ -48,7 +48,7 @@ def preprocessing_raw_data(**kwargs):
     if number_of_documents is None:
         raise Exception("No variable!")
 
-    s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={'corpus': 'main'}, source=['text'], sort=['id'], get_search_obj=True)
+    s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True)
     s = s.query(~Q('exists', field="text_lemmatized_yandex") | ~Q('exists', field="text_lemmatized"))
     s = s[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1]
     documents = s.execute()
@@ -70,13 +70,13 @@ def preprocessing_raw_data(**kwargs):
         if is_latin(cleaned_doc):
             cleaned_words_list = [lemmatizer.lemmatize(word) for word in cleaned_doc.split() if
                                   len(word) > 3 and word not in stopwords_eng]
+            doc['text_lemmatized_yandex'] = ""
         else:
             cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in cleaned_doc.split() if
                                   len(word) > 2 and word not in stopwords_ru]
             cwl_yandex = filter(lambda word: is_word(word) and len(word) > 2 and word not in stopwords_ru, m.lemmatize(cleaned_doc))
             cleaned_doc_yandex = " ".join(cwl_yandex)
             doc['text_lemmatized_yandex'] = cleaned_doc_yandex
-
         cleaned_doc = " ".join(cleaned_words_list)
         doc['text_lemmatized'] = cleaned_doc
 
