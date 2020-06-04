@@ -24,7 +24,8 @@ default_args = {
     'pool': 'short_tasks'
 }
 
-dag = DAG('NLPmonitor_Actualize_BigARTM', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='30 22 * * *')
+# TODO Temp - remove concurrency limit
+dag = DAG('NLPmonitor_Actualize_BigARTM', catchup=False, max_active_runs=1, concurrency=10, default_args=default_args, schedule_interval='30 22 * * *')
 dag_fast = DAG('NLPmonitor_Actualize_BigARTM_fast', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='35 * * * *')
 
 actualizers_calcs = []
