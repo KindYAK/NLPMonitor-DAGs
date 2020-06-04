@@ -44,17 +44,23 @@ def calc_p2(topic_modelling_name, topics_number):
     p2_matrix = None
 
     theta = Search(using=ES_CLIENT, index=f'{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}') \
-        .source(['document_es_id', 'datetime', 'document_source']).scan()
-    document_es_ids = {t.document_es_id: {'datetime': getattr(t, "datetime", None),
-                                          'document_source': getattr(t, 'document_source', None)} for t in theta}
+        .source(['document_es_id', 'datetime', 'document_source', 'topic_weight', 'topic_id'])
+
     theta_dict = defaultdict(list)
-    theta = Search(using=ES_CLIENT, index=f'{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}')\
-        .source(['document_es_id', 'topic_weight', 'topic_id']).sort('document_es_id').scan()
-
-    for t in theta:
+    document_es_ids = dict()
+    total = theta.count()
+    for i, t in enumerate(theta.scan()):
+        if i % 100000 == 0:
+            print(f'!!! {i}/{total} thetas passed in dict creating')
         theta_dict[t.document_es_id].append([t.topic_id, t.topic_weight])
+        if t.document_es_id not in document_es_ids.keys():
+            document_es_ids[t.document_es_id] = {'datetime': getattr(t, "datetime", None),
+                                                 'document_source': getattr(t, 'document_source', None)}
 
-    for document_id in document_es_ids:
+    total = len(document_es_ids)
+    for i, document_id in enumerate(document_es_ids):
+        if i % 10000 == 0:
+            print(f'!!! {i}/{total} documents passed in p2 matrix creating')
         column = np.zeros(topics_number).reshape(-1, 1)
         for topic_doc in theta_dict[document_id]:
             id_in_column = int(topic_doc[0].split('_')[1])
