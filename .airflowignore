@@ -32,6 +32,8 @@ dags/add_topics_info/service/
 dags/mussabayev_tm/service/
 
 dags/bigartm/services/
+dags/bigartm/init_topic_groups/
+dags/bigartm/fill_dags/
 
 dags/tm_combo_finder/services/
 
