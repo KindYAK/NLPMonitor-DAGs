@@ -254,7 +254,7 @@ def bulk_factory(**kwargs):
     topic_modelling_name = kwargs['topic_modelling_name']
     perform_actualize = kwargs['perform_actualize']
     document_es_guide = kwargs['document_es_guide']
-
+    print(f'!!! start elastic sending for {"criteria" if is_criterion else "classes"}', datetime.now())
     for i, ids in enumerate(crit_or_class_ids):
         total_created = 0
         failed = 0
@@ -265,7 +265,7 @@ def bulk_factory(**kwargs):
                                         index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling_name}_{ids}{'_m4a' if is_criterion else '_m4a_class'}",
                                         chunk_size=10000 if not perform_actualize else 500, raise_on_error=True,
                                         thread_count=4):
-            if (failed + success) % 2500 == 0:
+            if (failed + success) % 100_000 == 0:
                 print(f"!!!{failed+success}/{len(scored_documents)} processed", datetime.now())
             if failed > 5:
                 raise Exception("Too many failed ES!!!")
