@@ -49,7 +49,7 @@ def calc_p2(topic_modelling_name, topics_number):
     document_es_ids = dict()
     total = theta.count()
     for i, t in enumerate(theta.scan()):
-        if i % 100000 == 0:
+        if i % 10000000 == 0:
             print(f'!!! {i}/{total} thetas passed in dict creating')
         theta_dict[t.document_es_id].append([t.topic_id, t.topic_weight])
         if t.document_es_id not in document_es_ids.keys():
