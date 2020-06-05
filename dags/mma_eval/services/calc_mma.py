@@ -60,16 +60,10 @@ def calc_mma(**kwargs):
 
         p6_matrix = calc_p6(p1=p1_matrix, p2=p2_matrix)
 
-        scored_class_documents, scored_criterion_documents = parse_documents(p5=p5_matrix,
-                                                                             p6=p6_matrix,
-                                                                             document_es_ids=list(document_es_guide.keys()),
-                                                                             criterion_ids=criterion_ids,
-                                                                             class_ids=(0, ))
-
         index_kwargs = {
             'perform_actualize': perform_actualize,
             'topic_modelling_name': topic_modelling_name,
-            'scored_documents': scored_criterion_documents,
+            'scored_documents': p6_matrix,
             'is_criterion': True,
             'crit_or_class_ids': criterion_ids,
             'document_es_guide': document_es_guide
@@ -80,7 +74,7 @@ def calc_mma(**kwargs):
 
         index_kwargs['crit_or_class_ids'] = class_ids
         index_kwargs['is_criterion'] = False
-        index_kwargs['scored_documents'] = scored_class_documents
+        index_kwargs['scored_documents'] = p5_matrix
         create_delete_index(**index_kwargs)
         bulk_factory(**index_kwargs)
 
