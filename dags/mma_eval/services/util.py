@@ -41,7 +41,6 @@ def calc_p2(topic_modelling_name, topics_number):
     from collections import defaultdict
 
     print('!!! p2 matrix calculating started', datetime.now())
-    p2_matrix = None
 
     theta = Search(using=ES_CLIENT, index=f'{ES_INDEX_TOPIC_DOCUMENT}_{topic_modelling_name}') \
         .source(['document_es_id', 'datetime', 'document_source', 'topic_weight', 'topic_id'])
@@ -50,7 +49,7 @@ def calc_p2(topic_modelling_name, topics_number):
     document_es_ids = dict()
     total = theta.count()
     for i, t in enumerate(theta.scan()):
-        if i % 100000 == 0:
+        if i % 10000000 == 0:
             print(f'!!! {i}/{total} thetas passed in dict creating')
         theta_dict[t.document_es_id].append([t.topic_id, t.topic_weight])
         if t.document_es_id not in document_es_ids.keys():
@@ -58,18 +57,15 @@ def calc_p2(topic_modelling_name, topics_number):
                                                  'document_source': getattr(t, 'document_source', None)}
 
     total = len(document_es_ids)
+    p2_matrix = np.zeros((total, topics_number))
     for i, document_id in enumerate(document_es_ids):
         if i % 10000 == 0:
             print(f'!!! {i}/{total} documents passed in p2 matrix creating')
-        column = np.zeros(topics_number).reshape(-1, 1)
+        column = np.zeros(topics_number)
         for topic_doc in theta_dict[document_id]:
             id_in_column = int(topic_doc[0].split('_')[1])
             column[id_in_column] = topic_doc[1]
-
-        if p2_matrix is None:
-            p2_matrix = column
-        else:
-            p2_matrix = np.hstack((p2_matrix, column))
+        p2_matrix[i] = column
     print('!!! p2 matrix calculated', p2_matrix.shape, datetime.now())
     return p2_matrix, document_es_ids
 
@@ -78,7 +74,7 @@ def calc_p4(p1, p3):
     from datetime import datetime
     print('!!! p4 matrix calculating started', datetime.now())
     """Вероятность совпадения тематики и класса: p4[k][c]"""
-    p4 = custom_dot(matrix_1=p1, matrix_2=p3)
+    p4 = custom_dot(matrix_1=p1, matrix_2=p3, agg_type='mean')
     print('!!! p4 matrix calculated', p4.shape, datetime.now())
     return p4
 
@@ -87,7 +83,7 @@ def calc_p5(p4, p2):
     from datetime import datetime
     print('!!! p5 matrix calculating started', datetime.now())
     """Распределение вероятностей статей по классам: p5 [m][c]"""
-    p5 = custom_dot(matrix_1=p2.T, matrix_2=p4)
+    p5 = custom_dot(matrix_1=p2, matrix_2=p4, agg_type='bayes')
     print('!!! p5 matrix calculated', p5.shape, datetime.now())
     return p5
 
@@ -96,7 +92,7 @@ def calc_p6(p1, p2):
     from datetime import datetime
     print('!!! p6 matrix calculating started', datetime.now())
     """Распределение статей по признакам"""
-    p6 = custom_dot(matrix_1=p2.T, matrix_2=p1)
+    p6 = custom_dot(matrix_1=p2, matrix_2=p1, agg_type='bayes')
     print('!!! p6 matrix calculated', p6.shape, datetime.now())
     return p6
 
@@ -239,7 +235,7 @@ def create_delete_index(**kwargs):
             es_index.delete(ignore=404)
         if not ES_CLIENT.indices.exists(f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling_name}_{crit_id}{'_m4a' if is_criterion else '_m4a_class'}"):
             settings = DocumentEval.Index.settings
-            settings['number_of_shards'] = shards_mapping(len(scored_documents))
+            settings['number_of_shards'] = shards_mapping(scored_documents.shape[0])
             ES_CLIENT.indices.create(index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling_name}_{crit_id}{'_m4a' if is_criterion else '_m4a_class'}", body={
                 "settings": settings,
                 "mappings": DocumentEval.Index.mappings
@@ -259,13 +255,13 @@ def bulk_factory(**kwargs):
     perform_actualize = kwargs['perform_actualize']
     document_es_guide = kwargs['document_es_guide']
 
-    for ids in crit_or_class_ids:
+    for i, ids in enumerate(crit_or_class_ids):
         total_created = 0
         failed = 0
         success = 0
-        for ok, result in parallel_bulk(ES_CLIENT, document_eval_generator(class_crit_dict=scored_documents,
+        for ok, result in parallel_bulk(ES_CLIENT, document_eval_generator(class_crit=scored_documents,
                                                                            document_guide=document_es_guide,
-                                                                           id_to_bulk=ids),
+                                                                           enum_id=i),
                                         index=f"{ES_INDEX_DOCUMENT_EVAL}_{topic_modelling_name}_{ids}{'_m4a' if is_criterion else '_m4a_class'}",
                                         chunk_size=10000 if not perform_actualize else 500, raise_on_error=True,
                                         thread_count=4):
@@ -280,11 +276,11 @@ def bulk_factory(**kwargs):
                 total_created += 1
 
 
-def document_eval_generator(class_crit_dict, document_guide, id_to_bulk):
+def document_eval_generator(class_crit, document_guide, enum_id):
     from mainapp.documents import DocumentEval
 
-    for document_es_id, class_crit_sub_dict in class_crit_dict.items():
-        bayes_value = class_crit_sub_dict[id_to_bulk]
+    for i, document_es_id in enumerate(document_guide.keys()):
+        bayes_value = class_crit[i, enum_id]
         doc = DocumentEval(value=bayes_value,
                            document_es_id=document_es_id,
                            document_datetime=document_guide[document_es_id]['datetime'],
@@ -293,7 +289,18 @@ def document_eval_generator(class_crit_dict, document_guide, id_to_bulk):
         yield doc.to_dict()
 
 
-def custom_dot(matrix_1, matrix_2):
+def bayes(values):
+    """
+    :param values:
+    :return:
+    """
+    hypothesis = 0.5
+    for val in values:
+        hypothesis = val * hypothesis / (val * hypothesis + (1 - val) * (1 - hypothesis))
+    return hypothesis
+
+
+def custom_dot(matrix_1, matrix_2, agg_type='mean'):
     import numpy as np
     """
     1.берем строку м1 берем столбец м2
@@ -310,8 +317,18 @@ def custom_dot(matrix_1, matrix_2):
         for col in range(new_matrix_cols):
             probs = matrix_2[:, col]
             assert len(probs) == len(weights)
-            new_matrix_element = np.mean([(p - 0.5) * w + 0.5 for p, w in zip(probs, weights)])
+            values = [(p - 0.5) * w + 0.5 + 2 ** -20 for p, w in zip(probs, weights)]  # 2 ** -20 bcs of prob 0 issue
+            if agg_type == 'mean':
+                new_matrix_element = np.mean(values)
+            elif agg_type == 'bayes':
+                new_matrix_element = bayes(values)
+            else:
+                new_matrix_element = sum(values)
+
             new_matrix[index, col] = new_matrix_element
+
+    if agg_type == 'bayes':
+        return new_matrix
 
     min_low, max_low, min_up, max_up = 1, 0.5, 1, 0.5
 
