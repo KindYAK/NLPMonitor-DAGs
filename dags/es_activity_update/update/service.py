@@ -79,9 +79,9 @@ def es_update(**kwargs):
                                  id=_td_id,
                                  body={"doc": update_body}
                                  )
+                if updated != 0 and updated % 10000 == 0:
+                    print(f"{updated} updated")
         docs_processed += 1
-        if updated != 0 and updated % 10000 == 0:
-            print(f"{updated} updated")
         if docs_processed != 0 and docs_processed % 10000 == 0:
             print(f"{docs_processed}/{number_of_documents} processed", datetime.datetime.now())
     return f"{updated} docs updated"
