@@ -61,7 +61,7 @@ def es_update(**kwargs):
         return "Nothing to update"
 
     print("!!!", "Start updating ES index", number_of_documents, "docs to update", datetime.datetime.now())
-    def update_generator():
+    def activity_update_generator():
         updated = 0
         docs_processed = 0
         for doc in qs:
@@ -89,14 +89,13 @@ def es_update(**kwargs):
 
     success = 0
     failed = 0
-    for ok, result in parallel_bulk(ES_CLIENT, update_generator(),
-                                     index=ES_INDEX_DOCUMENT,
-                                     chunk_size=5000, raise_on_error=True, thread_count=4, max_retries=10):
+    for ok, result in parallel_bulk(ES_CLIENT, activity_update_generator(),
+                                     index=index, chunk_size=10000, raise_on_error=True, thread_count=4):
         if not ok:
             failed += 1
         else:
             success += 1
-        if success % 5000 == 0:
+        if success % 10000 == 0:
             print(f"{success} es docs updated, {datetime.datetime.now()}")
         if failed > 5:
             raise Exception("Too many failed ES!!!")
