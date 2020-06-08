@@ -34,6 +34,7 @@ def es_update(**kwargs):
     import datetime
 
     from elasticsearch_dsl import Search
+    from elasticsearch.helpers import parallel_bulk
     from django.db.models import F, ExpressionWrapper, fields, Q
 
     from mainapp.models import Document
@@ -60,28 +61,43 @@ def es_update(**kwargs):
         return "Nothing to update"
 
     print("!!!", "Start updating ES index", number_of_documents, "docs to update", datetime.datetime.now())
-    updated = 0
-    docs_processed = 0
-    for doc in qs:
-        update_body = {}
-        if doc.num_views is not None:
-            update_body['num_views'] = doc.num_views
-        if doc.num_comments is not None:
-            update_body['num_comments'] = doc.num_comments
-        s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", id=doc.id)[:100]
-        _ids = (hit.meta.id for hit in s.execute())
-        for _id in _ids:
-            s = Search(using=ES_CLIENT, index=index).filter("term", document_es_id=_id)[:100]
-            _td_ids = (hit.meta.id for hit in s.execute())
-            for _td_id in _td_ids:
-                updated += 1
-                ES_CLIENT.update(index=index,
-                                 id=_td_id,
-                                 body={"doc": update_body}
-                                 )
-                if updated != 0 and updated % 10000 == 0:
-                    print(f"{updated} updated")
-        docs_processed += 1
-        if docs_processed != 0 and docs_processed % 10000 == 0:
-            print(f"{docs_processed}/{number_of_documents} processed", datetime.datetime.now())
-    return f"{updated} docs updated"
+    def update_generator():
+        updated = 0
+        docs_processed = 0
+        for doc in qs:
+            update_body = {}
+            if doc.num_views is not None:
+                update_body['num_views'] = doc.num_views
+            if doc.num_comments is not None:
+                update_body['num_comments'] = doc.num_comments
+            s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("term", id=doc.id)[:100]
+            _ids = (hit.meta.id for hit in s.execute())
+            for _id in _ids:
+                s = Search(using=ES_CLIENT, index=index).filter("term", document_es_id=_id)[:100]
+                _td_ids = (hit.meta.id for hit in s.execute())
+                for _td_id in _td_ids:
+                    updated += 1
+                    yield {
+                        "_index": index,
+                        "_op_type": "update",
+                        "_id": _td_id,
+                        "doc": update_body,
+                    }
+            docs_processed += 1
+            if docs_processed != 0 and docs_processed % 10000 == 0:
+                print(f"{docs_processed}/{number_of_documents} processed", datetime.datetime.now())
+
+    success = 0
+    failed = 0
+    for ok, result in parallel_bulk(ES_CLIENT, update_generator(),
+                                     index=ES_INDEX_DOCUMENT,
+                                     chunk_size=5000, raise_on_error=True, thread_count=4, max_retries=10):
+        if not ok:
+            failed += 1
+        else:
+            success += 1
+        if success % 5000 == 0:
+            print(f"{success} es docs updated, {datetime.datetime.now()}")
+        if failed > 5:
+            raise Exception("Too many failed ES!!!")
+    return f"{success} docs updated"
