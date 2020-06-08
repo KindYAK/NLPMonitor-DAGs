@@ -2,7 +2,7 @@ def calc_mma(**kwargs):
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_DOCUMENT_EVAL
     from elasticsearch_dsl import Search
     import numpy as np
-    from .util import calc_p1, calc_p2, calc_p4, calc_p5, calc_p6, parse_documents, create_delete_index, bulk_factory
+    from .util import calc_p1, calc_p2, calc_p4, calc_p5, calc_p6, create_delete_index, bulk_factory
 
     import logging
     es_logger = logging.getLogger('elasticsearch')
@@ -10,9 +10,10 @@ def calc_mma(**kwargs):
 
     topic_modellings_list = kwargs['topic_modellings_list']
     criterion_ids_list = kwargs['criterion_ids_list']
+    class_ids_list = kwargs['class_ids_list']
     perform_actualize = kwargs['perform_actualize']
 
-    for topic_modelling_name, criterion_ids in zip(topic_modellings_list, criterion_ids_list):
+    for topic_modelling_name, criterion_ids, c_ids in zip(topic_modellings_list, criterion_ids_list, class_ids_list):
         # Тональность
         # 1
         # Образование
@@ -41,7 +42,6 @@ def calc_mma(**kwargs):
         # инновации
         # 14
         # TODO use this criterion ids in production: 1-тональность, 33-объективность, 35-резонансность, 32-пропаганда
-        class_ids = (0, )
         tm = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING).filter('term', **{'name': topic_modelling_name}) \
             .source(['number_of_topics']).execute()[0]
         topics_number = tm.number_of_topics
@@ -72,7 +72,7 @@ def calc_mma(**kwargs):
         create_delete_index(**index_kwargs)
         bulk_factory(**index_kwargs)
 
-        index_kwargs['crit_or_class_ids'] = class_ids
+        index_kwargs['crit_or_class_ids'] = c_ids
         index_kwargs['is_criterion'] = False
         index_kwargs['scored_documents'] = p5_matrix
         create_delete_index(**index_kwargs)
