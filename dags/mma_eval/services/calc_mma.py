@@ -1,5 +1,5 @@
 def calc_mma(**kwargs):
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_DOCUMENT_EVAL
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING
     from elasticsearch_dsl import Search
     import numpy as np
     from .util import calc_p1, calc_p2, calc_p4, calc_p5, calc_p6, create_delete_index, bulk_factory
