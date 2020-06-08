@@ -28,6 +28,7 @@ with dag:
         op_kwargs={
             "topic_modellings_list": ("bigartm_two_years_main_and_gos2", ),
             "criterion_ids_list": ((1, 35, 34), ),
+            "class_ids_list": ((36, ), ),
             "perform_actualize": False
         }
     )
