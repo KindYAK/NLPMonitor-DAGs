@@ -90,7 +90,7 @@ def es_update(**kwargs):
     success = 0
     failed = 0
     for ok, result in parallel_bulk(ES_CLIENT, activity_update_generator(),
-                                     index=index, chunk_size=10000, raise_on_error=True, thread_count=4):
+                                     index=index, chunk_size=2500, raise_on_error=True, thread_count=3):
         if not ok:
             failed += 1
         else:
