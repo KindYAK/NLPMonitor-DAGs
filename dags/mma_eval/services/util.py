@@ -24,6 +24,10 @@ def calc_p1(topic_modelling_name, criterion_ids, topics_number):
             column[key] = np.mean(value)
 
         ordered_column = OrderedDict(sorted(column.items()))
+        if crit_id == 1:
+            for key, value in ordered_column.items():
+                ordered_column[key] = -value
+
         column = scaler.fit_transform(np.array(list(ordered_column.values())).reshape(-1, 1))
         if p1_matrix is None:
             p1_matrix = column
@@ -74,7 +78,7 @@ def calc_p4(p1, p3):
     from datetime import datetime
     print('!!! p4 matrix calculating started', datetime.now())
     """Вероятность совпадения тематики и класса: p4[k][c]"""
-    p4 = custom_dot(matrix_1=p1, matrix_2=p3, agg_type='mean')
+    p4 = custom_dot(matrix_1=p1, matrix_2=p3, agg_type='bayes')
     print('!!! p4 matrix calculated', p4.shape, datetime.now())
     return p4
 
