@@ -50,4 +50,22 @@ def fill_dags_news_and_gos(actualizable_bigartms, comboable_bigartms):
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
                              is_actualizable=True)
+
+        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm_two_years_1000_main_and_gos2", description="Main and gos2 2 years, 1000 topics",
+                             number_of_topics=1000,
+                             filters={
+                                 "corpus": ["main", "gos2"],
+                                 "corpus_datetime_ignore": ["gos2"],
+                                 "source": None,
+                                 "datetime_from": date(2018, 1, 1),
+                                 "datetime_to": date(2020, 6, 10),
+                             },
+                             regularization_params={
+                                 "SmoothSparseThetaRegularizer": 0.15,
+                                 "SmoothSparsePhiRegularizer": 0.15,
+                                 "DecorrelatorPhiRegularizer": 0.15,
+                                 "ImproveCoherencePhiRegularizer": 0.15
+                             },
+                             wait_for_basic_tms=wait_for_basic_tms,
+                             is_actualizable=True)
     return dag
