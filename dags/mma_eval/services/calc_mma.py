@@ -53,7 +53,7 @@ def calc_mma(**kwargs):
                                                topics_number=topics_number)
 
         # TODO Move to op_kwargs
-        p3_matrix = np.array([0.44, 0.33, 0.23]).reshape(-1, 1)  # TODO embedding for class tonalnost, rezonansnost, gos
+        p3_matrix = np.array([0.9, 0.33, 0.23]).reshape(-1, 1)  # TODO embedding for class tonalnost, rezonansnost, gos
 
         p4_matrix = calc_p4(p1=p1_matrix, p3=p3_matrix)
 
