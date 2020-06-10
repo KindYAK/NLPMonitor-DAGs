@@ -52,7 +52,7 @@ def calc_mma(**kwargs):
         p2_matrix, document_es_guide = calc_p2(topic_modelling_name=topic_modelling_name,
                                                topics_number=topics_number)
 
-        p3_matrix = np.array([0.44, 0.33, 0.23]).reshape(-1, 1)  # TODO embedding for class tonalnost, rezonansnost, gos
+        p3_matrix = np.array([0.9, 0.4, 0.2]).reshape(-1, 1)  # TODO embedding for class tonalnost, rezonansnost, gos
 
         p4_matrix = calc_p4(p1=p1_matrix, p3=p3_matrix)
 

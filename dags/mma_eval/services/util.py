@@ -15,9 +15,9 @@ def calc_p1(topic_modelling_name, criterion_ids, topics_number):
         if not evals:
             continue
 
-        for eval in evals:
-            value = eval.topics_eval.value
-            topic_id = int(eval.topic_id.topic_id.split('_')[1])
+        for eval_ in evals:
+            value = eval_.topics_eval.value
+            topic_id = int(eval_.topic_id.topic_id.split('_')[1])
             column[topic_id].append(value)
 
         for key, value in column.items():
@@ -51,9 +51,11 @@ def calc_p2(topic_modelling_name, topics_number):
 
     theta_dict = defaultdict(list)
     document_es_ids = dict()
-    total = theta.count()
+    total = 10_000  # TODO delete this
     for i, t in enumerate(theta.scan()):
-        if i % 10000000 == 0:
+        if i > 10_000:  # TODO delete this
+            break
+        if i % 10_000_000 == 0:
             print(f'!!! {i}/{total} thetas passed in dict creating')
         theta_dict[t.document_es_id].append([t.topic_id, t.topic_weight])
         if t.document_es_id not in document_es_ids.keys():
@@ -63,7 +65,7 @@ def calc_p2(topic_modelling_name, topics_number):
     total = len(document_es_ids)
     p2_matrix = np.zeros((total, topics_number))
     for i, document_id in enumerate(document_es_ids):
-        if i % 10000 == 0:
+        if i % 100_000 == 0:
             print(f'!!! {i}/{total} documents passed in p2 matrix creating')
         column = np.zeros(topics_number)
         for topic_doc in theta_dict[document_id]:
@@ -99,126 +101,6 @@ def calc_p6(p1, p2):
     p6 = custom_dot(matrix_1=p2, matrix_2=p1, agg_type='bayes')
     print('!!! p6 matrix calculated', p6.shape, datetime.now())
     return p6
-
-
-def calcH2_direct_log2(p5, E):
-    import numpy as np
-    p5 = p5.T
-    # p5 [m][c]
-    # p2 = p5
-    # print(p5)
-    c = p5.shape[0]  # 4 число классов
-    m = p5.shape[1]  # 5 число статей всего
-    # print('c=',c)
-    # print('m=',m)
-    # k = c
-    # ph1=np.random.sample((k))
-    # peIh1=p2+0.5
-    ph1 = np.ones((c)) / c
-    p_h1 = 1 - ph1
-    # peI_h1 = np.ones((c)) / 2  # p(ei|~h1)=0.5
-    # ph1=1/k
-    # peIh1 = 1 - p5  # Работаем фактически с "обратными" вероятностями, чтобы избежать
-    # проблемы нулей, так как 1 вероятностей практически никогда не будет   #p(ei|h1(kj)) = p2[kj][ ei]
-    # peIh1=p2+0.5
-    # ph1Ie=0.5
-
-    # try to use  peIh1=p2 + 2**-50
-    ph1_log2 = np.log2(ph1)
-    peIh1 = p5 + 2 ** -21
-
-    ######### peIh1=p2   it's work
-    peI_h1 = np.ones((c, m)) / 2
-    for i in E:
-        # print ('peIh1[:,i]=',peIh1[:,i])
-
-        # ph1Ie= peIh1[:,i]*ph1  /  (peIh1[:,i]*ph1  + peI_h1[:,i]*p_h1)
-        # ph1=ph1Ie
-        # p_h1=1-ph1Ie
-        # print('ph1=',ph1)
-        ##print('p_h1=',p_h1)
-        ##p5[i][j]=np.dot(p2[:,i],p4[:,j])
-        ph1Ie_log2 = np.log2(peIh1[:, i]) + ph1_log2 - np.log((peIh1[:, i] * ph1 + peI_h1[:, i] * p_h1))
-        ph1_log2 = ph1Ie_log2
-        ph1Ie = 2 ** ph1Ie_log2
-        # ph1=2**ph1Ie_log2
-        ph1 = 2 ** ph1_log2
-        p_h1 = 1 - ph1Ie
-        # print('ph2_log2=',ph1_log2)
-    Ps = ph1_log2
-
-    return Ps
-
-
-def calcH3_direct_log2(p6, E):
-    import numpy as np
-    p6 = p6.T
-    # print(p6)
-    q = p6.shape[0]  # 4 число словарей (признаков)
-    m = p6.shape[1]  # 5 число статей всего
-    # print('q=',q)
-    # print('m=',m)
-    # ph1=np.random.sample((k))
-    # peIh1=p2+0.5
-    ph1 = np.ones((q)) / q
-    p_h1 = 1 - ph1
-    # peI_h1 = np.ones((q)) / 2  # p(ei|~h1)=0.5
-    # ph1=1/k
-    # peIh1 = 1 - p6  # Работаем фактически с "обратными" вероятностями, чтобы избежать
-    # проблемы нулей, так как 1 вероятностей практически никогда не будет   #p(ei|h1(kj)) = p2[kj][ ei]
-
-    # try to use  peIh1=p2 + 2**-50
-    ph1_log2 = np.log2(ph1)
-    peIh1 = p6 + 2 ** -21
-
-    peI_h1 = np.ones((q, m)) / 2
-    for i in E:
-        # print ('peIh1[:,i]=',peIh1[:,i])
-
-        # ph1Ie= peIh1[:,i]*ph1  /  (peIh1[:,i]*ph1  + peI_h1[:,i]*p_h1)
-        # ph1=ph1Ie
-        # p_h1=1-ph1Ie
-        # print('ph1=',ph1)
-        ##print('p_h1=',p_h1)
-        ##p5[i][j]=np.dot(p2[:,i],p4[:,j])
-        ph1Ie_log2 = np.log2(peIh1[:, i]) + ph1_log2 - np.log((peIh1[:, i] * ph1 + peI_h1[:, i] * p_h1))
-        ph1_log2 = ph1Ie_log2
-        ph1Ie = 2 ** ph1Ie_log2
-        # ph1=2**ph1Ie_log2
-        ph1 = 2 ** ph1_log2
-        p_h1 = 1 - ph1Ie
-        # print('ph3_log2=',ph1_log2)
-
-    Ps = ph1_log2
-
-    return Ps
-
-
-def parse_documents(p5, p6, document_es_ids, criterion_ids, class_ids):
-
-    class_dict = dict()
-    criterion_dict = dict()
-
-    for ind, document_es_id in enumerate(document_es_ids):
-        document_index_to_calc = [ind]
-        # minMin = 2
-        # maxMax = 20
-        Ps = calcH2_direct_log2(p5, document_index_to_calc)
-        # a = 0
-        # b = 1
-        # Ps_norm2 = a + (((Ps) - np.min(Ps - minMin) * (b - a)) / (np.max(Ps + maxMax) - np.min(Ps)))
-        char_dict = dict(zip(class_ids, Ps))
-        class_dict[document_es_id] = char_dict
-
-        Ps = calcH3_direct_log2(p6, document_index_to_calc)
-        # Ps_norm2 = a + (((Ps) - np.min(Ps - minMin) * (b - a)) / (np.max(Ps + maxMax) - np.min(Ps)))
-        char_dict = dict(zip(criterion_ids, Ps))
-        criterion_dict[document_es_id] = char_dict
-
-    class_dict = scale_output_dict(input_dict=class_dict, crit_or_class_ids=class_ids)
-    criterion_dict = scale_output_dict(input_dict=criterion_dict, crit_or_class_ids=criterion_ids)
-
-    return class_dict, criterion_dict
 
 
 def create_delete_index(**kwargs):
@@ -357,24 +239,3 @@ def custom_dot(matrix_1, matrix_2, agg_type='mean'):
                 new_matrix[index, col] = 0.5 * (col_elem - min_up) / (max_up - min_up) + 0.5
 
     return new_matrix
-
-
-def scale_output_dict(input_dict, crit_or_class_ids):
-    from sklearn.preprocessing import MinMaxScaler
-    import numpy as np
-
-    keys = input_dict.keys()
-    values = input_dict.values()
-    for crit in crit_or_class_ids:
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        values_to_scale = list()
-        for val in values:
-            values_to_scale.append(val[crit])
-        assert len(values_to_scale) == len(values)
-        values_to_scale = np.array(values_to_scale)
-        scaled_values = scaler.fit_transform(values_to_scale.reshape(-1, 1)).reshape(1, -1)[0]
-        for i, val in enumerate(values):
-            val[crit] = scaled_values[i]
-    output_dict = dict(zip(keys, values))
-
-    return output_dict
