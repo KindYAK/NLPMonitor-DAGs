@@ -205,6 +205,8 @@ def dataset_prepare(**kwargs):
     meta_ids_in_list = set()
     ids_in_list = set()
     for document in s.scan():
+        if len(document.text) < 100:
+            continue
         if document.meta.id in meta_ids_in_list or document.id in ids_in_list:
             continue
         if ids_to_skip is not None and document.meta.id in ids_to_skip:
