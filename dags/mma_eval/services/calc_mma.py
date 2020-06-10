@@ -53,13 +53,13 @@ def calc_mma(**kwargs):
                                                topics_number=topics_number)
 
         # TODO Move to op_kwargs
-        p3_matrix = np.array([0.9, 0.33, 0.23]).reshape(-1, 1)  # TODO embedding for class tonalnost, rezonansnost, gos
+        p3_matrix = np.array([0.44, 0.33, 0.23]).reshape(-1, 1)  # TODO embedding for class tonalnost, rezonansnost, gos
 
-        p4_matrix = calc_p4(p1=p1_matrix, p3=p3_matrix)
+        p4_matrix = calc_p4(p1=p1_matrix, p3=p3_matrix)  # prob x weight
 
-        p5_matrix = calc_p5(p2=p2_matrix, p4=p4_matrix)
+        p5_matrix = calc_p5(p2=p2_matrix, p4=p4_matrix)  # weight x prob
 
-        p6_matrix = calc_p6(p1=p1_matrix, p2=p2_matrix)
+        p6_matrix = calc_p6(p1=p1_matrix, p2=p2_matrix)  # weight x prob
 
         index_kwargs = {
             'perform_actualize': perform_actualize,
