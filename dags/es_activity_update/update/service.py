@@ -2,14 +2,12 @@ def set_update_datetime():
     import datetime
 
     from airflow.models import Variable
-    from django.db.models import F, ExpressionWrapper, fields
+    from django.db.models import F, Q, ExpressionWrapper, fields
 
     from mainapp.models import Document
 
     update_datetime = Variable.get("es_activity_update_datetime")
-    qs = Document.objects.exclude(
-        id__in=(d.id for d in Document.objects.filter(num_views=None, num_comments=None))
-    )
+    qs = Document.objects.exclude(Q(num_views=None) & Q(num_comments=None))
     qs = qs.only('id', 'datetime_activity_es_updated')
     qs = qs.annotate(
         timedelta_parsed_to_updated=ExpressionWrapper(
