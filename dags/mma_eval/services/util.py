@@ -51,9 +51,9 @@ def calc_p2(topic_modelling_name, topics_number):
 
     theta_dict = defaultdict(list)
     document_es_ids = dict()
-    total = 10_000  # TODO delete this
+    total = 100_000  # TODO delete this
     for i, t in enumerate(theta.scan()):
-        if i > 10_000:  # TODO delete this
+        if i > 100_000:  # TODO delete this
             break
         if i % 10_000_000 == 0:
             print(f'!!! {i}/{total} thetas passed in dict creating')
@@ -80,9 +80,9 @@ def calc_p4(p1, p3):
     from datetime import datetime
     print('!!! p4 matrix calculating started', datetime.now())
     """Вероятность совпадения тематики и класса: p4[k][c]"""
-    p4 = custom_dot(matrix_1=p1, matrix_2=p3, agg_type='bayes')
-    print('!!! p4 matrix calculated', p4.shape, datetime.now())
-    return p4
+    p4 = custom_dot(matrix_1=p3.T, matrix_2=p1.T, agg_type='bayes')
+    print('!!! p4 matrix calculated', p4.T.shape, datetime.now())
+    return p4.T
 
 
 def calc_p5(p4, p2):
