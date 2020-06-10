@@ -51,10 +51,8 @@ def calc_p2(topic_modelling_name, topics_number):
 
     theta_dict = defaultdict(list)
     document_es_ids = dict()
-    total = 100_000  # TODO delete this
+    total = theta.count()
     for i, t in enumerate(theta.scan()):
-        if i > 100_000:  # TODO delete this
-            break
         if i % 10_000_000 == 0:
             print(f'!!! {i}/{total} thetas passed in dict creating')
         theta_dict[t.document_es_id].append([t.topic_id, t.topic_weight])
