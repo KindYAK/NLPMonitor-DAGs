@@ -31,12 +31,7 @@ def send_tds_to_es_wrapper(model_artm, perform_actualize, tm_index, batch_vector
         }
     )
 
-    if tm_index.number_of_topics < 300:
-        documents_per_iteration = 1_500_000
-    elif tm_index.number_of_topics < 600:
-        documents_per_iteration = 750_000
-    else:
-        documents_per_iteration = 333_333
+    documents_per_iteration = 1_500_000 // (tm_index.number_of_topics // 333 + 1)
     n_iterations = number_of_documents // documents_per_iteration if not perform_actualize else 1
     for i in range(n_iterations):
         print("!!!", f"Iteration {i} / {n_iterations}", datetime.datetime.now())
