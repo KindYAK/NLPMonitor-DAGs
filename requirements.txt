@@ -38,3 +38,5 @@ llvmlite==0.32.1
 transliterate==1.10.2
 scrapy_proxies==0.4
 proxybroker==0.3.2
+
+attrs==19.3.0
