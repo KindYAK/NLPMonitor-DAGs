@@ -82,18 +82,18 @@ def es_update(**kwargs):
                         "doc": update_body,
                     }
             docs_processed += 1
-            if docs_processed != 0 and docs_processed % 10000 == 0:
+            if docs_processed != 0 and docs_processed % 1000 == 0:
                 print(f"{docs_processed}/{number_of_documents} processed", datetime.datetime.now())
 
     success = 0
     failed = 0
     for ok, result in parallel_bulk(ES_CLIENT, activity_update_generator(),
-                                     index=index, chunk_size=2500, raise_on_error=True, thread_count=3):
+                                     index=index, chunk_size=1000, raise_on_error=True, thread_count=2):
         if not ok:
             failed += 1
         else:
             success += 1
-        if success % 10000 == 0:
+        if success % 1000 == 0:
             print(f"{success} es docs updated, {datetime.datetime.now()}")
         if failed > 5:
             raise Exception("Too many failed ES!!!")
