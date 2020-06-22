@@ -15,7 +15,7 @@ def set_update_datetime():
             output_field=fields.DurationField()
         )
     )
-    qs = qs.filter(timedelta_parsed_to_updated__gte=datetime.timedelta(minutes=1))
+    qs = qs.filter(Q(timedelta_parsed_to_updated__gte=datetime.timedelta(minutes=1)) | Q(datetime_activity_es_updated=None))
     for doc in qs:
         doc.datetime_activity_es_updated = update_datetime
     Document.objects.bulk_update(qs, fields=['datetime_activity_es_updated'])
