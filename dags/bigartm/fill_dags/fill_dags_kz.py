@@ -30,7 +30,7 @@ def fill_dags_kz(actualizable_bigartms, comboable_bigartms):
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
                              is_actualizable=True,
-                             text_field="text_ngramized_kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
+                             text_field="text_lemmatized_kz_apertium",
                              )
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_two_years_ngram", description="Two last years", number_of_topics=200,
@@ -48,14 +48,14 @@ def fill_dags_kz(actualizable_bigartms, comboable_bigartms):
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
                              is_actualizable=True,
-                             text_field="text_ngramized_kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
+                             text_field="text_lemmatized_kz_apertium",
                              )
 
-        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_two_years_ngram", description="Two last years", number_of_topics=200,
+        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_2020_ngram", description="Two last years", number_of_topics=200,
                              filters={
                                  "corpus": "main",
                                  "source": None,
-                                 "datetime_from": date(2018, 6, 1),
+                                 "datetime_from": date(2019, 9, 1),
                                  "datetime_to": date(2020, 6, 1),
                              },
                              regularization_params={
@@ -66,6 +66,6 @@ def fill_dags_kz(actualizable_bigartms, comboable_bigartms):
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
                              is_actualizable=True,
-                             text_field="text_ngramized_kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
+                             text_field="text_lemmatized_kz_apertium",
                              )
     return dag
