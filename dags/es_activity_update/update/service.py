@@ -5,7 +5,6 @@ def set_update_datetime():
     from django.db.models import F, Q, ExpressionWrapper, fields
 
     from mainapp.models import Document
-    from mainapp.services import batch_qs
 
     update_datetime = Variable.get("es_activity_update_datetime")
     qs = Document.objects.exclude(Q(num_views=None) & Q(num_comments=None))

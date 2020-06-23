@@ -32,7 +32,7 @@ with dag:
         python_callable=init_last_datetime,
     )
 
-    concurrency = 5
+    concurrency = 25
     lemmatize_operators = []
     for i in range(concurrency):
         lemmatize_operators.append(DjangoOperator(
