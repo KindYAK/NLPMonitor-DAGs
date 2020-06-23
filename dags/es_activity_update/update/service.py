@@ -19,6 +19,7 @@ def set_update_datetime():
     qs = qs.filter(Q(timedelta_parsed_to_updated__gte=datetime.timedelta(minutes=1)) | Q(datetime_activity_es_updated=None))
     qs = qs.order_by('id')
     for i, batch in enumerate(batch_qs(qs, batch_size=10000)):
+        print("Batch", i)
         for j, doc in enumerate(batch):
             doc.datetime_activity_es_updated = update_datetime
         Document.objects.bulk_update(batch, fields=['datetime_activity_es_updated'])

@@ -3,7 +3,9 @@ def init_last_datetime():
     from elasticsearch_dsl import Search
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
 
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).exclude('exists', field='text_lemmatized_kz_apertium')
+    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)
+    # s = s.exclude('exists', field='text_lemmatized_kz_apertium') # TODO Remove, one-time thing
+    s = s.exclude('exists', field="is_kazakh")
     Variable.set("lemmatize_number_of_documents_kz", s.count())
 
 
@@ -27,17 +29,20 @@ def preprocessing_raw_data(**kwargs):
         raise Exception("No variable!")
 
     s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True)
-    s = s.query(~Q('exists', field="text_lemmatized_kz_apertium"))
+    # s = s.exclude('exists', field="text_lemmatized_kz_apertium")  # TODO Remove, one-time thing
+    s = s.exclude('exists', field="is_kazakh")
     s = s[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1]
     documents = s.execute()
 
     print('!!! len docs', len(documents))
     for doc in documents:
         if not is_kazakh(doc.text):
+            doc['is_kazakh'] = False
             continue
         cleaned_doc = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split())
         r = requests.get(f"http://apertium-flask:8005?text={cleaned_doc}")
         doc['text_lemmatized_kz_apertium'] = r.json()['result']
+        doc['is_kazakh'] = True
 
     documents_processed = 0
     failed = 0
