@@ -5,6 +5,7 @@ def set_update_datetime():
     from django.db.models import F, Q, ExpressionWrapper, fields
 
     from mainapp.models import Document
+    from mainapp.services import batch_qs
 
     update_datetime = Variable.get("es_activity_update_datetime")
     qs = Document.objects.exclude(Q(num_views=None) & Q(num_comments=None))
@@ -16,9 +17,11 @@ def set_update_datetime():
         )
     )
     qs = qs.filter(Q(timedelta_parsed_to_updated__gte=datetime.timedelta(minutes=1)) | Q(datetime_activity_es_updated=None))
-    for doc in qs:
-        doc.datetime_activity_es_updated = update_datetime
-    Document.objects.bulk_update(qs, fields=['datetime_activity_es_updated'])
+    qs = qs.order_by('id')
+    for i, batch in enumerate(batch_qs(qs, batch_size=10000)):
+        for j, doc in enumerate(batch):
+            doc.datetime_activity_es_updated = update_datetime
+        Document.objects.bulk_update(batch, fields=['datetime_activity_es_updated'])
 
 
 def init_update_datetime():
