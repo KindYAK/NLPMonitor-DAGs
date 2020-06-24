@@ -213,8 +213,9 @@ def dataset_prepare(**kwargs):
             continue
         if group_document_es_ids is not None and document.meta.id not in group_document_es_ids:
             continue
-        if is_kazakh(document.text + (document.title if document.title else "")) \
-                or is_latin(document.text + (document.title if document.title else "")):
+        if "_kz_" not in text_field and is_kazakh(document.text + (document.title if document.title else "")):
+            continue
+        if is_latin(document.text + (document.title if document.title else "")):
             continue
         ids.append(document.meta.id)
         meta_ids_in_list.add(document.meta.id)
