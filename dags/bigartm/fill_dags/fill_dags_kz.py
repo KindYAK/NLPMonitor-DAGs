@@ -15,7 +15,7 @@ def fill_dags_kz(actualizable_bigartms, comboable_bigartms):
             python_callable=lambda: 0,
         )
 
-        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_test_ngram", description="Two last years", number_of_topics=200,
+        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_test_kz", description="Two last years", number_of_topics=200,
                              filters={
                                  "corpus": "main",
                                  "source": None,
@@ -33,7 +33,7 @@ def fill_dags_kz(actualizable_bigartms, comboable_bigartms):
                              text_field="text_lemmatized_kz_apertium",
                              )
 
-        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_two_years_ngram", description="Two last years", number_of_topics=200,
+        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_two_years_kz", description="Two last years", number_of_topics=200,
                              filters={
                                  "corpus": "main",
                                  "source": None,
@@ -51,7 +51,7 @@ def fill_dags_kz(actualizable_bigartms, comboable_bigartms):
                              text_field="text_lemmatized_kz_apertium",
                              )
 
-        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_2020_ngram", description="Two last years", number_of_topics=200,
+        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_2020_kz", description="Two last years", number_of_topics=200,
                              filters={
                                  "corpus": "main",
                                  "source": None,
