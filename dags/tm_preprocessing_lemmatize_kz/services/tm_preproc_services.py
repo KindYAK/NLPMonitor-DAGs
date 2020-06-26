@@ -39,7 +39,7 @@ def preprocessing_raw_data(**kwargs):
             continue
         cleaned_doc = [x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split()]
         result = ""
-        for i in range(len(cleaned_doc) // 10000):
+        for i in range(len(cleaned_doc) // 10000 + 1):
             req_text = ' '.join(cleaned_doc[i*10000:(i+1)*10000])
             r = requests.get(f"http://apertium-flask:8005?text={req_text}")
             result += r.json()['result']
