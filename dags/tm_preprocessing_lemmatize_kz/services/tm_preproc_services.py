@@ -4,7 +4,7 @@ def init_last_datetime():
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
 
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)
-    s = s.exclude('exists', field="is_kazakh")
+    # s = s.exclude('exists', field="is_kazakh")
     Variable.set("lemmatize_number_of_documents_kz", s.count())
 
 
@@ -28,7 +28,7 @@ def preprocessing_raw_data(**kwargs):
         raise Exception("No variable!")
 
     s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True)
-    s = s.exclude('exists', field="is_kazakh")
+    # s = s.exclude('exists', field="is_kazakh")
     s = s[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1]
     documents = s.execute()
 
