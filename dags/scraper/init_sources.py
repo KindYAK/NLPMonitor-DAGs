@@ -21,8 +21,8 @@ default_args = {
     'retries': 2,
     'retry_delay': timedelta(minutes=15),
     'priority_weight': 95,
-    'pool': 'short_tasks'
-    # 'queue': 'bash_queue',
+    'pool': 'scraper_tasks',
+    'queue': 'second',
     # 'priority_weight': 10,
     # 'end_date': datetime(2016, 1, 1),
 }
