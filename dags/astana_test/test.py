@@ -29,12 +29,12 @@ with dag:
     simple_op = PythonOperator(
         task_id="test_simple",
         python_callable=lambda: "Hello, NurSultan!",
-        queue='astana'
+        queue='second'
     )
 
     django_op = DjangoOperator(
         task_id="test_django",
         python_callable=test,
-        queue='astana'
+        queue='second'
     )
     simple_op >> django_op
