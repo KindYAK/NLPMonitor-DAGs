@@ -40,3 +40,5 @@ scrapy_proxies==0.4
 proxybroker==0.3.2
 
 attrs==19.3.0
+
+lemminflect==0.2.1

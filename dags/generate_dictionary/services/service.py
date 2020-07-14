@@ -49,12 +49,44 @@ def init_dictionary_index(**kwargs):
     return "Created"
 
 
+def lemmatize_ru(word):
+    from pymorphy2 import MorphAnalyzer
+    morph = MorphAnalyzer()
+    parse = morph.parse(word)
+    return {
+        "normal_form": parse[0].normal_form,
+        "is_known": parse[0].is_known,
+        "is_multiple_forms": len(parse) > 1,
+        "pos_tag": parse[0].tag.POS,
+    }
+
+
+def lemmatize_eng(word):
+    from lemminflect import getAllLemmas, getAllLemmasOOV
+    result = ""
+    is_known = True
+    is_multiple_forms = False
+    for w in word.split():
+        try:
+            result += list(getAllLemmas(w).values())[0][0] + " "
+            if len(list(getAllLemmas(w).values())) > 1:
+                is_multiple_forms = True
+        except IndexError:
+            is_known = False
+            result += list(getAllLemmasOOV(w, upos="NOUN").values())[0][0] + " "
+    return {
+        "normal_form": result,
+        "is_known": is_known,
+        "is_multiple_forms": is_multiple_forms,
+        "pos_tag": "UNKNW",
+    }
+
+
 def generate_dictionary_batch(**kwargs):
     import datetime
     import re
 
     from elasticsearch.helpers import parallel_bulk
-    from pymorphy2 import MorphAnalyzer
     from stop_words import get_stop_words
 
     from util.util import is_kazakh, is_latin
@@ -90,36 +122,48 @@ def generate_dictionary_batch(**kwargs):
                        )
     documents = documents.filter("exists", field=field_to_parse).execute()
 
-    stopwords = get_stop_words('ru')
-    morph = MorphAnalyzer()
+    stopwords = get_stop_words('ru') + get_stop_words('en')
     dictionary_words = {}
     print("!!!", "Iterating through documents", datetime.datetime.now())
     for doc in documents:
         if len(doc[field_to_parse]) == 0:
             print("!!! WTF", doc.meta.id)
             continue
-        if is_kazakh(doc[field_to_parse]) or is_latin(doc[field_to_parse]):
+        if is_kazakh(doc[field_to_parse]):
             continue
         word_in_doc = set()
         cleaned_words = [x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', doc[field_to_parse]).split()).split()]
+        if is_latin(doc[field_to_parse]):
+            lang = "eng"
+        elif is_kazakh((doc[field_to_parse])):
+            lang = "kaz"
+        else:
+            lang = "rus"
         for n_gram_len in range(1, max_n_gram_len + 1):
             for n_gram in (cleaned_words[i:i + n_gram_len] for i in range(len(cleaned_words) - n_gram_len + 1)):
                 word = "_".join(n_gram)
                 is_first_upper = word[0].isupper()
                 word = word.lower()
+                if lang == "eng":
+                    parse = lemmatize_eng(word)
+                elif lang == "kaz":
+                    continue # raise NotImplemented()
+                elif lang == "rus":
+                    parse = lemmatize_ru(word)
+                else:
+                    raise NotImplemented()
                 if word not in dictionary_words:
-                    parse = morph.parse(word)
                     dictionary_words[word] = {
                         "dictionary": name,
                         "word": word,
-                        "word_normal": parse[0].normal_form,
-                        "is_in_pymorphy2_dict": parse[0].is_known,
-                        "is_multiple_normals_in_pymorphy2": len(parse) > 1,
-                        "is_stop_word": word in stopwords or parse[0].normal_form in stopwords,
+                        "word_normal": parse["normal_form"],
+                        "is_in_pymorphy2_dict": parse["is_known"],
+                        "is_multiple_normals_in_pymorphy2": parse["is_multiple_forms"],
+                        "is_stop_word": word in stopwords or parse["normal_form"] in stopwords,
                         "is_latin": any([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in word]),
-                        "is_kazakh": any([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in word]),
+                        "is_kazakh": any([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in word]) or lang == "kaz",
                         "n_gram_len": n_gram_len,
-                        "pos_tag": parse[0].tag.POS,
+                        "pos_tag": parse["pos_tag"],
                         "word_len": len(word),
                         "word_frequency": 1,
                         "document_frequency": 1,
@@ -192,11 +236,11 @@ def aggregate_dicts(**kwargs):
     print("!!!", "Forming final words dict", datetime.datetime.now())
     for key in dictionary_words_final.keys():
         dictionary_words_final[key]['word_normal_frequency'] = \
-        dictionary_normal_words[dictionary_words_final[key]['word_normal']]['word_normal_frequency']
+            dictionary_normal_words[dictionary_words_final[key]['word_normal']]['word_normal_frequency']
         dictionary_words_final[key]['word_normal_first_capital_ratio'] = \
-        dictionary_normal_words[dictionary_words_final[key]['word_normal']]['word_normal_first_capital_ratio']
+            dictionary_normal_words[dictionary_words_final[key]['word_normal']]['word_normal_first_capital_ratio']
         dictionary_words_final[key]['document_normal_frequency'] = \
-        dictionary_normal_words[dictionary_words_final[key]['word_normal']]['document_normal_frequency']
+            dictionary_normal_words[dictionary_words_final[key]['word_normal']]['document_normal_frequency']
 
         dictionary_words_final[key]['word_first_capital_ratio'] /= \
             dictionary_words_final[key]['word_frequency']
@@ -219,6 +263,7 @@ def aggregate_dicts(**kwargs):
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpuses).source([])[:0]
     number_of_documents = s.count()
     print("!!!", "Number of documents", number_of_documents)
+    print("!!! Min documents threshold", number_of_documents * min_relative_document_frequency)
     dictionary_words_final = filter(lambda x: x['document_frequency'] > number_of_documents * min_relative_document_frequency, dictionary_words_final.values())
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words_final,
                                     index=f"{ES_INDEX_DICTIONARY_WORD}_{name}",

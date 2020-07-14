@@ -26,15 +26,10 @@ default_args = {
 
 dag = DAG('Nlpmonitor_NGramize', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='15 22 * * *')
 
-with dag:
-    # dict_name = "kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985"
-    dict_name = "kz_rus_yandex_ngrams_dict"
-    source_field = "text_lemmatized_yandex"
-    min_document_frequency_relative = 1 / 1000
-    max_n_gram_len = 3
 
-    init_last_datetime = DjangoOperator(
-        task_id="init_last_datetime",
+def create_tasks(dict_name, source_field, min_document_frequency_relative, max_n_gram_len):
+    init_last_datetime_op = DjangoOperator(
+        task_id=f"init_last_datetime_{dict_name}",
         python_callable=init_last_datetime,
         op_kwargs={
             "dict_name": dict_name,
@@ -46,7 +41,7 @@ with dag:
     lemmatize_operators = []
     for i in range(concurrency):
         lemmatize_operators.append(DjangoOperator(
-            task_id=f"ngramize_{i}",
+            task_id=f"ngramize_{dict_name}_{i}",
             python_callable=ngramize,
             op_kwargs={
                 "start": (100 / concurrency) * i,
@@ -57,4 +52,17 @@ with dag:
                 "min_document_frequency_relative": min_document_frequency_relative,
             }
         ))
-    init_last_datetime >> lemmatize_operators
+    init_last_datetime_op >> lemmatize_operators
+
+
+with dag:
+    # dict_name = "kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985"
+    create_tasks(dict_name="kz_rus_yandex_ngrams_dict",
+                 source_field="text_lemmatized_yandex",
+                 min_document_frequency_relative=1 / 1000,
+                 max_n_gram_len=3)
+
+    create_tasks(dict_name="en_lemminflect",
+                 source_field="text_lemmatized_eng_lemminflect",
+                 min_document_frequency_relative=1 / 1000,
+                 max_n_gram_len=3)
