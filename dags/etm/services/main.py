@@ -75,6 +75,9 @@ def etm_calc(**kwargs):
     test_tokens = test['tokens']
     test_counts = test['counts']
     num_docs_test = len(test_tokens)
+    kwargs['test_tokens'] = test_tokens
+    kwargs['test_counts'] = test_counts
+    kwargs['num_docs_test'] = num_docs_test
 
     embeddings = None
     if not train_embeddings:
@@ -140,7 +143,7 @@ def etm_calc(**kwargs):
         all_val_ppls = []
         print('\n')
         print('Visualizing model quality before training...')
-        visualize(m=model, vocab=vocab, num_topics=num_topics, num_words=num_words)
+        visualize(m=model, vocab=vocab, num_topics=num_topics, num_words=num_words, save_path=save_path)
         print('\n')
         for epoch in range(1, epochs):
             train_model(model=model, epoch=epoch, optimizer=optimizer)
@@ -156,7 +159,7 @@ def etm_calc(**kwargs):
                         len(all_val_ppls) > nonmono and val_ppl > min(all_val_ppls[:-nonmono]) and lr > 1e-5):
                     optimizer.param_groups[0]['lr'] /= lr_factor
             if epoch % visualize_every == 0:
-                visualize(m=model, vocab=vocab, num_topics=num_topics, num_words=num_words)
+                visualize(m=model, vocab=vocab, num_topics=num_topics, num_words=num_words, save_path=save_path)
             all_val_ppls.append(val_ppl)
         with open(ckpt, 'rb') as f:
             model = torch.load(f)
