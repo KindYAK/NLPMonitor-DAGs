@@ -236,11 +236,11 @@ def aggregate_dicts(**kwargs):
     print("!!!", "Forming final words dict", datetime.datetime.now())
     for key in dictionary_words_final.keys():
         dictionary_words_final[key]['word_normal_frequency'] = \
-        dictionary_normal_words[dictionary_words_final[key]['word_normal']]['word_normal_frequency']
+            dictionary_normal_words[dictionary_words_final[key]['word_normal']]['word_normal_frequency']
         dictionary_words_final[key]['word_normal_first_capital_ratio'] = \
-        dictionary_normal_words[dictionary_words_final[key]['word_normal']]['word_normal_first_capital_ratio']
+            dictionary_normal_words[dictionary_words_final[key]['word_normal']]['word_normal_first_capital_ratio']
         dictionary_words_final[key]['document_normal_frequency'] = \
-        dictionary_normal_words[dictionary_words_final[key]['word_normal']]['document_normal_frequency']
+            dictionary_normal_words[dictionary_words_final[key]['word_normal']]['document_normal_frequency']
 
         dictionary_words_final[key]['word_first_capital_ratio'] /= \
             dictionary_words_final[key]['word_frequency']
@@ -263,6 +263,7 @@ def aggregate_dicts(**kwargs):
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpuses).source([])[:0]
     number_of_documents = s.count()
     print("!!!", "Number of documents", number_of_documents)
+    print("!!! Min documents threshold", number_of_documents * min_relative_document_frequency)
     dictionary_words_final = filter(lambda x: x['document_frequency'] > number_of_documents * min_relative_document_frequency, dictionary_words_final.values())
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words_final,
                                     index=f"{ES_INDEX_DICTIONARY_WORD}_{name}",
