@@ -142,13 +142,26 @@ def train_model(**kwargs):
     print('*' * 100)
 
 
-def evaluate(m, source, vocab, tc=False, td=False):
+def evaluate(m, source, **kwargs):
     """
     Compute perplexity on document completion.
     """
     import torch
     import math
     from .data import get_batch
+
+    num_docs_test = kwargs.get('num_docs_test')
+    eval_batch_size = kwargs.get('eval_batch_size')
+    test_tokens = kwargs.get('test_tokens')
+    test_counts = kwargs.get('test_counts')
+    vocab_size = kwargs.get('vocab_size')
+    device = kwargs.get('vocab_size')
+    bow_norm = kwargs.get('bow_norm')
+    train_tokens = kwargs.get('train_tokens')
+    vocab = kwargs.get('vocab')
+    tc = kwargs.get('tc')
+    td = kwargs.get('td')
+
     m.eval()
     with torch.no_grad():
 
@@ -158,25 +171,23 @@ def evaluate(m, source, vocab, tc=False, td=False):
         # do dc and tc here
         acc_loss = 0
         cnt = 0
-        indices_1 = torch.split(torch.tensor(range(args.num_docs_test_1)), args.eval_batch_size)
+        indices_1 = torch.split(torch.tensor(range(num_docs_test)), eval_batch_size)
         for idx, ind in enumerate(indices_1):
             # get theta from first half of docs
-            data_batch_1 = get_batch(test_1_tokens, test_1_counts, ind, args.vocab_size, device)
+            data_batch_1 = get_batch(test_tokens, test_counts, ind, vocab_size, device)
             sums_1 = data_batch_1.sum(1).unsqueeze(1)
-            if args.bow_norm:
+            if bow_norm:
                 normalized_data_batch_1 = data_batch_1 / sums_1
             else:
                 normalized_data_batch_1 = data_batch_1
             theta, _ = m.get_theta(normalized_data_batch_1)
 
             # get prediction loss using second half
-            data_batch_2 = get_batch(test_2_tokens, test_2_counts, ind, args.vocab_size, device)
-            sums_2 = data_batch_2.sum(1).unsqueeze(1)
             res = torch.mm(theta, beta)
             preds = torch.log(res)
-            recon_loss = -(preds * data_batch_2).sum(1)
+            recon_loss = -(preds * data_batch_1).sum(1)
 
-            loss = recon_loss / sums_2.squeeze()
+            loss = recon_loss / sums_1.squeeze()
             loss = loss.mean().item()
             acc_loss += loss
             cnt += 1
@@ -196,7 +207,7 @@ def evaluate(m, source, vocab, tc=False, td=False):
         return ppl_dc
 
 
-def visualize(m, vocab, num_topics, num_words):
+def visualize(m, vocab, num_topics, num_words, save_path):
     """
 
     :param m:
@@ -207,8 +218,8 @@ def visualize(m, vocab, num_topics, num_words):
     """
     import os
     import torch
-    if not os.path.exists('./results'):
-        os.makedirs('./results')
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
 
     m.eval()
 
