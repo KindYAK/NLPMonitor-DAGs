@@ -72,6 +72,25 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
                              text_field="text_ngramized_kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
                              )
 
+        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_hate", description="Hate speech dataset",
+                             number_of_topics=100,
+                             filters={
+                                 "corpus": "hate",
+                                 "source": None,
+                                 "datetime_from": None,
+                                 "datetime_to": None,
+                             },
+                             regularization_params={
+                                 "SmoothSparseThetaRegularizer": 0.15,
+                                 "SmoothSparsePhiRegularizer": 0.15,
+                                 "DecorrelatorPhiRegularizer": 0.15,
+                                 "ImproveCoherencePhiRegularizer": 0.15
+                             },
+                             wait_for_basic_tms=wait_for_basic_tms,
+                             is_actualizable=False,
+                             text_field="text_ngramized_en_lemminflect",
+                             )
+
     dag8 = DAG('NLPmonitor_BigARTMs_ngramized_yandex', catchup=False, max_active_runs=1, concurrency=7,
                default_args=default_args, schedule_interval=None)
     with dag8:

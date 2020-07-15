@@ -205,7 +205,7 @@ def dataset_prepare(**kwargs):
     meta_ids_in_list = set()
     ids_in_list = set()
     for document in s.scan():
-        if len(document[text_field]) < 100:
+        if len(document[text_field]) < 100 and "hate" not in corpus:
             continue
         if document.meta.id in meta_ids_in_list or document.id in ids_in_list:
             continue
@@ -215,7 +215,7 @@ def dataset_prepare(**kwargs):
             continue
         if "_kz_" not in text_field and is_kazakh(document.text + (document.title if document.title else "")):
             continue
-        if is_latin(document.text + (document.title if document.title else "")):
+        if "_en_" not in text_field and is_latin(document.text + (document.title if document.title else "")):
             continue
         ids.append(document.meta.id)
         meta_ids_in_list.add(document.meta.id)
@@ -229,7 +229,8 @@ def dataset_prepare(**kwargs):
 
         # Clean junk
         text = document[text_field]
-        text = " ".join([w for w in text.split() if not is_latin(w, threshold=0.1)])
+        if "_en_" not in text_field:
+            text = " ".join([w for w in text.split() if not is_latin(w, threshold=0.1)])
         texts.append(text)
     titles = return_cleaned_array(titles)
 
