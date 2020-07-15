@@ -54,8 +54,8 @@ def preprocessing_raw_data(**kwargs):
     documents = s.execute()
 
     print('!!! len docs', len(documents))
-    stopwords_ru = get_stop_words('ru')
-    stopwords_eng = get_stop_words('en') + stopwords.words('english')
+    stopwords_ru = set(get_stop_words('ru'))
+    stopwords_eng = set(get_stop_words('en') + stopwords.words('english'))
 
     lemmatizer = WordNetLemmatizer()
     morph = MorphAnalyzer()

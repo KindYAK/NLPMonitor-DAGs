@@ -20,7 +20,6 @@ def preprocessing_raw_data(**kwargs):
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
     from nltk.corpus import stopwords
     from stop_words import get_stop_words
-
     from util.service_es import search, update_generator
     from util.util import is_latin
 
@@ -36,7 +35,7 @@ def preprocessing_raw_data(**kwargs):
     s = s[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1]
     documents = s.execute()
 
-    stopwords = get_stop_words('ru') + get_stop_words('en') + stopwords.words('english')
+    stopwords = set(get_stop_words('ru') + get_stop_words('en') + stopwords.words('english'))
     print('!!! len docs', len(documents))
     for doc in documents:
         if not is_latin(doc.text):

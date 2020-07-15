@@ -73,7 +73,7 @@ def score_docs(**kwargs):
     model_artm.load(model_artm, os.path.join(model_folder, f"model_{model_name}.model"))
     data_folder = os.path.join(BASE_DAG_DIR, temp_folder)
 
-    stopwords = get_stop_words('ru')
+    stopwords = set(get_stop_words('ru'))
     morph = MorphAnalyzer()
 
     scaler = MinMaxScaler(feature_range=(0, 1))
