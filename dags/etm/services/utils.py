@@ -10,6 +10,7 @@ def get_topic_diversity(beta, topk):
     n_unique = len(np.unique(list_w))
     TD = n_unique / (topk * num_topics)
     print('Topic diveristy is: {}'.format(TD))
+    return TD
 
 
 def get_document_frequency(data, wi, wj=None):
@@ -74,6 +75,8 @@ def get_topic_coherence(beta, data, vocab):
     print('num topics: ', len(TC))
     TC = np.mean(TC) / counter
     print('Topic coherence is: {}'.format(TC))
+
+    return TC
 
 
 def train_model(**kwargs):
@@ -200,10 +203,12 @@ def evaluate(m, source, **kwargs):
             beta = beta.cpu().numpy()
             if tc:
                 print('Computing topic coherence...')
-                get_topic_coherence(beta, train_tokens, vocab)
+                topic_coherence = get_topic_coherence(beta, train_tokens, vocab)
             if td:
                 print('Computing topic diversity...')
-                get_topic_diversity(beta, 25)
+                topic_diversity = get_topic_diversity(beta, 25)
+
+                return ppl_dc, tc, td
         return ppl_dc
 
 

@@ -21,7 +21,7 @@ def etm_calc(**kwargs):
     t_hidden_size = kwargs.get('t_hidden_size', 800)  # dimension of hidden space of q(theta)
     save_path = kwargs.get('save_path', 'etm_models')  # path to save results
     emb_path = kwargs.get('emb_path', 'etm_embeddings')  # path to directory and file containing word embeddings
-    
+
     rho_size = kwargs.get('rho_size', 300)  # dimension of rho
     emb_size = kwargs.get('emb_size', 300)  # dimension of embeddings
     theta_act = kwargs.get('theta_act', 'relu')  # activations tanh, softplus, relu, rrelu, leakyrelu, elu, selu, glu)'
@@ -30,7 +30,6 @@ def etm_calc(**kwargs):
     lr = kwargs.get('lr', 0.005)  # learning rate
     lr_factor = kwargs.get('lr_factor', 4.0)  # divide learning rate by this
     epochs = kwargs.get('epochs', 100)  # epochs to train
-    mode = kwargs.get('mode', 'train')  # train or eval model
     enc_drop = kwargs.get('enc_drop', 0)  # dropout rate on encoder
     clip = kwargs.get('clip', 0)  # gradient clipping
     nonmono = kwargs.get('nonmono', 10)  # number of bad hits allowed
@@ -39,11 +38,8 @@ def etm_calc(**kwargs):
 
     num_words = kwargs.get('num_words', 10)  # number of words for topics visualization
     visualize_every = kwargs.get('visualize_every', 10)  # print topics every n epochs
-    load_from = kwargs.get('load_from', '')  # the name of model to eval from
-
-    load_from = os.path.join(BASE_DAG_DIR, save_path, load_from)
     save_path = os.path.join(BASE_DAG_DIR, save_path)
-    
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     kwargs['device'] = device
     print('\n')
@@ -104,13 +100,10 @@ def etm_calc(**kwargs):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    if mode == 'eval':
-        ckpt = load_from
-    else:
-        ckpt = os.path.join(save_path,
-                            'etm_{}_K_{}_Htheta_{}_Optim_{}_Clip_{}_ThetaAct_{}_Lr_{}_Bsz_{}_RhoSize_{}_trainEmbeddings_{}'.format(
-                                corpus, num_topics, t_hidden_size, optimizer, clip,
-                                theta_act, lr, batch_size, rho_size, train_embeddings))
+    ckpt = os.path.join(save_path,
+                        'etm_{}_K_{}_Htheta_{}_Optim_{}_Clip_{}_ThetaAct_{}_Lr_{}_Bsz_{}_RhoSize_{}_trainEmbeddings_{}'.format(
+                            corpus, num_topics, t_hidden_size, optimizer, clip,
+                            theta_act, lr, batch_size, rho_size, train_embeddings))
 
     # define model and optimizer
     model = ETM(num_topics, vocab_size, t_hidden_size, rho_size, emb_size,
@@ -162,7 +155,7 @@ def etm_calc(**kwargs):
     model.eval()
 
     with torch.no_grad():
-        test_ppl, topic_coh, topic_div = evaluate(m=model, source='test', tc=True, td=True, vocab=vocab)
+        test_ppl, topic_coh, topic_div = evaluate(m=model, source='test', tc_td=True, vocab=vocab)
         print(f'!!! TEST PERPLEXITY {test_ppl}')
         # show topics
         beta = model.get_beta()
