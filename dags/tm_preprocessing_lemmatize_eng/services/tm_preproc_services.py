@@ -18,6 +18,8 @@ def preprocessing_raw_data(**kwargs):
     from elasticsearch.helpers import streaming_bulk
     from lemminflect import getAllLemmas, getAllLemmasOOV
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
+    from nltk.corpus import stopwords
+    from stop_words import get_stop_words
 
     from util.service_es import search, update_generator
     from util.util import is_latin
@@ -34,12 +36,13 @@ def preprocessing_raw_data(**kwargs):
     s = s[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1]
     documents = s.execute()
 
+    stopwords = get_stop_words('ru') + get_stop_words('en') + stopwords.words('english')
     print('!!! len docs', len(documents))
     for doc in documents:
         if not is_latin(doc.text):
             doc['is_english'] = False
             continue
-        cleaned_doc = [x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split()]
+        cleaned_doc = [x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', doc.text).split()).split() if not x in stopwords and len(x) > 2]
         result = ""
         for word in cleaned_doc:
             try:

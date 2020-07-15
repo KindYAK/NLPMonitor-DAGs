@@ -88,6 +88,7 @@ def generate_dictionary_batch(**kwargs):
 
     from elasticsearch.helpers import parallel_bulk
     from stop_words import get_stop_words
+    from nltk.corpus import stopwords
 
     from util.util import is_kazakh, is_latin
     from util.service_es import search
@@ -122,7 +123,7 @@ def generate_dictionary_batch(**kwargs):
                        )
     documents = documents.filter("exists", field=field_to_parse).execute()
 
-    stopwords = get_stop_words('ru') + get_stop_words('en')
+    stopwords = get_stop_words('ru') + get_stop_words('en') + stopwords.words('english')
     dictionary_words = {}
     print("!!!", "Iterating through documents", datetime.datetime.now())
     for doc in documents:
