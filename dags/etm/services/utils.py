@@ -162,8 +162,7 @@ def evaluate(m, source, **kwargs):
     bow_norm = kwargs.get('bow_norm')
     train_tokens = kwargs.get('train_tokens')
     vocab = kwargs.get('vocab')
-    tc = kwargs.get('tc')
-    td = kwargs.get('td')
+    tc_td = kwargs.get('tc_td')
 
     m.eval()
     with torch.no_grad():
@@ -199,16 +198,13 @@ def evaluate(m, source, **kwargs):
         print('*' * 100)
         print('{} Doc Completion PPL: {}'.format(source.upper(), ppl_dc))
         print('*' * 100)
-        if tc or td:
+        if tc_td:
             beta = beta.cpu().numpy()
-            if tc:
-                print('Computing topic coherence...')
-                topic_coherence = get_topic_coherence(beta, train_tokens, vocab)
-            if td:
-                print('Computing topic diversity...')
-                topic_diversity = get_topic_diversity(beta, 25)
-
-                return ppl_dc, tc, td
+            print('Computing topic coherence...')
+            topic_coherence = get_topic_coherence(beta, train_tokens, vocab)
+            print('Computing topic diversity...')
+            topic_diversity = get_topic_diversity(beta, 25)
+            return ppl_dc, topic_coherence, topic_diversity
         return ppl_dc
 
 
