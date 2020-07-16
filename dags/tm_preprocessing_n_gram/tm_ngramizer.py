@@ -27,7 +27,7 @@ default_args = {
 dag = DAG('Nlpmonitor_NGramize', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='15 22 * * *')
 
 
-def create_tasks(dict_name, source_field, min_document_frequency_relative, max_n_gram_len):
+def create_tasks(dict_name, source_field, min_document_frequency_relative, max_n_gram_len, concurrency=5):
     init_last_datetime_op = DjangoOperator(
         task_id=f"init_last_datetime_{dict_name}",
         python_callable=init_last_datetime,
@@ -37,7 +37,6 @@ def create_tasks(dict_name, source_field, min_document_frequency_relative, max_n
         }
     )
 
-    concurrency = 5
     lemmatize_operators = []
     for i in range(concurrency):
         lemmatize_operators.append(DjangoOperator(
@@ -65,4 +64,5 @@ with dag:
     create_tasks(dict_name="en_lemminflect",
                  source_field="text_lemmatized_eng_lemminflect",
                  min_document_frequency_relative=1 / 1000,
-                 max_n_gram_len=3)
+                 max_n_gram_len=3,
+                 concurrency=2)
