@@ -45,7 +45,7 @@ class TMNotFoundException(Exception):
 def init_tm_index(**kwargs):
     from elasticsearch_dsl import Search
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
     from mainapp.documents import TopicModellingIndex, DynamicTopicModellingIndex
 
     kwargs = kwargs.copy()
@@ -61,7 +61,10 @@ def init_tm_index(**kwargs):
 
     # Check if already exists
     try:
-        return get_tm_index(**kwargs)
+        index = get_tm_index(**kwargs)
+        s = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
+        s = s.filter("term", _id=index.meta.id)
+        s.delete()
     except TMNotFoundException:
         pass
 
@@ -132,9 +135,6 @@ def dataset_prepare(**kwargs):
     es_logger.setLevel(logging.ERROR)
 
     # Recreate index object
-    s = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
-    s = s.filter("term", name=kwargs['name'])
-    s.delete()
     index = init_tm_index(**kwargs)
 
     lc = artm.messages.ConfigureLoggingArgs()
