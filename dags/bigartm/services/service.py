@@ -124,13 +124,17 @@ def dataset_prepare(**kwargs):
     from dags.bigartm.services.cleaners import return_cleaned_array, txt_writer
     from util.constants import BASE_DAG_DIR
 
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
     from mainapp.models_user import TopicGroup
 
     import logging
     es_logger = logging.getLogger('elasticsearch')
     es_logger.setLevel(logging.ERROR)
 
+    # Recreate index object
+    s = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
+    s = s.filter("term", name=kwargs['name'])
+    s.delete()
     index = init_tm_index(**kwargs)
 
     lc = artm.messages.ConfigureLoggingArgs()
