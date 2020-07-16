@@ -10,6 +10,7 @@ def get_topic_diversity(beta, topk):
     n_unique = len(np.unique(list_w))
     TD = n_unique / (topk * num_topics)
     print('Topic diveristy is: {}'.format(TD))
+    return TD
 
 
 def get_document_frequency(data, wi, wj=None):
@@ -75,19 +76,188 @@ def get_topic_coherence(beta, data, vocab):
     TC = np.mean(TC) / counter
     print('Topic coherence is: {}'.format(TC))
 
+    return TC
 
-def nearest_neighbors(word, embeddings, vocab):
-    vectors = embeddings.data.cpu().numpy()
-    index = vocab.index(word)
-    print('vectors: ', vectors.shape)
-    query = vectors[index]
-    print('query: ', query.shape)
-    ranks = vectors.dot(query).squeeze()
-    denom = query.T.dot(query).squeeze()
-    denom = denom * np.sum(vectors ** 2, 1)
-    denom = np.sqrt(denom)
-    ranks = ranks / denom
-    mostSimilar = [idx for idx in ranks.argsort()[::-1]]
-    nearest_neighbors_ = mostSimilar[:20]
-    nearest_neighbors_ = [vocab[comp] for comp in nearest_neighbors_]
-    return nearest_neighbors_
+
+def train_model(**kwargs):
+    """
+
+    :param kwargs:
+    :return:
+    """
+    import torch
+    from .data import get_batch
+
+    model = kwargs.get('model')
+    epoch = kwargs.get('epoch')
+    optimizer = kwargs.get('optimizer')
+    bow_norm = kwargs.get('bow_norm')
+    batch_size = kwargs.get('batch_size')
+    clip = kwargs.get('clip')
+    device = kwargs.get('device')
+    vocab_size = kwargs.get('vocab_size')
+    log_interval = kwargs.get('log_interval')
+    train_tokens = kwargs.get('train_tokens')
+    train_counts = kwargs.get('train_counts')
+    num_docs_train = kwargs.get('num_docs_train')
+
+    model.train()
+    acc_loss = 0
+    acc_kl_theta_loss = 0
+    cnt = 0
+    indices = torch.randperm(num_docs_train)
+    indices = torch.split(indices, batch_size)
+    for idx, ind in enumerate(indices):
+        optimizer.zero_grad()
+        model.zero_grad()
+        data_batch = get_batch(train_tokens, train_counts, ind, vocab_size, device)
+        sums = data_batch.sum(1).unsqueeze(1)
+        if bow_norm:
+            normalized_data_batch = data_batch / sums
+        else:
+            normalized_data_batch = data_batch
+        recon_loss, kld_theta = model(data_batch, normalized_data_batch)
+        total_loss = recon_loss + kld_theta
+        total_loss.backward()
+
+        if clip > 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
+        optimizer.step()
+
+        acc_loss += torch.sum(recon_loss).item()
+        acc_kl_theta_loss += torch.sum(kld_theta).item()
+        cnt += 1
+
+        if idx % log_interval == 0 and idx > 0:
+            cur_loss = round(acc_loss / cnt, 2)
+            cur_kl_theta = round(acc_kl_theta_loss / cnt, 2)
+            cur_real_loss = round(cur_loss + cur_kl_theta, 2)
+
+            print('Epoch: {} .. batch: {}/{} .. LR: {} .. KL_theta: {} .. Rec_loss: {} .. NELBO: {}'.format(
+                epoch, idx, len(indices), optimizer.param_groups[0]['lr'], cur_kl_theta, cur_loss, cur_real_loss))
+
+    cur_loss = round(acc_loss / cnt, 2)
+    cur_kl_theta = round(acc_kl_theta_loss / cnt, 2)
+    cur_real_loss = round(cur_loss + cur_kl_theta, 2)
+    print('*' * 100)
+    print('Epoch----->{} .. LR: {} .. KL_theta: {} .. Rec_loss: {} .. NELBO: {}'.format(
+        epoch, optimizer.param_groups[0]['lr'], cur_kl_theta, cur_loss, cur_real_loss))
+    print('*' * 100)
+
+
+def evaluate(m, source, **kwargs):
+    """
+    Compute perplexity on document completion.
+    """
+    import torch
+    import math
+    from .data import get_batch
+
+    num_docs_test = kwargs.get('num_docs_test')
+    eval_batch_size = kwargs.get('eval_batch_size')
+    test_tokens = kwargs.get('test_tokens')
+    test_counts = kwargs.get('test_counts')
+    vocab_size = kwargs.get('vocab_size')
+    device = kwargs.get('vocab_size')
+    bow_norm = kwargs.get('bow_norm')
+    train_tokens = kwargs.get('train_tokens')
+    vocab = kwargs.get('vocab')
+    tc_td = kwargs.get('tc_td')
+
+    m.eval()
+    with torch.no_grad():
+
+        # get \beta here
+        beta = m.get_beta()
+
+        # do dc and tc here
+        acc_loss = 0
+        cnt = 0
+        indices_1 = torch.split(torch.tensor(range(num_docs_test)), eval_batch_size)
+        for idx, ind in enumerate(indices_1):
+            # get theta from first half of docs
+            data_batch_1 = get_batch(test_tokens, test_counts, ind, vocab_size, device)
+            sums_1 = data_batch_1.sum(1).unsqueeze(1)
+            if bow_norm:
+                normalized_data_batch_1 = data_batch_1 / sums_1
+            else:
+                normalized_data_batch_1 = data_batch_1
+            theta, _ = m.get_theta(normalized_data_batch_1)
+
+            # get prediction loss using second half
+            res = torch.mm(theta, beta)
+            preds = torch.log(res)
+            recon_loss = -(preds * data_batch_1).sum(1)
+
+            loss = recon_loss / sums_1.squeeze()
+            loss = loss.mean().item()
+            acc_loss += loss
+            cnt += 1
+        cur_loss = acc_loss / cnt
+        ppl_dc = round(math.exp(cur_loss), 1)
+        print('*' * 100)
+        print('{} Doc Completion PPL: {}'.format(source.upper(), ppl_dc))
+        print('*' * 100)
+        if tc_td:
+            beta = beta.cpu().numpy()
+            print('Computing topic coherence...')
+            topic_coherence = get_topic_coherence(beta, train_tokens, vocab)
+            print('Computing topic diversity...')
+            topic_diversity = get_topic_diversity(beta, 25)
+            return ppl_dc, topic_coherence, topic_diversity
+        return ppl_dc
+
+
+def visualize(m, vocab, num_topics, num_words, save_path):
+    """
+
+    :param m:
+    :param vocab:
+    :param num_topics:
+    :param num_words:
+    :return:
+    """
+    import os
+    import torch
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    m.eval()
+
+    # visualize topics using monte carlo
+    with torch.no_grad():
+        print('#' * 100)
+        print('Visualize topics...')
+        topics_words = []
+        gammas = m.get_beta()
+        for k in range(num_topics):
+            gamma = gammas[k]
+            top_words = list(gamma.cpu().numpy().argsort()[-num_words + 1:][::-1])
+            topic_words = [vocab[a] for a in top_words]
+            topics_words.append(' '.join(topic_words))
+            print('Topic {}: {}'.format(k, topic_words))
+
+
+def split_bow(bow_in, n_docs):
+    indices = [[w for w in bow_in[doc, :].indices] for doc in range(n_docs)]
+    counts = [[c for c in bow_in[doc, :].data] for doc in range(n_docs)]
+    return indices, counts
+
+
+def create_bow(doc_indices, words, n_docs, vocab_size):
+    from scipy import sparse
+    return sparse.coo_matrix(([1] * len(doc_indices), (doc_indices, words)), shape=(n_docs, vocab_size)).tocsr()
+
+
+def create_list_words(in_docs):
+    return [x for y in in_docs for x in y]
+
+
+def create_doc_indices(in_docs):
+    aux = [[j for i in range(len(doc))] for j, doc in enumerate(in_docs)]
+    return [int(x) for y in aux for x in y]
+
+
+def remove_empty(in_docs):
+    return [doc for doc in in_docs if doc != []]
+
