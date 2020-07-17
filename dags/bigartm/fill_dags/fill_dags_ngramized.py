@@ -73,18 +73,18 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
                              )
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_hate", description="Hate speech dataset",
-                             number_of_topics=75,
+                             number_of_topics=50,
                              filters={
-                                 "corpus": "hate",
+                                 "corpus": ["hate_hate", "hate_offensive", "hate_neither"],
                                  "source": None,
                                  "datetime_from": None,
                                  "datetime_to": None,
                              },
                              regularization_params={
-                                 "SmoothSparseThetaRegularizer": 0.15,
-                                 "SmoothSparsePhiRegularizer": 0.25,
-                                 "DecorrelatorPhiRegularizer": 0.3,
-                                 "ImproveCoherencePhiRegularizer": 0.2
+                                 "SmoothSparseThetaRegularizer": 0,
+                                 "SmoothSparsePhiRegularizer": 0.5,
+                                 "DecorrelatorPhiRegularizer": 100,
+                                 "ImproveCoherencePhiRegularizer": 0
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
                              is_actualizable=False,

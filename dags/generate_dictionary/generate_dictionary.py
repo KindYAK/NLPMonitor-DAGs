@@ -56,7 +56,7 @@ with dag:
                 "corpuses": corpuses,
                 "max_n_gram_len": max_n_gram_len,
                 "field_to_parse": field_to_parse,
-                "min_relative_document_frequency": 1 / 2_000,
+                "min_relative_document_frequency": 1 / 5_000,
             }
         ))
 
@@ -66,7 +66,7 @@ with dag:
             op_kwargs={
                 "name": name,
                 "corpuses": corpuses,
-                "min_relative_document_frequency": 1 / 1_000,
+                "min_relative_document_frequency": 1 / 2_500,
             }
         )
     init_dictionary_index >> dictionary_operators >> aggregate_dicts
