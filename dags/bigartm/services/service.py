@@ -209,7 +209,7 @@ def dataset_prepare(**kwargs):
     meta_ids_in_list = set()
     ids_in_list = set()
     for document in s.scan():
-        if len(document[text_field]) < 100 and "hate" not in corpus:
+        if len(document[text_field]) < 100 and not any(("hate" in c for c in corpus)):
             continue
         if document.meta.id in meta_ids_in_list or document.id in ids_in_list:
             continue

@@ -3,11 +3,8 @@ def init_last_datetime(**kwargs):
     from elasticsearch_dsl import Search
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
 
-    corpuses = kwargs['corpuses']
-
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)
     s = s.exclude('exists', field="is_english")
-    s = s.filter('terms', corpus=corpuses)
     Variable.set("lemmatize_number_of_documents_eng", s.count())
 
 

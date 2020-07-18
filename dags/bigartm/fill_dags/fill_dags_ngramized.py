@@ -75,7 +75,7 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_hate", description="Hate speech dataset",
                              number_of_topics=50,
                              filters={
-                                 "corpus": ["hate_hate", "hate_offensive", "hate_neither"],
+                                 "corpus": ["hate_hate", "hate_offensive", "hate_neither", "hate_test"],
                                  "source": None,
                                  "datetime_from": None,
                                  "datetime_to": None,
@@ -87,7 +87,7 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=False,
+                             is_actualizable=True,
                              text_field="text_ngramized_en_lemminflect",
                              )
 

@@ -31,7 +31,6 @@ with dag:
         task_id="init_last_datetime",
         python_callable=init_last_datetime,
         op_kwargs={
-            "corpuses": ["hate"],
         }
     )
 
