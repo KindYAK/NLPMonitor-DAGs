@@ -60,7 +60,7 @@ def init_tm_index(**kwargs):
     is_dynamic = 'is_dynamic' in kwargs and kwargs['is_dynamic']
 
     # Check if already exists
-    if not ('is_actualizable' in kwargs and kwargs['is_actualizable']):
+    if not 'perform_actualize' in kwargs:
         s = Search(using=ES_CLIENT, index=kwargs['index_tm'])
         s = s.filter("term", name=kwargs['name'])
         s.delete()
@@ -70,6 +70,8 @@ def init_tm_index(**kwargs):
             s.delete()
         except:
             pass
+    else:
+        return get_tm_index(**kwargs)
 
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpus)
     if source:
@@ -102,7 +104,7 @@ def get_tm_index(**kwargs):
         query = {
             "name": name,
         }
-        if ('is_actualizable' in kwargs and kwargs['is_actualizable']):
+        if 'perform_actualize' in kwargs:
             query['is_ready'] = True
 
         s = search(ES_CLIENT, index_tm, query, source=[], get_search_obj=True)
@@ -113,7 +115,7 @@ def get_tm_index(**kwargs):
         query = {
             "name.keyword": name,
         }
-        if ('is_actualizable' in kwargs and kwargs['is_actualizable']):
+        if 'perform_actualize' in kwargs:
             query['is_ready'] = True
 
         s = search(ES_CLIENT, index_tm, query, source=[], get_search_obj=True)
