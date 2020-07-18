@@ -60,13 +60,16 @@ def init_tm_index(**kwargs):
     is_dynamic = 'is_dynamic' in kwargs and kwargs['is_dynamic']
 
     # Check if already exists
-    try:
-        index = get_tm_index(**kwargs)
-        s = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
-        s = s.filter("term", _id=index.meta.id)
+    if not ('is_actualizable' in kwargs and kwargs['is_actualizable']):
+        s = Search(using=ES_CLIENT, index=kwargs['index_tm'])
+        s = s.filter("term", name=kwargs['name'])
         s.delete()
-    except TMNotFoundException:
-        pass
+        s = Search(using=ES_CLIENT, index=kwargs['index_tm'])
+        s = s.filter("term", **{"name.keyword": kwargs['name']})
+        try:
+            s.delete()
+        except:
+            pass
 
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpus)
     if source:
@@ -92,26 +95,30 @@ def get_tm_index(**kwargs):
     from util.service_es import search
     from nlpmonitor.settings import ES_CLIENT
     name = kwargs['name']
-    corpus = kwargs['corpus']
-    if type(corpus) == list:
-        corpus = "_".join(corpus)
     index_tm = kwargs['index_tm']
 
     # Check if already exists
     if ES_CLIENT.indices.exists(index_tm):
         query = {
             "name": name,
-            "corpus": corpus,
         }
+        if ('is_actualizable' in kwargs and kwargs['is_actualizable']):
+            query['is_ready'] = True
 
-        s = search(ES_CLIENT, index_tm, query, source=[])
+        s = search(ES_CLIENT, index_tm, query, source=[], get_search_obj=True)
+        s = s.filter('exists', field="number_of_topics")
+        s = s.execute()
         if s:
             return s[-1]
         query = {
             "name.keyword": name,
-            "corpus": corpus,
         }
-        s = search(ES_CLIENT, index_tm, query, source=[])
+        if ('is_actualizable' in kwargs and kwargs['is_actualizable']):
+            query['is_ready'] = True
+
+        s = search(ES_CLIENT, index_tm, query, source=[], get_search_obj=True)
+        s = s.filter('exists', field="number_of_topics")
+        s = s.execute()
         if s:
             return s[-1]
     raise TMNotFoundException("Topic Modelling index not found!")
