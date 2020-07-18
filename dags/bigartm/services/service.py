@@ -3,9 +3,16 @@ def bigartm_calc(**kwargs):
 
     from nlpmonitor.settings import ES_INDEX_DYNAMIC_TOPIC_MODELLING, ES_INDEX_TOPIC_DOCUMENT, \
         ES_INDEX_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_DYNAMIC_TOPIC_DOCUMENT_UNIQUE_IDS, ES_INDEX_DYNAMIC_TOPIC_DOCUMENT, \
-        ES_INDEX_TOPIC_MODELLING
+        ES_INDEX_TOPIC_MODELLING, ES_CLIENT
+    from mainapp.documents import TopicModellingIndex, DynamicTopicModellingIndex
     kwargs = kwargs.copy()
     is_dynamic = 'is_dynamic' in kwargs and kwargs['is_dynamic']
+
+    if not ES_CLIENT.indices.exists(ES_INDEX_TOPIC_MODELLING):
+        TopicModellingIndex.init()
+    if not ES_CLIENT.indices.exists(ES_INDEX_DYNAMIC_TOPIC_MODELLING):
+        DynamicTopicModellingIndex.init()
+
     if is_dynamic:
         kwargs['index_tm'] = ES_INDEX_DYNAMIC_TOPIC_MODELLING
         kwargs['topic_doc'] = ES_INDEX_DYNAMIC_TOPIC_DOCUMENT
