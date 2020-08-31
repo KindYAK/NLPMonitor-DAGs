@@ -33,6 +33,7 @@ def bigartm_calc(**kwargs):
         kwargs['models_folder'] = 'bigartm_models'
     dataset_prepare_result = dataset_prepare(**kwargs)
     if dataset_prepare_result == 1:
+        print("No index found")
         return dataset_prepare_result
     print("!#!#!#!#", "Dataset Prepare returned: ", dataset_prepare_result)
     print("!#!#!#!#", "Topic modelling Calc returned: ", topic_modelling(**kwargs))
@@ -151,7 +152,10 @@ def dataset_prepare(**kwargs):
     es_logger.setLevel(logging.ERROR)
 
     # Recreate index object
-    index = init_tm_index(**kwargs)
+    try:
+        index = init_tm_index(**kwargs)
+    except TMNotFoundException:
+        return 1
 
     lc = artm.messages.ConfigureLoggingArgs()
     lib = artm.wrapper.LibArtm(logging_config=lc)
