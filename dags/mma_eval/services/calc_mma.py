@@ -22,7 +22,7 @@ def calc_mma(**kwargs):
                         topics_number=topics_number)
     p2_matrix, document_es_guide = calc_p2(topic_modelling_name=topic_modelling_name,
                                            topics_number=topics_number)
-    p3_matrix = np.array(criterion_weights).reshape(-1, 1)
+    p3_matrix = np.array(list(a for a in zip(*criterion_weights))).reshape(-1, len(criterion_weights))
     p4_matrix = calc_p4(p1=p1_matrix, p3=p3_matrix)  # prob x weight
     p5_matrix = calc_p5(p2=p2_matrix, p4=p4_matrix)  # weight x prob
     p6_matrix = calc_p6(p1=p1_matrix, p2=p2_matrix)  # weight x prob

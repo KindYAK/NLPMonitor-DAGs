@@ -27,7 +27,7 @@ with dag:
         op_kwargs={
             "topic_modelling_name": "bigartm_two_years_main_and_gos2",
             "criterion_ids": (1, 35, 34),
-            "criterion_weights": (0.44, 0.33, 0.23),
+            "criterion_weights": ((0.44, 0.33, 0.23), ),
             "class_ids": (36, ),
             "perform_actualize": False
         }
