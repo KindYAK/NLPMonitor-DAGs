@@ -25,7 +25,6 @@ default_args = {
 
 dag = DAG('Scrapers_init_social_accounts', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='0 12 * * *')
 
-
 with dag:
     init_sources = DjangoOperator(
         task_id="init_accounts",
