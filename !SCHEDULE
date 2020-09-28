@@ -3,6 +3,7 @@
 Name - Schedule (UTC) - Schedule (Almaty)
 Weekly:
 NLPMonitor_es_activity_update - 15 6 * * 5 - 12:15 on Friday
+Scrapers_scrap_social_low - 15 6 * * 6 - 12:15 on Saturday
 
 Daily:
 Scrapers_update_activity - 0 0 * * * - 6:00
@@ -11,7 +12,9 @@ NLPmonitor_init_topic_group - 0 12 * * * - 18:00
 Criterion_init_var - 0 12 * * * - 18:00
 Scrapers_get_proxy_list - 0 12 * * * - 18:00
 Scrapers_init_sources - 0 12 * * * - 18:00
+Scrapers_init_social_accounts - 0 12 * * * - 18:00
 Scrapers_scrap - 15 12 * * * - 18:15
+Scrapers_scrap_social_medium - 15 12 * * * - 18:15
 Nlpmonitor_NGramize - 15 22 * * * - 4:15
 NLPmonitor_Actualize_BigARTM - 30 22 * * * - 4:30
 Criterion_actualize_evaluations - 0 23 * * * - 5:00
@@ -21,5 +24,6 @@ Hourly:
 Scrapers_scrap_fast - 0 * * * *
 Nlpmonitor_send_elastic - 15 * * * *
 Nlpmonitor_Lemmatization - 20 * * * *
+Scrapers_scrap_social_high - 30 * * * *
 NLPmonitor_Actualize_BigARTM_fast - 35 * * * *
 Criterion_actualize_evaluations_fast - 55 * * * *
