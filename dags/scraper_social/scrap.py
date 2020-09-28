@@ -56,8 +56,8 @@ for social_network in networks:
             python_callable=scrap_wrapper,
             op_kwargs={
                 "social_network": social_network['id'],
-                "accounts": filter(lambda x: x['social_network'] == social_network['id'] and x['priority_rate'] <= 25, accounts),
-            }
+                "accounts": list(filter(lambda x: (x['social_network'] == social_network['id']) and (x['priority_rate'] <= 25), accounts)),
+             }
         )
     scrapers_low.append(scraper)
 
@@ -68,7 +68,7 @@ for social_network in networks:
             python_callable=scrap_wrapper,
             op_kwargs={
                 "social_network": social_network['id'],
-                "accounts": filter(lambda x: x['social_network'] == social_network['id'] and 25 < x['priority_rate'] < 75, accounts),
+                "accounts": list(filter(lambda x: ((x['social_network'] == social_network['id']) and (25 < x['priority_rate'] < 75)), accounts)),
             }
         )
     scrapers_medium.append(scraper)
@@ -80,7 +80,7 @@ for social_network in networks:
             python_callable=scrap_wrapper,
             op_kwargs={
                 "social_network": social_network['id'],
-                "accounts": filter(lambda x: x['social_network'] == social_network['id'] and x['priority_rate'] >= 75, accounts),
+                "accounts": list(filter(lambda x: (x['social_network'] == social_network['id']) and (x['priority_rate'] >= 75), accounts)),
             }
         )
     scrapers_high.append(scraper)
