@@ -56,9 +56,10 @@ def scrap_telegram(**kwargs):
         for key in keys:
             print("!!", "key", key.api_id)
             client = TelegramClient(StringSession(key.string_session), key.api_id, key.api_hash)
+            nparsed = 0
             with client:
                 try:
-                    nparsed = client.loop.run_until_complete(scrap_telegram_async(client, account, datetime_last=account_obj.datetime_last_parsed))
+                    nparsed = scrap_telegram_async(client, account, datetime_last=account_obj.datetime_last_parsed)
                 except ValueError as e:
                     if "no user" in str(e).lower():
                         account_obj.is_active = False
