@@ -1,25 +1,6 @@
-async def scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, datetime_last=None):
-    import datetime
-
-    documents_parsed = 0
-    update_mode = False
-    async for message in iterator:
-        if not message or not message.text:
-            continue
-        if datetime_last and date_getter(message) < datetime_last:
-            update_mode = True
-        if datetime_last and date_getter(message) < (datetime_last - datetime.timedelta(days=3)):
-            break
-        if not update_mode:
-            result = document_handler(account, message)
-            if result:
-                documents_parsed += 1
-        else:
-            document_updater(account, message)
-    return documents_parsed
-
-
 def scrap_telegram_async(client, account, datetime_last=None):
+    from dags.scraper_social.scrap.utils import scrap_wrapper_async
+
     iterator = client.iter_messages(account['account_id'])
     date_getter = lambda x: x.date
 
@@ -37,7 +18,7 @@ def scrap_telegram_async(client, account, datetime_last=None):
         )
 
     def document_updater(account, message):
-        from mainapp.models import Corpus, Source, Document
+        from mainapp.models import Document
 
         try:
             d = Document.objects.get(url=f"{account['id']}-{message.id}")
@@ -47,4 +28,5 @@ def scrap_telegram_async(client, account, datetime_last=None):
         d.num_views = message.views
         d.save()
 
-    return client.loop.run_until_complete(scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, datetime_last))
+    return client.loop.run_until_complete(
+        scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, datetime_last))
