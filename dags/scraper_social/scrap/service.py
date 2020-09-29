@@ -42,6 +42,7 @@ def scrap_telegram(**kwargs):
     print("!", "Start parsing")
     total = 0
     fails = 0
+    accounts = sorted(accounts, key=lambda x: x['priority_rate'], reverse=True)
     for i, account in enumerate(accounts):
         if i % (len(accounts) // 10 + 1) == 0:
             print("!!!", f"{i}/{len(accounts)} parsed")
@@ -51,16 +52,24 @@ def scrap_telegram(**kwargs):
             print("!!", "key", key.api_id)
             client = TelegramClient(StringSession(key.string_session), key.api_id, key.api_hash)
             with client:
-                nparsed = client.loop.run_until_complete(
-                    scrap_telegram_async(client, account, datetime_last=account_obj.datetime_last_parsed))
-                # try:
-                #     nparsed = client.loop.run_until_complete(scrap_telegram_async(client, account, datetime_last=account_obj.datetime_last_parsed))
-                # except Exception as e:
-                #     print("!!! EXCEPTION", e)
-                #     fails += 1
-                #     continue
-                # finally:
-                #     total += nparsed
+                try:
+                    nparsed = client.loop.run_until_complete(scrap_telegram_async(client, account, datetime_last=account_obj.datetime_last_parsed))
+                except ValueError as e:
+                    if "no user" in str(e).lower():
+                        account_obj.is_active = False
+                        account_obj.save()
+                        print("Disabled user", account)
+                        continue
+                    else:
+                        print("!!! EXCEPTION", e)
+                        fails += 1
+                        continue
+                except Exception as e:
+                    print("!!! EXCEPTION", e)
+                    fails += 1
+                    continue
+                finally:
+                    total += nparsed
             account_obj.datetime_last_parsed = now
             account_obj.save()
 
