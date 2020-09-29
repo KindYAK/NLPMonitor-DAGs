@@ -28,5 +28,4 @@ def scrap_telegram_async(client, account, datetime_last=None):
         d.num_views = message.views
         d.save()
 
-    return client.loop.run_until_complete(
-        scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, datetime_last))
+    return client.loop.run_until_complete(scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, datetime_last))
