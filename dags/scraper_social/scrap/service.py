@@ -46,7 +46,12 @@ def scrap_telegram(**kwargs):
     for i, account in enumerate(accounts):
         if i % (len(accounts) // 10 + 1) == 0:
             print("!!!", f"{i}/{len(accounts)} parsed")
-        account_obj = SocialNetworkAccount.objects.get(id=account['id'])
+        try:
+            account_obj = SocialNetworkAccount.objects.get(id=account['id'])
+        except SocialNetworkAccount.DoesNotExist as e:
+            fails += 1
+            print("!!! EXCEPTION getting account", e)
+            continue
         now = timezone.now()
         for key in keys:
             print("!!", "key", key.api_id)
@@ -61,7 +66,7 @@ def scrap_telegram(**kwargs):
                         print("Disabled user", account)
                         continue
                     else:
-                        print("!!! EXCEPTION", e)
+                        print("!!! EXCEPTION ValueError", e)
                         fails += 1
                         continue
                 except Exception as e:
