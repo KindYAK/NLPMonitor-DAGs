@@ -4,7 +4,7 @@ async def scrap_telegram_async(client, account, datetime_last=None):
     documents_parsed = 0
     async for message in client.iter_messages(account['account_id']):
         if not message or not message.text:
-            break
+            continue
         if datetime_last and message.date < datetime_last:
             break
         result = create_document(
