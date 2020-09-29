@@ -14,6 +14,7 @@ async def scrap_telegram_async(client, account, datetime_last=None):
             text=message.text,
             datetime=message.date,
             num_views=message.views,
+            url=f"{account['id']}-{message.id}",
         )
         if result:
             documents_parsed += 1
