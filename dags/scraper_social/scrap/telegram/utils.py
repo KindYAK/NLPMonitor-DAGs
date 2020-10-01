@@ -1,7 +1,7 @@
 def scrap_telegram_async(client, account, datetime_last=None):
     from dags.scraper_social.scrap.utils import scrap_wrapper_async
 
-    iterator = client.iter_messages(account['account_id'])
+    iterator = client.iter_messages(account.account_id)
     date_getter = lambda x: x.date
 
     def document_handler(account, message):
@@ -9,21 +9,21 @@ def scrap_telegram_async(client, account, datetime_last=None):
 
         return create_document(
             source_name="Telegram",
-            social_network_account_id=account['id'],
+            social_network_account_id=account.id,
             title=f'Пост от {message.date}: {message.text[:50] + ("..." if len(message.text) > 50 else "")}',
             text=message.text,
             datetime=message.date,
             num_views=message.views,
-            url=f"{account['id']}-{message.id}",
+            url=f"{account.id}-{message.id}",
         )
 
     def document_updater(account, message):
         from mainapp.models import Document
 
         try:
-            d = Document.objects.get(url=f"{account['id']}-{message.id}")
+            d = Document.objects.get(url=f"{account.id}-{message.id}")
         except Exception as e:
-            print(f"{account['id']}-{message.id} not found!")
+            print(f"{account.id}-{message.id} not found!")
             return
         d.num_views = message.views
         d.save()
