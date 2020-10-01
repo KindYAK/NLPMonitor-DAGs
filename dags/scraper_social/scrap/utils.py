@@ -1,7 +1,7 @@
-def create_document(source_name, title, text, # Required stuff
+def create_document(source_name, title, text,  # Required stuff
                     # Optional stuff
                     html=None, url=None, datetime=None,
-                    num_views=None, num_shares=None, num_comments=None, num_likes=None,
+                    num_views=None, num_shares=None, num_comments=None, num_likes=None, comments_list=None,
                     # If you know DB ID of Social Account
                     social_network_account_id=None,
                     # If you don't know DB ID of Social Account
@@ -10,8 +10,11 @@ def create_document(source_name, title, text, # Required stuff
                     social_network_account_nickname=None, social_network_account_url=None):
     from annoying.functions import get_object_or_None
 
-    from mainapp.models import Corpus, Source, Document
+    from mainapp.models import Corpus, Source, Document, Tag, Comment
     from scraping.models import SocialNetworkAccount
+
+    if not comments_list:
+        comments_list = list()
 
     corpus = get_object_or_None(Corpus, name="main")
     if not corpus:
@@ -20,6 +23,12 @@ def create_document(source_name, title, text, # Required stuff
     source = get_object_or_None(Source, name=source_name, corpus=corpus)
     if not source:
         source = Source.objects.create(name=source_name, url=source_name, corpus=corpus)
+
+    hashtags = [word[1:] for word in text.split() if word.startswith('#')]
+    for hashtag in hashtags:
+        tag = get_object_or_None(Tag, name=hashtag, corpus=corpus)
+        if not tag:
+            Tag.objects.create(name=hashtag, corpus=corpus)
 
     if social_network_account_id:
         account = SocialNetworkAccount.objects.get(id=social_network_account_id)
@@ -32,7 +41,7 @@ def create_document(source_name, title, text, # Required stuff
                                                           account_id=social_network_account_internal_id,
                                                           nickname=social_network_account_nickname)
     try:
-        Document.objects.create(
+        document = Document.objects.create(
             source=source,
             social_network_account=account,
             title=title,
@@ -45,9 +54,15 @@ def create_document(source_name, title, text, # Required stuff
             num_shares=num_shares,
             num_comments=num_comments,
         )
+
+        for comment, comment_date in comments_list:
+            comment = get_object_or_None(Comment, text=comment, document=document, datetime=comment_date)
+            if not comment:
+                Comment.objects.create(text=comment, document=document, datetime=comment_date)
+
         return True
     except Exception as e:
-        if not "duplicate" in str(e).lower():
+        if "duplicate" not in str(e).lower():
             raise e
         else:
             return False
