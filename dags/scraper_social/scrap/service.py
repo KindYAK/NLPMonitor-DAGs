@@ -1,7 +1,6 @@
 def scrap_wrapper(**kwargs):
     from django.utils import timezone
-
-    from scraping.models import TelegramAuthKey, SocialNetworkAccount
+    from scraping.models import SocialNetworkAccount
 
     accounts = kwargs['accounts']
     print("!", "Start parsing")
@@ -30,8 +29,7 @@ def scrap_wrapper(**kwargs):
             # Parse Twitter
             raise Exception("Not implemented")
         if social_network_id == 3:
-            # Parse Instagram
-            raise Exception("Not implemented")
+            f, t = scrap_instagram(account_obj)
         if social_network_id == 4:
             # Parse Telegram
             f, t = scrap_telegram(account_obj)
@@ -83,4 +81,20 @@ def scrap_telegram(account):
                 continue
             finally:
                 total += nparsed
+    return fails, total
+
+
+def scrap_instagram(account):
+    from dags.scraper_social.scrap.instagram.service import scrap_instagram_async
+
+    fails = 0
+    total = 0
+    nparsed = 0
+    try:
+        nparsed = scrap_instagram_async(account, datetime_last=account.datetime_last_parsed)
+    except Exception as e:
+        print("!!! EXCEPTION", e)
+        fails += 1
+    finally:
+        total += nparsed
     return fails, total
