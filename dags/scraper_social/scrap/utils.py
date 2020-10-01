@@ -53,13 +53,13 @@ def create_document(source_name, title, text, # Required stuff
             return False
 
 
-async def scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, datetime_last=None):
+async def scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, text_getter, datetime_last=None):
     import datetime
 
     documents_parsed = 0
     update_mode = False
     async for message in iterator:
-        if not message or not message.text:
+        if not message or not text_getter(message):
             continue
         if datetime_last and date_getter(message) < datetime_last:
             update_mode = True
