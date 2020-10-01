@@ -55,10 +55,7 @@ def create_document(source_name, title, text,  # Required stuff
             num_comments=num_comments,
         )
 
-        for comment, comment_date in comments_list:
-            comment = get_object_or_None(Comment, text=comment, document=document, datetime=comment_date)
-            if not comment:
-                Comment.objects.create(text=comment, document=document, datetime=comment_date)
+        create_comments(comments_list=comments_list, document=document)
 
         return True
     except Exception as e:
@@ -87,3 +84,13 @@ async def scrap_wrapper_async(account, iterator, document_handler, document_upda
         else:
             document_updater(account, message)
     return documents_parsed
+
+
+def create_comments(comments_list, document):
+    from mainapp.models import Comment
+    from annoying.functions import get_object_or_None
+
+    for comment, comment_date in comments_list:
+        comment = get_object_or_None(Comment, text=comment, document=document, datetime=comment_date)
+        if not comment:
+            Comment.objects.create(text=comment, document=document, datetime=comment_date)
