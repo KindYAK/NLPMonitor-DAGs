@@ -3,6 +3,7 @@ def scrap_telegram_async(client, account, datetime_last=None):
 
     iterator = client.iter_messages(account.account_id)
     date_getter = lambda x: x.date
+    text_getter = lambda x: x.text
 
     def document_handler(account, message):
         from dags.scraper_social.scrap.utils import create_document
@@ -28,4 +29,5 @@ def scrap_telegram_async(client, account, datetime_last=None):
         d.num_views = message.views
         d.save()
 
-    return client.loop.run_until_complete(scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, datetime_last))
+    return client.loop.run_until_complete(scrap_wrapper_async(account, iterator, document_handler, document_updater,
+                                                              date_getter, text_getter, datetime_last))
