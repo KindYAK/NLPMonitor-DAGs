@@ -93,11 +93,11 @@ def create_comments(comments_list, document):
     if not comments_list:
         return None
 
-    for comment, comment_date, comment_id in comments_list:
-        comment = get_object_or_None(Comment, comment_id=comment_id, document=document)
-        if not comment:
+    for comment_text, comment_date, comment_id in comments_list:
+        comment_object = get_object_or_None(Comment, comment_id=comment_id, document=document)
+        if not comment_object:
             try:
-                Comment.objects.create(text=comment, document=document, datetime=parse_date(comment_date),
+                Comment.objects.create(text=comment_text, document=document, datetime=parse_date(comment_date),
                                        comment_id=comment_id)
             except Exception as e:
                 if "duplicate" not in str(e).lower():
