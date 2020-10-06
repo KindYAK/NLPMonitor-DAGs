@@ -16,6 +16,8 @@ def scrap_instagram_async(account, datetime_last=None):
         if message.comments_count:
             comments_duo = get_posts(method_type='Media', object_id=message, num_posts=100)  # nested list
 
+        hashtags_list = [word[1:] for word in message.caption.split() if word.startswith('#')]
+
         return create_document(
             source_name="Instagram",
             social_network_account_id=account.id,
@@ -25,7 +27,8 @@ def scrap_instagram_async(account, datetime_last=None):
             num_likes=message.likes_count,
             num_comments=message.comments_count,
             url=message.display_url,
-            comments_list=comments_duo
+            comments_list=comments_duo,
+            hashtags_list=hashtags_list
         )
 
     def document_updater(account, message):
