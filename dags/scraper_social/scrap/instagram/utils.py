@@ -1,5 +1,4 @@
 def get_comments(post: dict) -> list:
-    from datetime import datetime
     """
     :param post:
     :return List:
@@ -8,13 +7,13 @@ def get_comments(post: dict) -> list:
     for comment in post['edge_media_to_parent_comment']['edges']:
         node_comments = comment['node']
         comments_text = node_comments['text']
-        comments_date = datetime.fromtimestamp(node_comments['created_at'])
+        comments_date = node_comments['created_at']
         comments_id = node_comments['id']
         comments_list.append([comments_text, comments_date, comments_id])
         if node_comments['edge_threaded_comments']['count']:
             for sub_comment in node_comments['edge_threaded_comments']['edges']:
                 sub_comment_node = sub_comment['node']
-                sub_comment_date = datetime.fromtimestamp(sub_comment_node['created_at'])
+                sub_comment_date = sub_comment_node['created_at']
                 sub_comments_id = sub_comment_node['id']
                 comments_list.append([sub_comment_node['text'], sub_comment_date, sub_comments_id])
     return comments_list
