@@ -7,7 +7,7 @@ def scrap_instagram_async(account, datetime_last=None):
 
     date_getter = lambda x: parse_date(x.date)
     text_getter = lambda x: x.caption
-    iterator = instagram_iterator(account=account, batch_size=100)
+    iterator = instagram_iterator(account=account, batch_size=30)
 
     def document_handler(account, message):
         from dags.scraper_social.scrap.utils import create_document
