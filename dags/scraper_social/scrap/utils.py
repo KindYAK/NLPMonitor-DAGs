@@ -68,6 +68,8 @@ def create_document(source_name, title, text,  # Required stuff
 async def scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, text_getter, datetime_last=None):
     import datetime
 
+    from mainapp.models import Document
+
     documents_parsed = 0
     update_mode = False
     async for message in iterator:
@@ -82,7 +84,10 @@ async def scrap_wrapper_async(account, iterator, document_handler, document_upda
             if result:
                 documents_parsed += 1
         else:
-            document_updater(account, message)
+            try:
+                document_updater(account, message)
+            except Document.DoesNotExist as e:
+                document_handler(account, message)
     return documents_parsed
 
 

@@ -25,7 +25,7 @@ def scrap_telegram_async(client, account, datetime_last=None):
             d = Document.objects.get(url=f"{account.id}-{message.id}")
         except Exception as e:
             print(f"{account.id}-{message.id} not found!")
-            return
+            raise e
         d.num_views = message.views
         d.save()
 

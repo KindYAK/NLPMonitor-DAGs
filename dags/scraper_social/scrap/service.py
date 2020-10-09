@@ -23,8 +23,7 @@ def scrap_wrapper(**kwargs):
             # Parse Facebook
             raise Exception("Not implemented")
         if social_network_id == 1:
-            # Parse VK
-            raise Exception("Not implemented")
+            f, t = scrap_vk(account_obj)
         if social_network_id == 2:
             # Parse Twitter
             raise Exception("Not implemented")
@@ -43,7 +42,7 @@ def scrap_wrapper(**kwargs):
 
     if fails > len(list(accounts)) // 2:
         raise Exception("Too many fails, WTF?")
-    return f"Parse complete, {total} parsed"
+    return f"Parse complete, {total} parsed, {fails} fails"
 
 
 def scrap_telegram(account):
@@ -97,4 +96,46 @@ def scrap_instagram(account):
         fails += 1
     finally:
         total += nparsed
+    return fails, total
+
+
+def scrap_vk(account):
+    import vk
+
+    from django.utils import timezone
+
+    from scraping.models import VKLoginPass
+
+    from dags.scraper_social.scrap.vk.utils import scrap_vk_async
+
+    auth_accounts = VKLoginPass.objects.filter(is_active=True).order_by('?')
+
+    fails = 0
+    total = 0
+    for key in auth_accounts:
+        if key.datetime_wall_get_limit_reached and key.datetime_wall_get_limit_reached > timezone.now() - timezone.timedelta(days=1):
+            print("!!! Skip blocked key", key.app_id)
+            continue
+        elif key.datetime_wall_get_limit_reached and key.datetime_wall_get_limit_reached >= timezone.now() - timezone.timedelta(days=1):
+            key.wall_get_limit_used = 0
+            key.save()
+
+        if key.datetime_wall_get_updated and \
+                key.datetime_wall_get_updated - key.datetime_wall_get_updated.date() > timezone.timedelta(days=1):
+            key.wall_get_limit_used = 0
+            key.auth_account.datetime_wall_get_updated = None
+            key.save()
+
+        print("!!", "key", key.app_id)
+        session = vk.AuthSession(key.app_id, key.login, key.password)
+        vk_api = vk.API(session)
+        nparsed = 0
+        try:
+            nparsed = scrap_vk_async(vk_api, account, key, datetime_last=account.datetime_last_parsed)
+        except Exception as e:
+            print("!!! EXCEPTION", e)
+            fails += 1
+            continue
+        finally:
+            total += nparsed
     return fails, total
