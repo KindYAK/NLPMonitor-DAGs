@@ -1,6 +1,6 @@
 def create_document(source_name, title, text,  # Required stuff
                     # Optional stuff
-                    html=None, url=None, datetime=None,
+                    html=None, url=None, datetime=None, hashtags_list=None,
                     num_views=None, num_shares=None, num_comments=None, num_likes=None, comments_list=None,
                     # If you know DB ID of Social Account
                     social_network_account_id=None,
@@ -13,9 +13,6 @@ def create_document(source_name, title, text,  # Required stuff
     from mainapp.models import Corpus, Source, Document, Tag, Comment
     from scraping.models import SocialNetworkAccount
 
-    if not comments_list:
-        comments_list = list()
-
     corpus = get_object_or_None(Corpus, name="main")
     if not corpus:
         corpus = Source.objects.create(name=source_name, url=source_name, corpus="main")
@@ -24,16 +21,17 @@ def create_document(source_name, title, text,  # Required stuff
     if not source:
         source = Source.objects.create(name=source_name, url=source_name, corpus=corpus)
 
-    hashtags = [word[1:] for word in text.split() if word.startswith('#')]
-    for hashtag in hashtags:
-        tag = get_object_or_None(Tag, name=hashtag, corpus=corpus)
-        if not tag:
-            Tag.objects.create(name=hashtag, corpus=corpus)
+    if hashtags_list:
+        for hashtag in hashtags_list:
+            tag = get_object_or_None(Tag, name=hashtag, corpus=corpus)
+            if not tag:
+                Tag.objects.create(name=hashtag, corpus=corpus)
 
     if social_network_account_id:
         account = SocialNetworkAccount.objects.get(id=social_network_account_id)
     else:
-        account = get_object_or_None(SocialNetworkAccount, social_network=social_network_choice_int, account_id=social_network_account_internal_id)
+        account = get_object_or_None(SocialNetworkAccount, social_network=social_network_choice_int,
+                                     account_id=social_network_account_internal_id)
         if not account:
             account = SocialNetworkAccount.objects.create(name=social_network_account_name,
                                                           social_network=social_network_choice_int,
@@ -65,7 +63,8 @@ def create_document(source_name, title, text,  # Required stuff
             return False
 
 
-async def scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, text_getter, datetime_last=None):
+async def scrap_wrapper_async(account, iterator, document_handler, document_updater, date_getter, text_getter,
+                              datetime_last=None):
     import datetime
 
     from mainapp.models import Document
@@ -94,8 +93,19 @@ async def scrap_wrapper_async(account, iterator, document_handler, document_upda
 def create_comments(comments_list, document):
     from mainapp.models import Comment
     from annoying.functions import get_object_or_None
+    from dags.scraper_social.scrap.instagram.utils import parse_date
 
-    for comment, comment_date in comments_list:
-        comment = get_object_or_None(Comment, text=comment, document=document, datetime=comment_date)
-        if not comment:
-            Comment.objects.create(text=comment, document=document, datetime=comment_date)
+    if not comments_list:
+        return None
+
+    for comment_text, comment_date, comment_id in comments_list:
+        comment_object = get_object_or_None(Comment, comment_id=comment_id, document=document)
+        if not comment_object:
+            try:
+                Comment.objects.create(text=comment_text, document=document, datetime=parse_date(comment_date),
+                                       comment_id=comment_id)
+            except Exception as e:
+                if "duplicate" not in str(e).lower():
+                    raise e
+                else:
+                    return False

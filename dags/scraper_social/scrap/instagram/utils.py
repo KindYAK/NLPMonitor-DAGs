@@ -1,18 +1,21 @@
-def get_comments(post):
+def get_comments(post: dict) -> list:
     """
     :param post:
     :return List:
     """
-    from datetime import datetime
     comments_list = list()
     for comment in post['edge_media_to_parent_comment']['edges']:
         node_comments = comment['node']
-        comments_text, comments_date = node_comments['text'], datetime.fromtimestamp(node_comments['created_at'])
-        comments_list.append([comments_text, comments_date])
+        comments_text = node_comments['text']
+        comments_date = node_comments['created_at']
+        comments_id = node_comments['id']
+        comments_list.append([comments_text, comments_date, comments_id])
         if node_comments['edge_threaded_comments']['count']:
             for sub_comment in node_comments['edge_threaded_comments']['edges']:
-                sub_comment_date = datetime.fromtimestamp(sub_comment['node']['created_at'])
-                comments_list.append([sub_comment['node']['text'], sub_comment_date])
+                sub_comment_node = sub_comment['node']
+                sub_comment_date = sub_comment_node['created_at']
+                sub_comments_id = sub_comment_node['id']
+                comments_list.append([sub_comment_node['text'], sub_comment_date, sub_comments_id])
     return comments_list
 
 
@@ -91,7 +94,17 @@ def get_posts(method_type, object_id, num_posts=100):
                 break
 
 
-def instagram_iterator(account, batch_size):
+async def instagram_iterator(account, batch_size):
     medias_list = get_posts(method_type='Account', object_id=account.nickname, num_posts=batch_size)
     for media in medias_list:
         yield media
+
+
+def parse_date(datetime_object):
+    from datetime import datetime as date_time
+    from datetime import timezone
+    from datetime import timedelta
+
+    dt = date_time.fromtimestamp(datetime_object)
+    dt = dt.replace(tzinfo=timezone.utc) - timedelta(hours=6)
+    return dt

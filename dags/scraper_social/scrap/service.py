@@ -7,7 +7,7 @@ def scrap_wrapper(**kwargs):
     total = 0
     fails = 0
     accounts = sorted(accounts, key=lambda x: x['priority_rate'], reverse=True)
-    for i, account in enumerate(accounts):
+    for i, account in enumerate(accounts, start=1):
         if i % (len(accounts) // 10 + 1) == 0:
             print("!!!", f"{i}/{len(accounts)} parsed")
         try:

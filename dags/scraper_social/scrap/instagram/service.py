@@ -1,20 +1,25 @@
 def scrap_instagram_async(account, datetime_last=None):
     from dags.scraper_social.scrap.utils import scrap_wrapper_async, create_comments
-    from dags.scraper_social.scrap.instagram.utils import instagram_iterator, get_posts
+    from dags.scraper_social.scrap.instagram.utils import instagram_iterator, get_posts, parse_date
+    import asyncio
 
-    date_getter = lambda x: x.date
+    loop = asyncio.get_event_loop()
+
+    date_getter = lambda x: parse_date(x.date)
     text_getter = lambda x: x.caption
     iterator = instagram_iterator(account=account, batch_size=100)
 
     def document_handler(account, message):
         from dags.scraper_social.scrap.utils import create_document
-        from datetime import datetime
 
-        date = datetime.fromtimestamp(message.date)
+        date = parse_date(message.date)
         comments_duo = list()
 
         if message.comments_count:
             comments_duo = get_posts(method_type='Media', object_id=message, num_posts=100)  # nested list
+
+        hashtags_list = [word[1:] for word in message.caption.split() if
+                         word.startswith('#')] if message.caption else list()
 
         return create_document(
             source_name="Instagram",
@@ -25,7 +30,8 @@ def scrap_instagram_async(account, datetime_last=None):
             num_likes=message.likes_count,
             num_comments=message.comments_count,
             url=message.display_url,
-            comments_list=comments_duo
+            comments_list=comments_duo,
+            hashtags_list=hashtags_list
         )
 
     def document_updater(account, message):
@@ -46,10 +52,10 @@ def scrap_instagram_async(account, datetime_last=None):
         d.num_comments = message.comments_count
         d.save()
 
-    return scrap_wrapper_async(account=account,
-                               iterator=iterator,
-                               document_handler=document_handler,
-                               document_updater=document_updater,
-                               date_getter=date_getter,
-                               datetime_last=datetime_last,
-                               text_getter=text_getter)
+    return loop.run_until_complete(scrap_wrapper_async(account=account,
+                                                       iterator=iterator,
+                                                       document_handler=document_handler,
+                                                       document_updater=document_updater,
+                                                       date_getter=date_getter,
+                                                       datetime_last=datetime_last,
+                                                       text_getter=text_getter))
