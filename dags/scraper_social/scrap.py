@@ -48,6 +48,7 @@ dag_high = DAG('Scrapers_scrap_social_high', catchup=False, max_active_runs=1, d
 scrapers_low = []
 scrapers_medium = []
 scrapers_high = []
+# Scraping by accounts
 for social_network in networks:
     # Low
     with dag_low:
@@ -57,6 +58,7 @@ for social_network in networks:
             op_kwargs={
                 "social_network": social_network['id'],
                 "accounts": list(filter(lambda x: (x['social_network'] == social_network['id']) and (x['priority_rate'] <= 25), accounts)),
+                "by": "account",
              }
         )
     scrapers_low.append(scraper)
@@ -69,6 +71,7 @@ for social_network in networks:
             op_kwargs={
                 "social_network": social_network['id'],
                 "accounts": list(filter(lambda x: ((x['social_network'] == social_network['id']) and (25 < x['priority_rate'] < 75)), accounts)),
+                "by": "account",
             }
         )
     scrapers_medium.append(scraper)
@@ -81,6 +84,50 @@ for social_network in networks:
             op_kwargs={
                 "social_network": social_network['id'],
                 "accounts": list(filter(lambda x: (x['social_network'] == social_network['id']) and (x['priority_rate'] >= 75), accounts)),
+                "by": "account",
             }
         )
     scrapers_high.append(scraper)
+
+
+# Custom stuff
+# Monitoring objects
+monitoring_objects = json.loads(Variable.get('monitoring_queries', default_var="[]"))
+# Low
+with dag_low:
+    scraper = DjangoOperator(
+        task_id=f"scrap_VK_by_feed_search_request_low",
+        python_callable=scrap_wrapper,
+        op_kwargs={
+            "social_network": 1,
+            "requests": list(filter(lambda x: (x['social_network'] == 1) and (x['priority_rate'] <= 25), monitoring_objects)),
+            "by": "request",
+        }
+    )
+scrapers_low.append(scraper)
+
+# Medium
+with dag_medium:
+    scraper = DjangoOperator(
+        task_id=f"scrap_VK_by_feed_search_request_medium",
+        python_callable=scrap_wrapper,
+        op_kwargs={
+            "social_network": 1,
+            "requests": list(filter(lambda x: ((x['social_network'] == 1) and (25 < x['priority_rate'] < 75)), monitoring_objects)),
+            "by": "request",
+        }
+    )
+scrapers_medium.append(scraper)
+
+# High
+with dag_high:
+    scraper = DjangoOperator(
+        task_id=f"scrap_VK_by_feed_search_request_high",
+        python_callable=scrap_wrapper,
+        op_kwargs={
+            "social_network": 1,
+            "requests": list(filter(lambda x: (x['social_network'] == 1) and (x['priority_rate'] >= 75), monitoring_objects)),
+            "by": "request",
+        }
+    )
+scrapers_high.append(scraper)
