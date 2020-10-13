@@ -113,10 +113,10 @@ def scrap_vk(account):
     fails = 0
     total = 0
     for key in auth_accounts:
-        if key.datetime_wall_get_limit_reached and key.datetime_wall_get_limit_reached > timezone.now() - timezone.timedelta(days=1):
+        if key.datetime_wall_get_limit_reached and ((key.datetime_wall_get_limit_reached > (timezone.now()) - timezone.timedelta(days=1))):
             print("!!! Skip blocked key", key.app_id)
             continue
-        elif key.datetime_wall_get_limit_reached and key.datetime_wall_get_limit_reached >= timezone.now() - timezone.timedelta(days=1):
+        elif key.datetime_wall_get_limit_reached and (key.datetime_wall_get_limit_reached <= (timezone.now() - timezone.timedelta(days=1))):
             key.wall_get_limit_used = 0
             key.save()
 
