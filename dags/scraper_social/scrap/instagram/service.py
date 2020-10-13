@@ -41,8 +41,7 @@ def scrap_instagram_async(account, datetime_last=None):
             d = Document.objects.get(url=message.display_url)
         except Exception as e:
             print(f"{account.id}-{message.id} not found!")
-            print(e)
-            return
+            raise e
         d.num_likes = message.likes_count
         if message.comments_count > d.num_comments:
             comments_to_add = message.comments_count - d.num_comments
