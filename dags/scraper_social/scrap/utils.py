@@ -23,7 +23,7 @@ def scrap_by_account(accounts, social_network):
         if social_network_id == 1:
             # Parse VK
             from dags.scraper_social.scrap.vk.utils import scrap_vk_async
-            f, t = scrap_vk(account_obj, scrap_vk_async)
+            f, t = scrap_vk(account_obj, scrap_vk_async, "wall")
         if social_network_id == 2:
             # Parse Twitter
             raise Exception("Not implemented")
@@ -68,7 +68,7 @@ def scrap_by_request(requests, social_network):
         if social_network_id == 1:
             # Parse VK
             from dags.scraper_social.scrap.vk.utils import scrap_vk_async_by_request
-            f, t = scrap_vk(request_object, scrap_vk_async_by_request)
+            f, t = scrap_vk(request_object, scrap_vk_async_by_request, "feed")
         if social_network_id == 2:
             # Parse Twitter
             raise Exception("Not implemented")
@@ -142,7 +142,7 @@ def scrap_instagram(account):
     return fails, total
 
 
-def scrap_vk(scraping_obj, scrap_function):
+def scrap_vk(scraping_obj, scrap_function, rtype):
     import vk
 
     from django.utils import timezone
@@ -153,13 +153,25 @@ def scrap_vk(scraping_obj, scrap_function):
 
     fails = 0
     total = 0
+
     for key in auth_accounts:
-        if key.datetime_wall_get_limit_reached and ((key.datetime_wall_get_limit_reached > (timezone.now()) - timezone.timedelta(days=1))):
-            print("!!! Skip blocked key", key.app_id)
-            continue
-        elif key.datetime_wall_get_limit_reached and (key.datetime_wall_get_limit_reached <= (timezone.now() - timezone.timedelta(days=1))):
-            key.wall_get_limit_used = 0
-            key.save()
+
+        if rtype == "wall":
+            if key.datetime_wall_get_limit_reached and ((key.datetime_wall_get_limit_reached > (timezone.now()) - timezone.timedelta(days=1))):
+                print("!!! Skip blocked key", key.app_id)
+                continue
+            elif key.datetime_wall_get_limit_reached and (key.datetime_wall_get_limit_reached <= (timezone.now() - timezone.timedelta(days=1))):
+                key.wall_get_limit_used = 0
+                key.save()
+        elif rtype == "feed":
+            if key.datetime_wall_get_limit_reached and ((key.datetime_wall_get_limit_reached > (timezone.now()) - timezone.timedelta(days=1))):
+                print("!!! Skip blocked key", key.app_id)
+                continue
+            elif key.datetime_wall_get_limit_reached and (key.datetime_wall_get_limit_reached <= (timezone.now() - timezone.timedelta(days=1))):
+                key.news_feed_limit_used = 0
+                key.save()
+        else:
+            raise Exception("Not implemented (rtype)!")
 
         if key.datetime_wall_get_updated and ((key.datetime_wall_get_updated.date() - key.datetime_wall_get_updated.date()) > timezone.timedelta(days=1)):
             key.wall_get_limit_used = 0

@@ -88,7 +88,7 @@ def scrap_vk_async_by_request(vk_api, request, auth_account, datetime_last=None)
             except Exception as e:
                 if not "29" in str(e):
                     raise e
-                auth_account.datetime_wall_get_limit_reached = timezone.now()
+                auth_account.datetime_news_feed_limit_reached = timezone.now()
                 auth_account.save()
                 break
             if 'items' not in posts and not posts['items']:
@@ -98,8 +98,8 @@ def scrap_vk_async_by_request(vk_api, request, auth_account, datetime_last=None)
             start_from += posts['next_from']
             auth_account.wall_get_limit_used += 1
             requests_done += 1
-            if not auth_account.datetime_wall_get_updated:
-                auth_account.datetime_wall_get_updated = timezone.now()
+            if not auth_account.datetime_news_feed_updated:
+                auth_account.datetime_news_feed_updated = timezone.now()
             auth_account.save()
 
     def document_handler(request, message):
