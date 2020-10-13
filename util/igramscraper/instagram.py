@@ -102,7 +102,7 @@ class Instagram:
 
     def get_account_by_id(self, id):
         """
-        :param id: account id
+        :param id: scraping_obj id
         :return: Account
         """
         username = self.get_username_by_id(id)
@@ -110,7 +110,7 @@ class Instagram:
 
     def get_username_by_id(self, id):
         """
-        :param id: account id
+        :param id: scraping_obj id
         :return: username string from response
         """
         time.sleep(self.sleep_between_requests)
@@ -120,7 +120,7 @@ class Instagram:
 
         if Instagram.HTTP_NOT_FOUND == response.status_code:
             raise InstagramNotFoundException(
-                'Failed to fetch account with given id')
+                'Failed to fetch scraping_obj with given id')
 
         if Instagram.HTTP_OK != response.status_code:
             raise InstagramException.default(response.text,
@@ -298,7 +298,7 @@ class Instagram:
 
     def get_medias_by_user_id(self, id, count=12, max_id=''):
         """
-        :param id: instagram account id
+        :param id: instagram scraping_obj id
         :param count: the number of how many media you want to get
         :param max_id: used to paginate
         :return: list of Media
@@ -360,7 +360,7 @@ class Instagram:
 
     def get_tagged_medias_by_user_id(self, id, count=12, max_id=''):
         """
-        :param id: instagram account id
+        :param id: instagram scraping_obj id
         :param count: the number of how many media you want to get
         :param max_id: used to paginate
         :return: list of Tagged Media
@@ -445,7 +445,7 @@ class Instagram:
 
         if Instagram.HTTP_NOT_FOUND == response.status_code:
             raise InstagramNotFoundException(
-                'Media with given code does not exist or account is private.')
+                'Media with given code does not exist or scraping_obj is private.')
 
         if Instagram.HTTP_OK != response.status_code:
             raise InstagramException.default(response.text,
@@ -935,8 +935,8 @@ class Instagram:
                 'edges']
             if len(edgesArray) == 0 and index > 2:
                 InstagramException(
-                    f'Failed to get followers of account id {account_id}.'
-                    f' The account is private.',
+                    f'Failed to get followers of scraping_obj id {account_id}.'
+                    f' The scraping_obj is private.',
                     Instagram.HTTP_FORBIDDEN)
 
             pageInfo = jsonResponse['data']['user']['edge_followed_by'][
@@ -1026,12 +1026,12 @@ class Instagram:
 
             edgesArray = jsonResponse['data']['user']['edge_follow']['edges']
 
-            #confirmation of presence of previous increments of indexes making sure account
-            #is not a private account
+            #confirmation of presence of previous increments of indexes making sure scraping_obj
+            #is not a private scraping_obj
             if len(edgesArray) == 0 and index > 2:
                 raise InstagramException(
-                    f'Failed to get follows of account id {account_id}.'
-                    f' The account is private.',
+                    f'Failed to get follows of scraping_obj id {account_id}.'
+                    f' The scraping_obj is private.',
                     Instagram.HTTP_FORBIDDEN)
 
             pageInfo = jsonResponse['data']['user']['edge_follow']['page_info']
@@ -1373,7 +1373,7 @@ class Instagram:
     def login(self, force=False, two_step_verificator=None):
         """support_two_step_verification true works only in cli mode - just run login in cli mode - save cookie to file and use in any mode
         :param force: true will refresh the session
-        :param two_step_verificator: true will need to do verification when an account goes wrong
+        :param two_step_verificator: true will need to do verification when an scraping_obj goes wrong
         :return: headers dict
         """
         if self.session_username is None or self.session_password is None:

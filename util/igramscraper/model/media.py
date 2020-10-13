@@ -32,7 +32,7 @@ class Media(InitializerModel):
         self.video_low_bandwidth_url = None
         self.video_views = 0
         self.video_url = None
-        # account object
+        # scraping_obj object
         self.owner = None
         self.likes_count = 0
         self.location_id = None

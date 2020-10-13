@@ -975,7 +975,7 @@ class WebAgentAccount(Account, WebAgent):
     @exception_manager.decorator
     def checkpoint(self, url, code, settings=None):
         if not self.logger is None:
-            self.logger.info("Verify account '%s' started")
+            self.logger.info("Verify scraping_obj '%s' started")
         response = self.action_request(
             referer=url,
             url=url,
@@ -986,12 +986,12 @@ class WebAgentAccount(Account, WebAgent):
         try:
             result = response.json()["status"] == "ok"
             if not self.logger is None:
-                self.logger.info("Verify account '%s' was successfull")
+                self.logger.info("Verify scraping_obj '%s' was successfull")
             return result
         except (AttributeError, KeyError, ValueError) as exception:
             if not self.logger is None:
                 self.logger.error(
-                    "Verify account '%s' was unsuccessfull: %s",
+                    "Verify scraping_obj '%s' was unsuccessfull: %s",
                     self.username,
                     str(exception),
                 )
@@ -1017,7 +1017,7 @@ class WebAgentAccount(Account, WebAgent):
         if not self.logger is None:
             self.logger.info("Get '%s' follows started", account)
         if not isinstance(account, Account):
-            raise TypeError("'account' must be Account type or None")
+            raise TypeError("'scraping_obj' must be Account type or None")
         if not isinstance(pointer, str) and not pointer is None:
             raise TypeError("'pointer' must be str type or None")
         if not isinstance(count, int):
@@ -1093,7 +1093,7 @@ class WebAgentAccount(Account, WebAgent):
         if not self.logger is None:
             self.logger.info("Get '%s' followers started", account)
         if not isinstance(account, Account):
-            raise TypeError("'account' must be Account type or None")
+            raise TypeError("'scraping_obj' must be Account type or None")
         if not isinstance(pointer, str) and not pointer is None:
             raise TypeError("'pointer' must be str type or None")
         if not isinstance(count, int):
@@ -1423,7 +1423,7 @@ class WebAgentAccount(Account, WebAgent):
         if not self.logger is None:
             self.logger.info("Follow to '%s' started", account)
         if not isinstance(account, Account):
-            raise TypeError("'account' must be Account type")
+            raise TypeError("'scraping_obj' must be Account type")
 
         if account.id is None:
             self.update(account, settings=settings)
@@ -1449,7 +1449,7 @@ class WebAgentAccount(Account, WebAgent):
         if not self.logger is None:
             self.logger.info("Unfollow to '%s' started", account)
         if not isinstance(account, Account):
-            raise TypeError("'account' must be Account type")
+            raise TypeError("'scraping_obj' must be Account type")
 
         if account.id is None:
             self.update(account, settings=settings)
@@ -1631,7 +1631,7 @@ class AsyncWebAgentAccount(Account, AsyncWebAgent):
     @exception_manager.decorator
     async def checkpoint(self, url, code, settings=None):
         if not self.logger is None:
-            self.logger.info("Verify account '%s' started")
+            self.logger.info("Verify scraping_obj '%s' started")
         response = await self.action_request(
             referer=url,
             url=url,
@@ -1642,12 +1642,12 @@ class AsyncWebAgentAccount(Account, AsyncWebAgent):
         try:
             result = (await response.json())["status"] == "ok"
             if not self.logger is None:
-                self.logger.info("Verify account '%s' was successfull", self.username)
+                self.logger.info("Verify scraping_obj '%s' was successfull", self.username)
             return result
         except (AttributeError, KeyError, ValueError) as exception:
             if not self.logger is None:
                 self.logger.error(
-                    "Verify account '%s' was unsuccessfull: %s",
+                    "Verify scraping_obj '%s' was unsuccessfull: %s",
                     self.username,
                     str(exception),
                 )
@@ -1674,7 +1674,7 @@ class AsyncWebAgentAccount(Account, AsyncWebAgent):
         if not self.logger is None:
             self.logger.info("Get '%s' follows started", account)
         if not isinstance(account, Account):
-            raise TypeError("'account' must be Account type or None")
+            raise TypeError("'scraping_obj' must be Account type or None")
         if not isinstance(pointer, str) and not pointer is None:
             raise TypeError("'pointer' must be str type or None")
         if not isinstance(count, int):
@@ -1751,7 +1751,7 @@ class AsyncWebAgentAccount(Account, AsyncWebAgent):
         if not self.logger is None:
             self.logger.info("Get '%s' followers started", account)
         if not isinstance(account, Account):
-            raise TypeError("'account' must be Account type or None")
+            raise TypeError("'scraping_obj' must be Account type or None")
         if not isinstance(pointer, str) and not pointer is None:
             raise TypeError("'pointer' must be str type or None")
         if not isinstance(count, int):
@@ -2086,7 +2086,7 @@ class AsyncWebAgentAccount(Account, AsyncWebAgent):
         if not self.logger is None:
             self.logger.info("Follow to '%s' started", account)
         if not isinstance(account, Account):
-            raise TypeError("'account' must be Account type")
+            raise TypeError("'scraping_obj' must be Account type")
 
         if account.id is None:
             await self.update(account, settings=settings)
@@ -2112,7 +2112,7 @@ class AsyncWebAgentAccount(Account, AsyncWebAgent):
         if not self.logger is None:
             self.logger.info("Unfollow to '%s' started", account)
         if not isinstance(account, Account):
-            raise TypeError("'account' must be Account type")
+            raise TypeError("'scraping_obj' must be Account type")
 
         if account.id is None:
             await self.update(account, settings=settings)
