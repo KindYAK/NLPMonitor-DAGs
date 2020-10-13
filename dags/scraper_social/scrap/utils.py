@@ -54,7 +54,7 @@ def scrap_by_request(requests, social_network):
         if i % (len(requests) // 10 + 1) == 0:
             print("!!!", f"{i}/{len(requests)} parsed")
         try:
-            account_obj = MonitoringQuery.objects.get(id=request['id'])
+            request_object = MonitoringQuery.objects.get(id=request['id'])
         except MonitoringQuery.DoesNotExist as e:
             fails += 1
             print("!!! EXCEPTION getting scraping_obj", e)
@@ -68,7 +68,7 @@ def scrap_by_request(requests, social_network):
         if social_network_id == 1:
             # Parse VK
             from dags.scraper_social.scrap.vk.utils import scrap_vk_async_by_request
-            f, t = scrap_vk(account_obj, scrap_vk_async_by_request)
+            f, t = scrap_vk(request_object, scrap_vk_async_by_request)
         if social_network_id == 2:
             # Parse Twitter
             raise Exception("Not implemented")
@@ -83,8 +83,8 @@ def scrap_by_request(requests, social_network):
             raise Exception("Not implemented")
         fails += f
         total += t
-        account_obj.datetime_last_parsed = now
-        account_obj.save()
+        request_object.datetime_last_parsed = now
+        request_object.save()
     return fails, total
 
 
