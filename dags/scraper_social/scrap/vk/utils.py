@@ -3,6 +3,7 @@ def scrap_vk_async(vk_api, account, auth_account, datetime_last=None):
     import asyncio
 
     from dags.scraper_social.scrap.utils import scrap_wrapper_async
+    from django.utils import timezone
 
     from scraping.models import VKLoginPass
 
