@@ -1,6 +1,7 @@
 def scrap_instagram_async(account, datetime_last=None):
     from dags.scraper_social.scrap.utils import scrap_wrapper_async, create_comments
-    from dags.scraper_social.scrap.instagram.utils import instagram_iterator, get_posts, parse_date
+    from dags.scraper_social.scrap.instagram.utils import instagram_iterator, get_posts
+    from dags.scraper_social.scrap.utils import parse_date
     import asyncio
 
     loop = asyncio.get_event_loop()
