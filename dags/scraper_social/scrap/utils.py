@@ -34,8 +34,8 @@ def scrap_by_account(accounts, social_network):
             # Parse Telegram
             f, t = scrap_telegram(account_obj)
         if social_network_id == 5:
-            # Parse Youtube
-            raise Exception("Not implemented")
+            from dags.scraper_social.scrap.youtube.service import scrap_youtube_async
+            f, t = scrap_youtube(account_obj, scrap_youtube_async)
         fails += f
         total += t
         account_obj.datetime_last_parsed = now
@@ -193,6 +193,43 @@ def scrap_vk(scraping_obj, scrap_function, rtype):
     return fails, total
 
 
+def scrap_youtube(scraping_obj, scrap_function):
+    from django.utils import timezone
+    from scraping.models import YouTubeAuthToken
+    from youtube_api import YouTubeDataAPI
+
+    auth_accounts = YouTubeAuthToken.objects.filter(is_active=True).order_by('?')
+
+    fails = 0
+    total = 0
+
+    for key in auth_accounts:
+        if key.datetime_videos_limit_reached and ((key.datetime_videos_limit_reached > (timezone.now()) - timezone.timedelta(days=1))):
+            print("!!! Skip blocked key", key.token_id)
+            continue
+        elif key.datetime_videos_limit_reached and (key.datetime_videos_limit_reached <= (timezone.now() - timezone.timedelta(days=1))):
+            key.videos_limit_used = 0
+            key.save()
+        if key.datetime_videos_updated and ((key.datetime_videos_updated.date() - key.datetime_videos_updated.date()) > timezone.timedelta(days=1)):
+            key.videos_limit_used = 0
+            key.auth_account.datetime_videos_updated = None
+            key.save()
+
+        print("!!", "key", key.token_id)
+
+        yt_api = YouTubeDataAPI(key.token_id)
+        nparsed = 0
+        try:
+            nparsed = scrap_function(yt_api, scraping_obj, key, datetime_last=scraping_obj.datetime_last_parsed)
+        except Exception as e:
+            print("!!! EXCEPTION", e)
+            fails += 1
+            continue
+        finally:
+            total += nparsed
+    return fails, total
+
+
 def create_document(source_name, title, text,  # Required stuff
                     # Optional stuff
                     html=None, url=None, datetime=None, hashtags_list=None,
@@ -290,7 +327,6 @@ async def scrap_wrapper_async(scraping_object, iterator, document_handler, docum
 def create_comments(comments_list, document):
     from mainapp.models import Comment
     from annoying.functions import get_object_or_None
-    from dags.scraper_social.scrap.instagram.utils import parse_date
 
     if not comments_list:
         return None
@@ -306,3 +342,13 @@ def create_comments(comments_list, document):
                     raise e
                 else:
                     return False
+
+
+def parse_date(datetime_object):
+    from datetime import datetime as date_time
+    from datetime import timezone
+    from datetime import timedelta
+
+    dt = date_time.fromtimestamp(datetime_object)
+    dt = dt.replace(tzinfo=timezone.utc) - timedelta(hours=6)
+    return dt
