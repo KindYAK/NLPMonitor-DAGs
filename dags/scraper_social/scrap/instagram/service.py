@@ -52,7 +52,7 @@ def scrap_instagram_async(account, datetime_last=None):
         d.num_comments = message.comments_count
         d.save()
 
-    return loop.run_until_complete(scrap_wrapper_async(account=account,
+    return loop.run_until_complete(scrap_wrapper_async(scraping_object=account,
                                                        iterator=iterator,
                                                        document_handler=document_handler,
                                                        document_updater=document_updater,
