@@ -98,13 +98,3 @@ async def instagram_iterator(account, batch_size):
     medias_list = get_posts(method_type='Account', object_id=account.nickname, num_posts=batch_size)
     for media in medias_list:
         yield media
-
-
-def parse_date(datetime_object):
-    from datetime import datetime as date_time
-    from datetime import timezone
-    from datetime import timedelta
-
-    dt = date_time.fromtimestamp(datetime_object)
-    dt = dt.replace(tzinfo=timezone.utc) - timedelta(hours=6)
-    return dt
