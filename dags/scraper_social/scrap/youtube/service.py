@@ -36,7 +36,7 @@ def scrap_youtube_async(yt_api, account, auth_account, datetime_last=None):
 
         comments_list = list()
         if video_meta['video_comment_count']:
-            comments = yt_api.get_video_comments(video_id=message['video_id'], max_results=50)  # list of dicts
+            comments = yt_api.get_video_comments(video_id=message['video_id'], max_results=20)  # list of dicts
             comments_list = parse_yt_comments(comments_dict_list=comments)  # comment_text, comment_date, comment_id
 
         return create_document(
