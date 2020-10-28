@@ -48,22 +48,22 @@ def fill_dags_2020(actualizable_bigartms, comboable_bigartms):
                              wait_for_basic_tms=wait_for_basic_tms,
                              is_actualizable=False)
 
-        # gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_education_2_2019", description="2019 education 2 distilled",
-        #                      number_of_topics=125,
-        #                      filters={
-        #                          "corpus": "main",
-        #                          "source": None,
-        #                          "datetime_from": date(2019, 1, 1),
-        #                          "datetime_to": date(2019, 12, 31),
-        #                          "group_id": 93,
-        #                          "topic_weight_threshold": 0.025,
-        #                      },
-        #                      regularization_params={
-        #                          "SmoothSparseThetaRegularizer": 0.15,
-        #                          "SmoothSparsePhiRegularizer": 0.15,
-        #                          "DecorrelatorPhiRegularizer": 0.15,
-        #                          "ImproveCoherencePhiRegularizer": 0.15
-        #                      },
-        #                      wait_for_basic_tms=wait_for_basic_tms,
-        #                      is_actualizable=False)
+        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_education_2_2020", description="2020 education 2 distilled",
+                             number_of_topics=60,
+                             filters={
+                                 "corpus": "main",
+                                 "source": None,
+                                 "datetime_from": date(2020, 1, 1),
+                                 "datetime_to": date(2020, 12, 31),
+                                 "group_id": 96,
+                                 "topic_weight_threshold": 0.025,
+                             },
+                             regularization_params={
+                                 "SmoothSparseThetaRegularizer": 0.15,
+                                 "SmoothSparsePhiRegularizer": 0.15,
+                                 "DecorrelatorPhiRegularizer": 0.15,
+                                 "ImproveCoherencePhiRegularizer": 0.15
+                             },
+                             wait_for_basic_tms=wait_for_basic_tms,
+                             is_actualizable=False)
     return dag
