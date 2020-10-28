@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from dags.bigartm.fill_dags.fill_dags_2019 import fill_dags_2019
+from dags.bigartm.fill_dags.fill_dags_2020 import fill_dags_2020
 from dags.bigartm.fill_dags.fill_dags_full import fill_dags_full
 from dags.bigartm.fill_dags.fill_dags_news_and_gos import fill_dags_news_and_gos
 from dags.bigartm.fill_dags.fill_dags_ngramized import fill_dags_ngramized
@@ -30,6 +31,7 @@ comboable_bigartms = []
 dag_full = fill_dags_full(actualizable_bigartms, comboable_bigartms)
 dag_two_years = fill_dags_two_years(actualizable_bigartms, comboable_bigartms)
 dag_2019 = fill_dags_2019(actualizable_bigartms, comboable_bigartms)
+dag_2020 = fill_dags_2020(actualizable_bigartms, comboable_bigartms)
 dag_small = fill_dags_small(actualizable_bigartms, comboable_bigartms)
 dag_news_and_gos = fill_dags_news_and_gos(actualizable_bigartms, comboable_bigartms)
 dag_scientometrics = fill_dags_scientometrics(actualizable_bigartms, comboable_bigartms)
