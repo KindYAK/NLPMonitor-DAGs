@@ -1,13 +1,14 @@
 def scrap_instagram_async(account, datetime_last=None):
     from dags.scraper_social.scrap.utils import scrap_wrapper_async, create_comments
-    from dags.scraper_social.scrap.instagram.utils import instagram_iterator, get_posts, parse_date
+    from dags.scraper_social.scrap.instagram.utils import instagram_iterator, get_posts
+    from dags.scraper_social.scrap.utils import parse_date
     import asyncio
 
     loop = asyncio.get_event_loop()
 
     date_getter = lambda x: parse_date(x.date)
     text_getter = lambda x: x.caption
-    iterator = instagram_iterator(account=account, batch_size=100)
+    iterator = instagram_iterator(account=account, batch_size=30)
 
     def document_handler(account, message):
         from dags.scraper_social.scrap.utils import create_document
@@ -52,7 +53,7 @@ def scrap_instagram_async(account, datetime_last=None):
         d.num_comments = message.comments_count
         d.save()
 
-    return loop.run_until_complete(scrap_wrapper_async(account=account,
+    return loop.run_until_complete(scrap_wrapper_async(scraping_object=account,
                                                        iterator=iterator,
                                                        document_handler=document_handler,
                                                        document_updater=document_updater,
