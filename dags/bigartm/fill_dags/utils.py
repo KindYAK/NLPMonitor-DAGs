@@ -61,8 +61,8 @@ def gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name, descri
                 "name": name,
                 "name_translit": name_translit,
                 "text_field": text_field,
-                "regularization_params": regularization_params,
-                "filters": filters
+                "regularization_params": regularization_params.copy(),
+                "filters": filters.copy()
             }
         )
     if is_comboable:
