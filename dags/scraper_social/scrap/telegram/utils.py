@@ -11,7 +11,7 @@ def scrap_telegram_async(client, account, datetime_last=None):
         return create_document(
             source_name="Telegram",
             social_network_account_id=account.id,
-            title=f'Пост от {message.date}: {message.text[:50] + ("..." if len(message.text) > 50 else "")}',
+            title=f'Пост от {message.date}: {message.text[:150] + ("..." if len(message.text) > 150 else "")}',
             text=message.text,
             datetime=message.date,
             num_views=message.views,

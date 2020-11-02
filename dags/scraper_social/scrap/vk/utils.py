@@ -41,7 +41,7 @@ def scrap_vk_async(vk_api, account, auth_account, datetime_last=None):
         return create_document(
             source_name="VK",
             social_network_account_id=account.id,
-            title=f'Пост от {date_getter(message)}: {message["text"][:50] + ("..." if len(message["text"]) > 50 else "")}',
+            title=f'Пост от {date_getter(message)}: {message["text"][:150] + ("..." if len(message["text"]) > 150 else "")}',
             text=message["text"],
             datetime=date_getter(message),
             num_comments=message['comments']['count'],
@@ -107,7 +107,7 @@ def scrap_vk_async_by_request(vk_api, request, auth_account, datetime_last=None)
 
         return create_document(
             source_name="VK",
-            title=f'Пост от {date_getter(message)}: {message["text"][:50] + ("..." if len(message["text"]) > 50 else "")}',
+            title=f'Пост от {date_getter(message)}: {message["text"][:150] + ("..." if len(message["text"]) > 150 else "")}',
             text=message["text"],
             datetime=date_getter(message),
             num_comments=message['comments']['count'],

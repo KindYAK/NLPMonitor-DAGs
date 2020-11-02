@@ -25,7 +25,7 @@ def scrap_instagram_async(account, datetime_last=None):
         return create_document(
             source_name="Instagram",
             social_network_account_id=account.id,
-            title=f'Пост от {str(date)}: {message.caption[:50] + ("..." if len(message.caption) > 50 else "")}',
+            title=f'Пост от {str(date)}: {message.caption[:150] + ("..." if len(message.caption) > 150 else "")}',
             text=message.caption,
             datetime=date,
             num_likes=message.likes_count,
