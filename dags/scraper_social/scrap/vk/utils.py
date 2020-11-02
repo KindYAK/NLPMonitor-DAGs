@@ -81,7 +81,7 @@ def scrap_vk_async_by_request(vk_api, request, auth_account, datetime_last=None)
         start_from = None
         requests_done = 0
         while True:
-            if requests_done > request.max_requests_per_session:
+            if requests_done >= request.max_requests_per_session:
                 break
             try:
                 posts = vk_api.newsfeed.search(q=request.query, start_from=start_from, count=VKLoginPass.NEWS_FEED_MAX_COUNT, v=VKLoginPass.API_V)

@@ -153,9 +153,7 @@ def scrap_vk(scraping_obj, scrap_function, rtype):
 
     fails = 0
     total = 0
-
     for key in auth_accounts:
-
         if rtype == "wall":
             if key.datetime_wall_get_limit_reached and ((key.datetime_wall_get_limit_reached > (timezone.now()) - timezone.timedelta(days=1))):
                 print("!!! Skip blocked key", key.app_id)
