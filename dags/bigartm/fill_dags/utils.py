@@ -25,6 +25,7 @@ def gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name, descri
         task_id = f"bigartm_calc_{name}"
     else:
         task_id = f"bigartm_calc_{topic_modelling_translit}_{name_translit}"
+    filters_copy = filters.copy()
     bigartm_calc_operator = DjangoOperator(
         task_id=task_id,
         python_callable=bigartm_calc,
@@ -62,7 +63,7 @@ def gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name, descri
                 "name_translit": name_translit,
                 "text_field": text_field,
                 "regularization_params": regularization_params.copy(),
-                "filters": filters.copy()
+                "filters": filters_copy,
             }
         )
     if is_comboable:
