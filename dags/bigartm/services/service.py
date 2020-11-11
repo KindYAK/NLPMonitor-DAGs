@@ -198,6 +198,7 @@ def dataset_prepare(**kwargs):
     s = s.source(["id", "text", text_field, "title", "source", "num_views", "num_comments", "datetime", "corpus"])[:5000000]
 
     group_document_es_ids = None
+    print("!!! group_id", group_id) # TODO Remove prints
     if group_id:
         group = TopicGroup.objects.get(id=group_id)
         topic_ids = [t.topic_id for t in group.topics.all()]
@@ -209,8 +210,10 @@ def dataset_prepare(**kwargs):
                  .filter("range", topic_weight={"gte": topic_weight_threshold}) \
                  .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
                  .source(('document_es_id'))[:5000000]
+        print("!!!", f"{topic_doc}_{topic_modelling_name}", topic_ids, topic_weight_threshold)
         r = st.scan()
         group_document_es_ids = set([doc.document_es_id for doc in r])
+        print(len(group_document_es_ids))
 
     # Exclude document already in TM if actualizing
     ids_to_skip = None
