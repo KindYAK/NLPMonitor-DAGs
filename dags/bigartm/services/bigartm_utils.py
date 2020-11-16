@@ -254,36 +254,37 @@ def model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
     else:
         print("!!!", "Loading existing model")
         # Monkey patching stupid BigARTM bug
-        def load(self, filename, model_name="p_wt"):
-            _model_name = None
-            if model_name == 'p_wt':
-                _model_name = self.model_pwt
-            elif model_name == 'n_wt':
-                _model_name = self.model_nwt
-
-            self.master.import_model(_model_name, filename)
-            self._initialized = True
-
-            config = self._lib.ArtmRequestMasterModelConfig(self.master.master_id)
-            self._topic_names = list(config.topic_name)
-
-            class_ids = {}
-            for class_id in config.class_id:
-                class_ids[class_id] = 1.0
-            self._class_ids = class_ids
-
-            if hasattr(config, 'transaction_typename'):
-                transaction_typenames = {}
-                for transaction_typename in config.transaction_typename:
-                    transaction_typenames[transaction_typename] = 1.0
-                self._transaction_typenames = transaction_typenames
-
-            # Remove all info about previous iterations
-            self._score_tracker = {}
-            self._synchronizations_processed = 0
-            self._num_online_processed_batches = 0
-            self._phi_cached = None
-
-        model_artm.load = load
+        model_artm.load = load_monkey_patch
         model_artm.load(model_artm, os.path.join(model_folder, f"model_{name if not name_translit else name_translit}.model"))
     return model_artm, batch_vectorizer
+
+
+def load_monkey_patch(self, filename, model_name="p_wt"):
+    _model_name = None
+    if model_name == 'p_wt':
+        _model_name = self.model_pwt
+    elif model_name == 'n_wt':
+        _model_name = self.model_nwt
+
+    self.master.import_model(_model_name, filename)
+    self._initialized = True
+
+    config = self._lib.ArtmRequestMasterModelConfig(self.master.master_id)
+    self._topic_names = list(config.topic_name)
+
+    class_ids = {}
+    for class_id in config.class_id:
+        class_ids[class_id] = 1.0
+    self._class_ids = class_ids
+
+    if hasattr(config, 'transaction_typename'):
+        transaction_typenames = {}
+        for transaction_typename in config.transaction_typename:
+            transaction_typenames[transaction_typename] = 1.0
+        self._transaction_typenames = transaction_typenames
+
+    # Remove all info about previous iterations
+    self._score_tracker = {}
+    self._synchronizations_processed = 0
+    self._num_online_processed_batches = 0
+    self._phi_cached = None
