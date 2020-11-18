@@ -98,22 +98,31 @@ def scrap(**kwargs):
 
 def report_subscriptions(source, filename):
     import artm
+    import datetime
     import json
+    import shutil
     import os
+    import re
 
     from elasticsearch_dsl import Search, Q
+    from pymorphy2 import MorphAnalyzer
+    from stop_words import get_stop_words
 
     from dags.bigartm.services.bigartm_utils import load_monkey_patch
+    from dags.bigartm.services.cleaners import txt_writer
+    from dags.tm_preprocessing_lemmatize.services.tm_preproc_services import morph_with_dictionary
     from util.constants import BASE_DAG_DIR
+    from util.util import is_kazakh, is_latin
 
     from evaluation.models import TopicsEval
     from mainapp.models_user import Subscription, SubscriptionReportObject
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_CUSTOM_DICTIONARY_WORD
 
     # Try to report subscription
     ss = Subscription.objects.filter(is_active=True, is_fast=True)
     for s in ss:
         # Get topic model
+        print("!!!", "Get topic model")
         ss = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
         ss = ss.query(Q(name=s.topic_modelling_name) | Q(**{"name.keyword": s.topic_modelling_name}))
         ss = ss.filter("term", is_ready=True)
@@ -124,6 +133,7 @@ def report_subscriptions(source, filename):
         model_artm.load = load_monkey_patch
         model_artm.load(model_artm, os.path.join(os.path.join(BASE_DAG_DIR, "bigartm_models"), f"model_{s.topic_modelling_name}.model"))
 
+        print("!!!", "Get topic evals")
         # Get topic evals
         evaluations = TopicsEval.objects.filter(criterion=s.criterion, topics__topic_modelling_name=s.topic_modelling_name).distinct().prefetch_related('topics')
 
@@ -140,18 +150,73 @@ def report_subscriptions(source, filename):
         for t in criterions_evals_dict.keys():
             criterions_evals_dict[t] = sum(criterions_evals_dict[t]) / len(criterions_evals_dict[t])
 
+        print("!!!", "Preprocess")
+        # Prepare lemmatizers
+        stopwords_ru = set(get_stop_words('ru'))
+        morph = MorphAnalyzer()
+        s = Search(using=ES_CLIENT, index=ES_INDEX_CUSTOM_DICTIONARY_WORD)
+        r = s[:1000000].scan()
+        custom_dict = dict((w.word, w.word_normal) for w in r)
+
         output = []
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
+            texts = []
             for new in news:
                 text = new['text']
+                if is_kazakh(text) or is_latin(text):
+                    continue
                 url = new['url']
-                # Preprocess text TODO
+                # Preprocess text
+                text = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
+                cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in text.split() if len(word) > 2 and word not in stopwords_ru]
+                texts.append(" ".join(cleaned_words_list))
 
-                # Get topic weights TODO
+            print("!!!", "Write batches")
+            # Write batches
+            formated_data = []
+            for i, text in enumerate(texts):
+                formated_data.append(f'{i}' + ' ' + '|text' + ' ' + text + ' ')
 
-                # Get eval TODO
+            data_folder = os.path.join(BASE_DAG_DIR, "bigartm_scrap_temp")
+            if not os.path.exists(data_folder):
+                os.mkdir(data_folder)
 
+            data_folder = os.path.join(data_folder, f"bigartm_formated_data_{datetime.datetime.now()}_{source.id}")
+            shutil.rmtree(data_folder, ignore_errors=True)
+            os.mkdir(data_folder)
+            if len(formated_data) == 0:
+                return f"No documents to actualize"
+            print("!!!", f"Writing {len(formated_data)} documents")
+
+            txt_writer(data=formated_data, filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
+            artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data.txt"),
+                                 data_format="vowpal_wabbit",
+                                 target_folder=os.path.join(data_folder, "batches"))
+
+            # Get topic weights TODO
+            print("!!!", "Get topic weights")
+            batches_folder = os.path.join(data_folder, "batches")
+            batch_vectorizer = artm.BatchVectorizer(data_path=batches_folder,
+                                                    data_format='batches')
+            model_folder = os.path.join(BASE_DAG_DIR, "bigartm_models")
+            model_artm = artm.ARTM(num_topics=tm_index.number_of_topics,
+                                   class_ids={"text": 1}, theta_columns_naming="title",
+                                   reuse_theta=True, cache_theta=True, num_processors=4)
+            model_artm.load = load_monkey_patch
+            model_artm.load(model_artm, os.path.join(model_folder, f"model_{tm_index.name}.model"))
+
+            theta = model_artm.transform(batch_vectorizer)
+            theta_documents = theta.columns.array.to_numpy().astype(str)
+            number_of_documents = len(theta_documents)
+
+            theta_values = theta.values.transpose().astype(float)
+            theta_topics = theta.index.array.to_numpy().astype(str)
+            theta_documents = theta.columns.array.to_numpy().astype(str)
+
+            # Get eval TODO
+            print("!!!", "Calc evals")
+            for i in range(1):
                 # Add to output TODO
                 if True:
                     sro = SubscriptionReportObject(
@@ -162,5 +227,5 @@ def report_subscriptions(source, filename):
                     )
                     output.append(sro)
         if output:
+            print("!!!", "Sending")
             # Send output TODO
-            pass
