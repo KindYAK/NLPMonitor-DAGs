@@ -104,6 +104,7 @@ def report_subscriptions(source, filename):
     import os
     import re
 
+    from django.core.mail import send_mail
     from elasticsearch_dsl import Search, Q
     from pymorphy2 import MorphAnalyzer
     from stop_words import get_stop_words
@@ -154,23 +155,26 @@ def report_subscriptions(source, filename):
         # Prepare lemmatizers
         stopwords_ru = set(get_stop_words('ru'))
         morph = MorphAnalyzer()
-        s = Search(using=ES_CLIENT, index=ES_INDEX_CUSTOM_DICTIONARY_WORD)
-        r = s[:1000000].scan()
+        ss = Search(using=ES_CLIENT, index=ES_INDEX_CUSTOM_DICTIONARY_WORD)
+        r = ss[:1000000].scan()
         custom_dict = dict((w.word, w.word_normal) for w in r)
 
         output = []
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
             texts = []
+            urls = []
+            titles = []
             for new in news:
                 text = new['text']
                 if is_kazakh(text) or is_latin(text):
                     continue
-                url = new['url']
                 # Preprocess text
                 text = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
                 cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in text.split() if len(word) > 2 and word not in stopwords_ru]
                 texts.append(" ".join(cleaned_words_list))
+                urls.append(new['url'])
+                titles.append(new['title'])
 
             print("!!!", "Write batches")
             # Write batches
@@ -207,25 +211,37 @@ def report_subscriptions(source, filename):
             model_artm.load(model_artm, os.path.join(model_folder, f"model_{tm_index.name}.model"))
 
             theta = model_artm.transform(batch_vectorizer)
-            theta_documents = theta.columns.array.to_numpy().astype(str)
-            number_of_documents = len(theta_documents)
 
             theta_values = theta.values.transpose().astype(float)
             theta_topics = theta.index.array.to_numpy().astype(str)
-            theta_documents = theta.columns.array.to_numpy().astype(str)
 
-            # Get eval TODO
             print("!!!", "Calc evals")
-            for i in range(1):
-                # Add to output TODO
-                if True:
+            for i, weights in enumerate(theta_values):
+                res = 0
+                for weight, topic_id in zip(weights, theta_topics):
+                    if topic_id not in criterions_evals_dict:
+                        continue
+                    res += weight * criterions_evals_dict[topic_id]
+                if (s.subscription_type == -1 and res < 0) or \
+                   (s.subscription_type == 1 and res > 0) or \
+                   (s.subscription_type == 0):
                     sro = SubscriptionReportObject(
                         subscription=s,
                         source=source,
-                        url=url,
+                        url=urls[i],
+                        title=titles[i],
+                        value=res,
                         is_sent=True,
                     )
                     output.append(sro)
         if output:
             print("!!!", "Sending")
-            # Send output TODO
+            message = "Добрый день!\n\n" \
+                      "Вас могут заинтересовать следующие новости:\n\n"
+            for new in output:
+                message += f"{new.title} - {new.url} - оценка по критерию {new.value}"
+            send_mail(subject=f"Отчёт по источнику {source.name}",
+                      message=message,
+                      recipient_list=[s.user.email],
+                      from_email="nlp.iict@yandex.com",
+                      )
