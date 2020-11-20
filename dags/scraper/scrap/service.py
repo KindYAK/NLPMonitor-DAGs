@@ -160,7 +160,7 @@ def report_subscriptions(source, filename):
         custom_dict = dict((w.word, w.word_normal) for w in r)
 
         output = []
-        with open("1.json", "r", encoding='utf-8') as f: # TODO RETURN DEBUG
+        with open(filename, "r", encoding='utf-8') as f: # TODO RETURN DEBUG
             news = json.loads(f.read())
             texts = []
             urls = []
