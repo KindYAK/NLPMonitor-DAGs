@@ -198,7 +198,7 @@ def report_subscriptions(source, filename):
                                  data_format="vowpal_wabbit",
                                  target_folder=os.path.join(data_folder, "batches"))
 
-            # Get topic weights TODO
+            # Get topic weights
             print("!!!", "Get topic weights")
             batches_folder = os.path.join(data_folder, "batches")
             batch_vectorizer = artm.BatchVectorizer(data_path=batches_folder,
@@ -218,10 +218,15 @@ def report_subscriptions(source, filename):
             print("!!!", "Calc evals")
             for i, weights in enumerate(theta_values):
                 res = 0
+                relevant_count = 0
                 for weight, topic_id in zip(weights, theta_topics):
+                    if weight >= s.tm_weight_threshold:
+                        relevant_count += 1
                     if topic_id not in criterions_evals_dict:
                         continue
                     res += weight * criterions_evals_dict[topic_id]
+                if relevant_count < s.tm_num_threshold:
+                    continue
                 if (s.subscription_type == -1 and res < 0) or \
                    (s.subscription_type == 1 and res > 0) or \
                    (s.subscription_type == 0):
@@ -239,7 +244,7 @@ def report_subscriptions(source, filename):
             message = "Добрый день!\n\n" \
                       "Вас могут заинтересовать следующие новости:\n\n"
             for new in output:
-                message += f"{new.title} - {new.url} - оценка по критерию {new.value}"
+                message += f"{new.title} - {new.url} - оценка по критерию {new.value}\n"
             send_mail(subject=f"Отчёт по источнику {source.name}",
                       message=message,
                       recipient_list=[s.user.email],
