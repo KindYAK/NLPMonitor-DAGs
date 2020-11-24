@@ -48,7 +48,7 @@ with dag:
                 "datetime_to": tm["filters"]['datetime_to'],
                 "source": tm["filters"]['source'],
                 "group_id": tm["filters"]['group_id'] if 'group_id' in tm["filters"] else None,
-                "topic_weight_threshold": tm["filters"]['topic_weight_threshold'] if 'topic_weight_threshold' in tm["filters"] else None,
+                "topic_weight_threshold": tm["filters"]['topic_weight_threshold'] if 'topic_weight_threshold' in tm["filters"] else 0.05,
                 "regularization_params": tm["regularization_params"],
             }
         )
