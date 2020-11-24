@@ -105,6 +105,7 @@ def report_subscriptions(source, filename):
     import re
 
     from django.core.mail import send_mail
+    from django.db import IntegrityError
     from elasticsearch_dsl import Search, Q
     from pymorphy2 import MorphAnalyzer
     from stop_words import get_stop_words
@@ -117,11 +118,11 @@ def report_subscriptions(source, filename):
 
     from evaluation.models import TopicsEval
     from mainapp.models_user import Subscription, SubscriptionReportObject
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_CUSTOM_DICTIONARY_WORD
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_CUSTOM_DICTIONARY_WORD, ES_INDEX_DOCUMENT_EVAL
 
     # Try to report subscription
-    ss = Subscription.objects.filter(is_active=True, is_fast=True)
-    for s in ss:
+    subscriptions = Subscription.objects.filter(is_active=True, is_fast=True)
+    for s in subscriptions:
         # Get topic model
         print("!!!", "Get topic model")
         ss = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
@@ -160,7 +161,8 @@ def report_subscriptions(source, filename):
         custom_dict = dict((w.word, w.word_normal) for w in r)
 
         output = []
-        with open(filename, "r", encoding='utf-8') as f: # TODO RETURN DEBUG
+        # with open("1.json", "r", encoding='utf-8') as f: # TODO RETURN DEBUG
+        with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
             texts = []
             urls = []
@@ -186,7 +188,7 @@ def report_subscriptions(source, filename):
             if not os.path.exists(data_folder):
                 os.mkdir(data_folder)
 
-            data_folder = os.path.join(data_folder, f"bigartm_formated_data_{datetime.datetime.now()}_{source.id}")
+            data_folder = os.path.join(data_folder, f"bigartm_formated_data_monitoring_{datetime.datetime.now()}_{source.id}")
             shutil.rmtree(data_folder, ignore_errors=True)
             os.mkdir(data_folder)
             if len(formated_data) == 0:
@@ -215,6 +217,12 @@ def report_subscriptions(source, filename):
             theta_values = theta.values.transpose().astype(float)
             theta_topics = theta.index.array.to_numpy().astype(str)
 
+            # Get threshold
+            ss = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{s.topic_modelling_name}_{s.criterion.id}")[:0]
+            ss.aggs.metric("percents", agg_type="percentiles", field="value", percents=[s.threshold])
+            r = ss.execute()
+            threshold = list(r.aggregations.percents.values.__dict__['_d_'].values())[0]
+
             print("!!!", "Calc evals")
             for i, weights in enumerate(theta_values):
                 res = 0
@@ -227,8 +235,8 @@ def report_subscriptions(source, filename):
                     res += weight * criterions_evals_dict[topic_id]
                 if relevant_count < s.tm_num_threshold:
                     continue
-                if (s.subscription_type == -1 and res < 0) or \
-                   (s.subscription_type == 1 and res > 0) or \
+                if (s.subscription_type == -1 and res < threshold) or \
+                   (s.subscription_type == 1 and res > threshold) or \
                    (s.subscription_type == 0):
                     sro = SubscriptionReportObject(
                         subscription=s,
@@ -238,13 +246,17 @@ def report_subscriptions(source, filename):
                         value=res,
                         is_sent=True,
                     )
+                    try:
+                        sro.save()
+                    except IntegrityError:
+                        continue
                     output.append(sro)
         if output:
             print("!!!", "Sending")
             message = "Добрый день!\n\n" \
                       "Вас могут заинтересовать следующие новости:\n\n"
             for new in output:
-                message += f"{new.title} - {new.url} - оценка по критерию {new.value}\n"
+                message += f"{new.title} - {new.url} - оценка по критерию {round(new.value, 2)}\n"
             send_mail(subject=f"Отчёт по источнику {source.name}",
                       message=message,
                       recipient_list=[s.user.email],
