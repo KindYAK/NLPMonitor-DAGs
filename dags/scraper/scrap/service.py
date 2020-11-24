@@ -257,8 +257,11 @@ def report_subscriptions(source, filename):
                       "Вас могут заинтересовать следующие новости:\n\n"
             for new in output:
                 message += f"{new.title} - {new.url} - оценка по критерию {round(new.value, 2)}\n"
-            send_mail(subject=f"Отчёт по источнику {source.name}",
-                      message=message,
-                      recipient_list=[s.user.email],
-                      from_email="nlp.iict@yandex.com",
-                      )
+            try:
+                send_mail(subject=f"Отчёт по источнику {source.name}",
+                          message=message,
+                          recipient_list=[s.user.email],
+                          from_email="nlp.iict@yandex.com",
+                          )
+            except Exception as e:
+                print("!!!", "Mail send fail", e)
