@@ -268,7 +268,7 @@ def report_subscriptions(source, filename):
                            f"Ссылка: {new.url}\n" \
                            f"Уровень опасности: {round(new.value, 2)}\n\n"
 
-                html_message += f"<hr>" \
+                html_message += f"<hr><br>" \
                                 f"{new.title}<br>" \
                            f"<b>Ссылка</b>: {new.url}<br>" \
                            f"<b>Уровень опасности</b>: {round(new.value, 2)}<br><br>"
