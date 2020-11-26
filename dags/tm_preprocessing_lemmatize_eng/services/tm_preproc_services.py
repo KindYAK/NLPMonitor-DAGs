@@ -29,7 +29,12 @@ def preprocessing_raw_data(**kwargs):
 
     s = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=['text'], sort=['id'], get_search_obj=True)
     s = s.exclude('exists', field="is_english")
-    s = s[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1]
+    start = int(start / 100 * number_of_documents)
+    end = int(end / 100 * number_of_documents) + 1
+    if end - start < 30000:
+        s = s[start:end]
+    else:
+        s = s[start:start+30000]
     documents = s.execute()
 
     stopwords = set(get_stop_words('ru') + get_stop_words('en') + stopwords.words('english'))
