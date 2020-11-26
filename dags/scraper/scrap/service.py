@@ -172,6 +172,12 @@ def report_subscriptions(source, filename):
                 text = new['text']
                 if is_kazakh(text) or is_latin(text):
                     continue
+                if 'datetime' in new:
+                    datetime_new = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
+                    if datetime_new.date() > datetime.datetime.now().date() and datetime_new.day <= 12:
+                        datetime_new = datetime_new.replace(month=datetime_new.day, day=datetime_new.month)
+                    if (datetime.datetime.now().date() - datetime_new.date()).days > 5:
+                        continue
                 # Preprocess text
                 text = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
                 cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in text.split() if len(word) > 2 and word not in stopwords_ru]
