@@ -254,14 +254,23 @@ def report_subscriptions(source, filename):
         if output:
             print("!!!", "Sending")
             message = "Добрый день!\n\n" \
-                      "Вас могут заинтересовать следующие новости:\n\n"
+                      "Обнаружены публикации:\n\n"
+            html_message = message
             for new in output:
-                message += f"{new.title} - {new.url} - оценка по критерию {round(new.value, 2)}\n"
+                message += f"{new.title}\n" \
+                           f"Ссылка: {new.url}\n" \
+                           f"Уровень опасности: {round(new.value, 2)}\n\n"
+
+                html_message += f"<hr>" \
+                                f"{new.title}\n" \
+                           f"<b>Ссылка</b>: {new.url}\n" \
+                           f"<b>Уровень опасности</b>: {round(new.value, 2)}\n\n"
             try:
                 send_mail(subject=f"Отчёт по источнику {source.name}",
                           message=message,
                           recipient_list=[s.user.email],
-                          from_email="nlp.iict@yandex.com",
+                          from_email="media.bot.kz@yandex.ru",
+                          html_message=html_message
                           )
             except Exception as e:
                 print("!!!", "Mail send fail", e)
