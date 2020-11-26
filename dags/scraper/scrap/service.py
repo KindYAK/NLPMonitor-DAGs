@@ -103,6 +103,7 @@ def report_subscriptions(source, filename):
     import shutil
     import os
     import re
+    import pytz
 
     from django.core.mail import send_mail
     from django.db import IntegrityError
@@ -262,9 +263,9 @@ def report_subscriptions(source, filename):
                            f"Уровень опасности: {round(new.value, 2)}\n\n"
 
                 html_message += f"<hr>" \
-                                f"{new.title}\n" \
-                           f"<b>Ссылка</b>: {new.url}\n" \
-                           f"<b>Уровень опасности</b>: {round(new.value, 2)}\n\n"
+                                f"{new.title}<br>" \
+                           f"<b>Ссылка</b>: {new.url}<br>" \
+                           f"<b>Уровень опасности</b>: {round(new.value, 2)}<br><br>"
             try:
                 send_mail(subject=f"Отчёт по источнику {source.name}",
                           message=message,
