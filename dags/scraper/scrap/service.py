@@ -178,6 +178,8 @@ def report_subscriptions(source, filename):
                         datetime_new = datetime_new.replace(month=datetime_new.day, day=datetime_new.month)
                     if (datetime.datetime.now().date() - datetime_new.date()).days > 5:
                         continue
+                else:
+                    continue
                 # Preprocess text
                 text = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
                 cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in text.split() if len(word) > 2 and word not in stopwords_ru]
