@@ -31,7 +31,7 @@ def parse_response(self, response):
     complex_fields = ("tags", "categories",)
 
     url = response.__dict__['_url']
-    if "/kg/" in url:
+    if "/kg/" in url or "/uz/" in url:
         return None
     if "dw.com" in url and "dw.com/ru/" not in url:
         return None
