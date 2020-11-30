@@ -59,11 +59,10 @@ with dag:
             bigartm_calc_operator >> wait_for_basic_tms
 
 fast_tms = [
-    "bigartm_test",
-    "bigartm_two_years",
-    "bigartm_education_two_years",
-    "bigartm_education_oct19_march20_75",
+    "bigartm_2020",
     "bigartm_education_2019",
+    "bigartm_education_2_2020",
+    "bigartm_education_3_2020",
 ]
 actualizers_calcs_fast = []
 with dag_fast:
