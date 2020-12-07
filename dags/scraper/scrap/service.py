@@ -119,7 +119,7 @@ def report_subscriptions(source, filename):
 
     from evaluation.models import TopicsEval
     from mainapp.models_user import Subscription, SubscriptionReportObject
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_CUSTOM_DICTIONARY_WORD, ES_INDEX_DOCUMENT_EVAL
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_CUSTOM_DICTIONARY_WORD, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT
 
     # Try to report subscription
     subscriptions = Subscription.objects.filter(is_active=True, is_fast=True)
@@ -230,34 +230,40 @@ def report_subscriptions(source, filename):
             ss = Search(using=ES_CLIENT, index=f"{ES_INDEX_DOCUMENT_EVAL}_{s.topic_modelling_name}_{s.criterion.id}")[:0]
             ss.aggs.metric("percents", agg_type="percentiles", field="value", percents=[s.threshold])
             r = ss.execute()
-            threshold = list(r.aggregations.percents.values.__dict__['_d_'].values())[0]
+            eval_threshold = list(r.aggregations.percents.values.__dict__['_d_'].values())[0]
+
+            ss = Search(using=ES_CLIENT, index=f"{ES_INDEX_TOPIC_DOCUMENT}_{s.topic_modelling_name}")[:0]
+            ss.aggs.metric("percents", agg_type="percentiles", field="topic_weight", percents=[s.tm_weight_threshold])
+            r = ss.execute()
+            tm_threshold = list(r.aggregations.percents.values.__dict__['_d_'].values())[0]
 
             print("!!!", "Calc evals")
             for i, weights in enumerate(theta_values):
                 res = 0
                 relevant_count = 0
                 for weight, topic_id in zip(weights, theta_topics):
-                    if weight >= s.tm_weight_threshold:
+                    if weight >= tm_threshold:
                         relevant_count += 1
                     if topic_id not in criterions_evals_dict:
                         continue
                     res += weight * criterions_evals_dict[topic_id]
                 if relevant_count < s.tm_num_threshold:
                     continue
-                if (s.subscription_type == -1 and res < threshold) or \
-                   (s.subscription_type == 1 and res > threshold) or \
+                if (s.subscription_type == -1 and res < eval_threshold) or \
+                   (s.subscription_type == 1 and res > eval_threshold) or \
                    (s.subscription_type == 0):
                     sro = SubscriptionReportObject(
                         subscription=s,
                         source=source,
                         url=urls[i],
                         title=titles[i],
+                        datetime=None,
                         value=res,
                         is_sent=True,
                     )
                     try:
                         sro.save()
-                    except IntegrityError:
+                    except IntegrityError as e:
                         continue
                     output.append(sro)
         if output:
