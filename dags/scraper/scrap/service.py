@@ -168,6 +168,7 @@ def report_subscriptions(source, filename):
             texts = []
             urls = []
             titles = []
+            datetimes = []
             for new in news:
                 text = new['text']
                 if is_kazakh(text) or is_latin(text):
@@ -186,6 +187,7 @@ def report_subscriptions(source, filename):
                 texts.append(" ".join(cleaned_words_list))
                 urls.append(new['url'])
                 titles.append(new['title'])
+                datetimes.append(datetime_new)
 
             print("!!!", "Write batches")
             # Write batches
@@ -257,7 +259,7 @@ def report_subscriptions(source, filename):
                         source=source,
                         url=urls[i],
                         title=titles[i],
-                        datetime=None,
+                        datetime=datetimes[i],
                         value=res,
                         is_sent=True,
                     )
