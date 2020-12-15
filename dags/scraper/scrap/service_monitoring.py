@@ -17,19 +17,50 @@ def report_subscriptions(source, filename):
 
     subscriptions = Subscription.objects.filter(is_active=True, is_fast=True)
     for subscription in subscriptions:
-        data_folder, tm_index, criterions_evals_dict = init_monitoring_stuff(subscription, source)
+        criterions_evals_dict = get_criterions_dict(subscription)
+        tm_index = get_tm_index(subscription.topic_modelling_name)
+        data_folder = get_data_folder(source)
 
         # with open("1.json", "r", encoding='utf-8') as f: # TODO RETURN DEBUG
         with open(filename, "r", encoding='utf-8') as f:
             news = json.loads(f.read())
+
+        texts, urls, titles, datetimes = write_batches(news, data_folder, stopwords_ru, morph, custom_dict)
+        if subscription.parent_group:
+            print("!!!", "Filtering parent")
+            print("!!!", "Before", len(news))
+            tm_index_parent = get_tm_index(subscription.parent_group.topic_modelling_name)
+            theta_values, theta_topics = get_topic_weights(data_folder, tm_index_parent)
+            good_indices = set()
+            group_topic_ids = set((topic.topic_id for topic in subscription.parent_group.topics.all()))
+            for i, weights in enumerate(theta_values):
+                for weight, topic_id in zip(weights, theta_topics):
+                    if topic_id not in group_topic_ids:
+                        continue
+                    if weight > subscription.parent_group_threshold:
+                        good_indices.add(i)
+            news = []
+            for i in good_indices:
+                news.append(
+                    {
+                        "text": texts[i],
+                        "title": titles[i],
+                        "url": urls[i],
+                        "datetime": datetimes[i],
+                    }
+                )
+            print("!!!", "After", len(news))
             texts, urls, titles, datetimes = write_batches(news, data_folder, stopwords_ru, morph, custom_dict)
-            if not texts:
-                return f"No documents to actualize"
-            theta_values, theta_topics = get_topic_weights(data_folder, tm_index)
-            output = get_output(theta_values, theta_topics, criterions_evals_dict, subscription, source, urls, titles, datetimes)
+
+        if not texts:
+            return f"No documents to actualize"
+
+        theta_values, theta_topics = get_topic_weights(data_folder, tm_index)
+        output = get_output(theta_values, theta_topics, criterions_evals_dict, subscription, source, urls, titles, datetimes)
 
         if output:
             send_output(output, source, subscription)
+        print("!!!", len(output))
 
 
 def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
@@ -196,21 +227,33 @@ def send_output(output, source, subscription):
         print("!!!", "Mail send fail", e)
 
 
-def init_monitoring_stuff(subscription, source):
+def get_data_folder(source):
     import datetime
+    import os
+
+    from util.constants import BASE_DAG_DIR
+
+    data_folder = os.path.join(BASE_DAG_DIR, "bigartm_scrap_temp")
+    if not os.path.exists(data_folder):
+        os.mkdir(data_folder)
+    data_folder = os.path.join(data_folder, f"bigartm_formated_data_monitoring_{datetime.datetime.now()}_{source.id}")
+    return data_folder
+
+
+def get_tm_index(topic_modelling_name):
     import os
 
     import artm
     from elasticsearch_dsl import Search, Q
-    from evaluation.models import TopicsEval
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING
 
-    from dags.bigartm.services.bigartm_utils import load_monkey_patch
     from util.constants import BASE_DAG_DIR
+
+    from dags.bigartm.services.bigartm_utils import load_monkey_patch
 
     print("!!!", "Get topic model")
     ss = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
-    ss = ss.query(Q(name=subscription.topic_modelling_name) | Q(**{"name.keyword": subscription.topic_modelling_name}))
+    ss = ss.query(Q(name=topic_modelling_name) | Q(**{"name.keyword": topic_modelling_name}))
     ss = ss.filter("term", is_ready=True)
     tm_index = ss.source(['number_of_topics', 'name']).execute()[0]
 
@@ -218,12 +261,12 @@ def init_monitoring_stuff(subscription, source):
                            class_ids={"text": 1}, theta_columns_naming="title",
                            reuse_theta=True, cache_theta=True, num_processors=4)
     model_artm.load = load_monkey_patch
-    model_artm.load(model_artm, os.path.join(os.path.join(BASE_DAG_DIR, "bigartm_models"), f"model_{subscription.topic_modelling_name}.model"))
+    model_artm.load(model_artm, os.path.join(os.path.join(BASE_DAG_DIR, "bigartm_models"), f"model_{topic_modelling_name}.model"))
+    return tm_index
 
-    data_folder = os.path.join(BASE_DAG_DIR, "bigartm_scrap_temp")
-    if not os.path.exists(data_folder):
-        os.mkdir(data_folder)
-    data_folder = os.path.join(data_folder, f"bigartm_formated_data_monitoring_{datetime.datetime.now()}_{source.id}")
+
+def get_criterions_dict(subscription):
+    from evaluation.models import TopicsEval
 
     print("!!!", "Get topic evals")
     # Get topic evals
@@ -243,4 +286,4 @@ def init_monitoring_stuff(subscription, source):
 
     for t in criterions_evals_dict.keys():
         criterions_evals_dict[t] = sum(criterions_evals_dict[t]) / len(criterions_evals_dict[t])
-    return data_folder, tm_index, criterions_evals_dict
+    return criterions_evals_dict
