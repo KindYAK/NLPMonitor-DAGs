@@ -1,6 +1,4 @@
-def report_subscriptions(source, filename):
-    import json
-
+def report_subscriptions(source, news):
     from elasticsearch_dsl import Search, Q
     from pymorphy2 import MorphAnalyzer
     from stop_words import get_stop_words
@@ -20,10 +18,6 @@ def report_subscriptions(source, filename):
         criterions_evals_dict = get_criterions_dict(subscription)
         tm_index = get_tm_index(subscription.topic_modelling_name)
         data_folder = get_data_folder(source)
-
-        # with open("1.json", "r", encoding='utf-8') as f: # TODO RETURN DEBUG
-        with open(filename, "r", encoding='utf-8') as f:
-            news = json.loads(f.read())
 
         texts, urls, titles, datetimes = write_batches(news, data_folder, stopwords_ru, morph, custom_dict)
         if subscription.parent_group:
