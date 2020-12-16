@@ -78,9 +78,12 @@ def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
         text = new['text']
         if is_kazakh(text) or is_latin(text):
             continue
-        if 'datetime' in new:
-            datetime_new = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(
-                tzinfo=pytz.timezone('Asia/Almaty'))
+        if 'datetime' in new and new['datetime']:
+            try:
+                datetime_new = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(
+                    tzinfo=pytz.timezone('Asia/Almaty'))
+            except:
+                datetime_new = new['datetime']
             if datetime_new.date() > datetime.datetime.now().date() and datetime_new.day <= 12:
                 datetime_new = datetime_new.replace(month=datetime_new.day, day=datetime_new.month)
             if (datetime.datetime.now().date() - datetime_new.date()).days > 5:
