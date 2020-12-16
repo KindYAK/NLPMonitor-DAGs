@@ -250,7 +250,7 @@ def get_tm_index(topic_modelling_name):
 
     print("!!!", "Get topic model")
     ss = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
-    ss = ss.query(Q(name=topic_modelling_name) | Q(**{"name.keyword": topic_modelling_name}))
+    ss = ss.query(Q("term", name=topic_modelling_name) | Q("term", **{"name.keyword": topic_modelling_name}))
     ss = ss.filter("term", is_ready=True)
     tm_index = ss.source(['number_of_topics', 'name']).execute()[0]
 
