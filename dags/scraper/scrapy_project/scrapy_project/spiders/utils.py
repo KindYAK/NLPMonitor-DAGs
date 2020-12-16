@@ -65,7 +65,8 @@ def parse_response(self, response):
                 if parse_result and parse_result.year < 2000:
                     continue
             except:
-                print("Datetime parse Exception", url)
+                safe_url = "".join(c for c in url.strip() if c.lower() in "1234567890-_qwertyuiopasdfghjklzxcvbnm?/\!@#$%^&*()_+><,.,;][}{")
+                print("Datetime parse Exception", safe_url)
                 continue
             date_now = datetime.datetime.now().date()
             if parse_result.year == date_now.year and parse_result.month > date_now.month:
