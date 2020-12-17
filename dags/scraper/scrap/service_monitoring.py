@@ -4,7 +4,7 @@ def report_subscriptions(source, news):
     from stop_words import get_stop_words
 
     from mainapp.models_user import Subscription, SubscriptionReportObject
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING, ES_INDEX_CUSTOM_DICTIONARY_WORD, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT
+    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_CUSTOM_DICTIONARY_WORD, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT
 
     # Try to report subscription
     stopwords_ru = set(get_stop_words('ru'))
@@ -47,7 +47,8 @@ def report_subscriptions(source, news):
             texts, urls, titles, datetimes = write_batches(news, data_folder, stopwords_ru, morph, custom_dict)
 
         if not texts:
-            return f"No documents to actualize"
+            print(f"No documents to actualize")
+            continue
 
         theta_values, theta_topics = get_topic_weights(data_folder, tm_index)
         output = get_output(theta_values, theta_topics, criterions_evals_dict, subscription, source, urls, titles, datetimes)
@@ -80,8 +81,7 @@ def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
             continue
         if 'datetime' in new and new['datetime']:
             try:
-                datetime_new = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(
-                    tzinfo=pytz.timezone('Asia/Almaty'))
+                datetime_new = datetime.datetime.strptime(new['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone('Asia/Almaty'))
             except:
                 datetime_new = new['datetime']
             if datetime_new.date() > datetime.datetime.now().date() and datetime_new.day <= 12:
@@ -91,8 +91,7 @@ def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
         else:
             continue
         # Preprocess text
-        text = " ".join(x.lower() for x in
-                        ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
+        text = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
         cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in text.split() if
                               len(word) > 2 and word not in stopwords_ru]
         texts.append(" ".join(cleaned_words_list))
