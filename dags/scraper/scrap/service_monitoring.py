@@ -56,7 +56,7 @@ def report_subscriptions(source, news):
 
         if output:
             send_output(output, source, subscription)
-        print("!!!", len(output))
+        print("!!! Sent", len(output), "news!")
 
 
 def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
