@@ -227,13 +227,14 @@ def send_output(output, source, subscription):
 def get_data_folder(source):
     import datetime
     import os
+    import random
 
     from util.constants import BASE_DAG_DIR
 
     data_folder = os.path.join(BASE_DAG_DIR, "bigartm_scrap_temp")
     if not os.path.exists(data_folder):
         os.mkdir(data_folder)
-    data_folder = os.path.join(data_folder, f"bigartm_formated_data_monitoring_{datetime.datetime.now()}_{source.id}")
+    data_folder = os.path.join(data_folder, f"bigartm_formated_data_monitoring_{datetime.datetime.now()}_{source.id}_{random.random()}")
     return data_folder
 
 
