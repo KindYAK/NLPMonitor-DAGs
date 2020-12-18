@@ -21,6 +21,9 @@ def report_subscriptions(source, news):
         data_folder = get_data_folder(source)
 
         texts, urls, titles, datetimes = write_batches(news, data_folder, stopwords_ru, morph, custom_dict)
+        if not texts:
+            print(f"No documents to monitor")
+            continue
         if subscription.parent_group:
             print("!!!", "Filtering parent")
             print("!!!", "Before", len(news))
@@ -46,10 +49,9 @@ def report_subscriptions(source, news):
                 )
             print("!!!", "After", len(news))
             texts, urls, titles, datetimes = write_batches(news, data_folder, stopwords_ru, morph, custom_dict)
-
-        if not texts:
-            print(f"No documents to actualize")
-            continue
+            if not texts:
+                print(f"No documents to monitor")
+                continue
 
         theta_values, theta_topics = get_topic_weights(data_folder, tm_index)
         output = get_output(theta_values, theta_topics, criterions_evals_dict, subscription, source, urls, titles, datetimes)
