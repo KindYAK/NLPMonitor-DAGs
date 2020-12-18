@@ -37,9 +37,9 @@ def report_subscriptions(source, news):
                         continue
                     if weight > subscription.parent_group_threshold:
                         good_indices.add(i)
-            news = []
+            news_temp = []
             for i in good_indices:
-                news.append(
+                news_temp.append(
                     {
                         "text": texts[i],
                         "title": titles[i],
@@ -47,8 +47,8 @@ def report_subscriptions(source, news):
                         "datetime": datetimes[i],
                     }
                 )
-            print("!!!", "After", len(news))
-            texts, urls, titles, datetimes = write_batches(news, data_folder, stopwords_ru, morph, custom_dict)
+            print("!!!", "After", len(news_temp))
+            texts, urls, titles, datetimes = write_batches(news_temp, data_folder, stopwords_ru, morph, custom_dict)
             if not texts:
                 print(f"No documents to monitor")
                 continue
