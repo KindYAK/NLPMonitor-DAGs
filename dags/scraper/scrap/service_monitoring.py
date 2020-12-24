@@ -28,6 +28,7 @@ def report_subscriptions(source, news):
             print("!!!", "Filtering parent")
             print("!!!", "Before", len(texts))
             tm_index_parent = get_tm_index(subscription.parent_group.topic_modelling_name)
+            print("! parent index", tm_index_parent)
             theta_values, theta_topics = get_topic_weights(data_folder, tm_index_parent)
             good_indices = set()
             group_topic_ids = set((topic.topic_id for topic in subscription.parent_group.topics.all()))
@@ -101,7 +102,7 @@ def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
         texts.append(" ".join(cleaned_words_list))
         urls.append(new['url'])
         titles.append(new['title'])
-        # datetimes.append(datetime_new)
+        datetimes.append(datetime_new)
         datetimes.append(None)
 
     print("!!!", "Write batches")
@@ -242,27 +243,14 @@ def get_data_folder(source):
 
 
 def get_tm_index(topic_modelling_name):
-    import os
-
-    import artm
     from elasticsearch_dsl import Search, Q
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_TOPIC_MODELLING
-
-    from util.constants import BASE_DAG_DIR
-
-    from dags.bigartm.services.bigartm_utils import load_monkey_patch
 
     print("!!!", "Get topic model")
     ss = Search(using=ES_CLIENT, index=ES_INDEX_TOPIC_MODELLING)
     ss = ss.query(Q("term", name=topic_modelling_name) | Q("term", **{"name.keyword": topic_modelling_name}))
     ss = ss.filter("term", is_ready=True)
     tm_index = ss.source(['number_of_topics', 'name']).execute()[0]
-
-    model_artm = artm.ARTM(num_topics=tm_index.number_of_topics,
-                           class_ids={"text": 1}, theta_columns_naming="title",
-                           reuse_theta=True, cache_theta=True, num_processors=4)
-    model_artm.load = load_monkey_patch
-    model_artm.load(model_artm, os.path.join(os.path.join(BASE_DAG_DIR, "bigartm_models"), f"model_{topic_modelling_name}.model"))
     return tm_index
 
 
