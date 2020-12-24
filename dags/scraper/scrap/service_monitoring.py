@@ -103,7 +103,7 @@ def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
         urls.append(new['url'])
         titles.append(new['title'])
         datetimes.append(datetime_new)
-        datetimes.append(None)
+        # datetimes.append(None)
 
     print("!!!", "Write batches")
     # Write batches
