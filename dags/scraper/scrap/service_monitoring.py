@@ -1,5 +1,5 @@
 def report_subscriptions(source, news):
-    from elasticsearch_dsl import Search, Q
+    from elasticsearch_dsl import Search
     from pymorphy2 import MorphAnalyzer
     from stop_words import get_stop_words
 
@@ -48,6 +48,7 @@ def report_subscriptions(source, news):
                     }
                 )
             print("!!!", "After", len(news_temp))
+            data_folder += "_filtered"
             texts, urls, titles, datetimes = write_batches(news_temp, data_folder, stopwords_ru, morph, custom_dict)
             if not texts:
                 print(f"No documents to monitor")
