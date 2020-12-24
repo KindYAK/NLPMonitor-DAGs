@@ -22,6 +22,7 @@ NLPmonitor_get_topics_info - 0 23 * * * - 5:00
 
 Hourly:
 Scrapers_scrap_fast - 0 * * * *
+Nlpmonitor_pre_cache - 0 * * * *
 Nlpmonitor_send_elastic - 15 * * * *
 Nlpmonitor_Lemmatization - 20 * * * *
 Scrapers_scrap_social_high - 30 * * * *
