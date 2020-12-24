@@ -15,7 +15,7 @@ def report_subscriptions(source, news):
 
     subscriptions = Subscription.objects.filter(is_active=True, is_fast=True)
     for subscription in subscriptions:
-        print("!!!! Processing,", subscription.user.email)
+        print("!!!! Processing,", subscription.user.email, len(news), "news")
         criterions_evals_dict = get_criterions_dict(subscription)
         tm_index = get_tm_index(subscription.topic_modelling_name)
         data_folder = get_data_folder(source)
@@ -26,7 +26,7 @@ def report_subscriptions(source, news):
             continue
         if subscription.parent_group:
             print("!!!", "Filtering parent")
-            print("!!!", "Before", len(news))
+            print("!!!", "Before", len(texts))
             tm_index_parent = get_tm_index(subscription.parent_group.topic_modelling_name)
             theta_values, theta_topics = get_topic_weights(data_folder, tm_index_parent)
             good_indices = set()
