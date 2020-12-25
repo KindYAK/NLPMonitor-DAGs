@@ -11,6 +11,7 @@ def pre_cache(**kwargs):
     c.force_login(user)
     calculated_widgets = set()
     for dashboard in DashboardPreset.objects.all():
+        print("!!!", "Calc Dashboard ID =", dashboard.id)
         widgets_ids = set([w.id for w in dashboard.widgets.all()])
         updated_widget_ids = widgets_ids - calculated_widgets
         calculated_widgets = calculated_widgets.union(widgets_ids)
