@@ -171,6 +171,7 @@ def get_output(theta_values, theta_topics, theta_documents, criterions_evals_dic
 
     print("!!!", "Calc evals")
     for doc, weights in zip(theta_documents, theta_values):
+        doc = int(doc)
         res = 0
         relevant_count = 0
         for weight, topic_id in zip(weights, theta_topics):
