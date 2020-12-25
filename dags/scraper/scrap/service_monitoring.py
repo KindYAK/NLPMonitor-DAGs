@@ -29,15 +29,15 @@ def report_subscriptions(source, news):
             print("!!!", "Before", len(texts))
             tm_index_parent = get_tm_index(subscription.parent_group.topic_modelling_name)
             print("! parent index", tm_index_parent)
-            theta_values, theta_topics = get_topic_weights(data_folder, tm_index_parent)
+            theta_values, theta_topics, theta_documents = get_topic_weights(data_folder, tm_index_parent)
             good_indices = set()
             group_topic_ids = set((topic.topic_id for topic in subscription.parent_group.topics.all()))
-            for i, weights in enumerate(theta_values):
+            for doc, weights in zip(theta_documents, theta_values):
                 for weight, topic_id in zip(weights, theta_topics):
                     if topic_id not in group_topic_ids:
                         continue
                     if weight > subscription.parent_group_threshold:
-                        good_indices.add(i)
+                        good_indices.add(int(doc))
             news_temp = []
             for i in good_indices:
                 news_temp.append(
@@ -55,8 +55,8 @@ def report_subscriptions(source, news):
                 print(f"No documents to monitor")
                 continue
 
-        theta_values, theta_topics = get_topic_weights(data_folder, tm_index)
-        output = get_output(theta_values, theta_topics, criterions_evals_dict, subscription, source, urls, titles, datetimes)
+        theta_values, theta_topics, theta_documents = get_topic_weights(data_folder, tm_index)
+        output = get_output(theta_values, theta_topics, theta_documents, criterions_evals_dict, subscription, source, urls, titles, datetimes)
 
         if output:
             send_output(output, source, subscription)
@@ -103,7 +103,6 @@ def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
         urls.append(new['url'])
         titles.append(new['title'])
         datetimes.append(datetime_new)
-        # datetimes.append(None)
 
     print("!!!", "Write batches")
     # Write batches
@@ -147,11 +146,12 @@ def get_topic_weights(data_folder, tm_index):
 
     theta_values = theta.values.transpose().astype(float)
     theta_topics = theta.index.array.to_numpy().astype(str)
+    theta_documents = theta.columns.array.to_numpy().astype(str)
 
-    return theta_values, theta_topics
+    return theta_values, theta_topics, theta_documents
 
 
-def get_output(theta_values, theta_topics, criterions_evals_dict, subscription, source, urls, titles, datetimes):
+def get_output(theta_values, theta_topics, theta_documents, criterions_evals_dict, subscription, source, urls, titles, datetimes):
     from django.db import IntegrityError
     from elasticsearch_dsl import Search
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT_EVAL, ES_INDEX_TOPIC_DOCUMENT
@@ -170,7 +170,7 @@ def get_output(theta_values, theta_topics, criterions_evals_dict, subscription, 
     tm_threshold = list(r.aggregations.percents.values.__dict__['_d_'].values())[0]
 
     print("!!!", "Calc evals")
-    for i, weights in enumerate(theta_values):
+    for doc, weights in zip(theta_documents, theta_values):
         res = 0
         relevant_count = 0
         for weight, topic_id in zip(weights, theta_topics):
@@ -187,9 +187,9 @@ def get_output(theta_values, theta_topics, criterions_evals_dict, subscription, 
             sro = SubscriptionReportObject(
                 subscription=subscription,
                 source=source,
-                url=urls[i],
-                title=titles[i],
-                datetime=datetimes[i],
+                url=urls[doc],
+                title=titles[doc],
+                datetime=datetimes[doc],
                 value=res,
                 is_sent=True,
             )
