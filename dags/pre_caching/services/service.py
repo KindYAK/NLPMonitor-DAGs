@@ -20,4 +20,13 @@ def pre_cache(**kwargs):
             key = make_template_fragment_key("widget", [widget_id])
             cache.delete(key)
 
-        c.get(f'/dashboard/{dashboard.id}/')
+        try:
+            c.get(f'/dashboard/{dashboard.id}/')
+        except Exception as e:
+            print("!!!", "Exception")
+            try:
+                print("!!!", e)
+            except:
+                pass
+        else:
+            print("!!! Sucess")
