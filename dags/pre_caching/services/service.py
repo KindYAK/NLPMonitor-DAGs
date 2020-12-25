@@ -29,4 +29,4 @@ def pre_cache(**kwargs):
             except:
                 pass
         else:
-            print("!!! Sucess")
+            print("!!! Success")
