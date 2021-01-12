@@ -15,6 +15,9 @@ def report_subscriptions(source, news):
 
     subscriptions = Subscription.objects.filter(is_active=True, is_fast=True)
     for subscription in subscriptions:
+        if subscription.corpus.id != source.corpus.id:
+            continue
+
         print("!!!! Processing,", subscription.user.email, len(news), "news")
         criterions_evals_dict = get_criterions_dict(subscription)
         tm_index = get_tm_index(subscription.topic_modelling_name)
