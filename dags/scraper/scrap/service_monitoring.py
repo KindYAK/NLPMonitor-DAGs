@@ -20,7 +20,7 @@ def report_subscriptions(source, news):
         tm_index = get_tm_index(subscription.topic_modelling_name)
         data_folder = get_data_folder(source)
 
-        texts, urls, titles, datetimes = write_batches(news, data_folder, stopwords_ru, morph, custom_dict)
+        texts, urls, titles, datetimes = write_batches(news, subscription, data_folder, stopwords_ru, morph, custom_dict)
         if not texts:
             print(f"No documents to monitor")
             continue
@@ -50,7 +50,7 @@ def report_subscriptions(source, news):
                 )
             print("!!!", "After", len(news_temp))
             data_folder += "_filtered"
-            texts, urls, titles, datetimes = write_batches(news_temp, data_folder, stopwords_ru, morph, custom_dict)
+            texts, urls, titles, datetimes = write_batches(news_temp, subscription, data_folder, stopwords_ru, morph, custom_dict)
             if not texts:
                 print(f"No documents to monitor")
                 continue
@@ -63,7 +63,7 @@ def report_subscriptions(source, news):
         print("!!! Sent", len(output), "news!")
 
 
-def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
+def write_batches(news, subscription, data_folder, stopwords_ru, morph, custom_dict):
     import artm
     import datetime
     import os
@@ -82,6 +82,7 @@ def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
     datetimes = []
     for new in news:
         text = new['text']
+        original_text = text
         if is_kazakh(text) or is_latin(text):
             continue
         if 'datetime' in new and new['datetime']:
@@ -99,7 +100,11 @@ def write_batches(news, data_folder, stopwords_ru, morph, custom_dict):
         text = " ".join(x.lower() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
         cleaned_words_list = [morph_with_dictionary(morph, word, custom_dict) for word in text.split() if
                               len(word) > 2 and word not in stopwords_ru]
-        texts.append(" ".join(cleaned_words_list))
+        text = " ".join(cleaned_words_list)
+        if subscription.keyword_query:
+            if not check_keyword_query(" ".join((text, original_text, new['title'])), subscription.keyword_query, subscription.keyword_query_occurrence_threshold):
+                continue
+        texts.append(text)
         urls.append(new['url'])
         titles.append(new['title'])
         datetimes.append(datetime_new)
@@ -277,3 +282,13 @@ def get_criterions_dict(subscription):
     for t in criterions_evals_dict.keys():
         criterions_evals_dict[t] = sum(criterions_evals_dict[t]) / len(criterions_evals_dict[t])
     return criterions_evals_dict
+
+
+def check_keyword_query(text, query, threshold):
+    occurrences = 0
+    for word in query.split("|"):
+        if word.strip() in text:
+            occurrences += 1
+        if occurrences > threshold:
+            return True
+    return False
