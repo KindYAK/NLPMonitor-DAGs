@@ -20,7 +20,7 @@ default_args = {
     'retry_delay': timedelta(minutes=15),
     'priority_weight': 95,
     'pool': 'scraper_tasks',
-    'queue': 'second', # TODO Uncomment before commit, comment during development
+    # 'queue': 'second',
 }
 
 dag = DAG('Scrapers_init_social_accounts', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='0 12 * * *')

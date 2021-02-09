@@ -22,7 +22,7 @@ default_args = {
     'retry_delay': timedelta(minutes=30),
     'priority_weight': 40,
     'pool': 'scraper_tasks',
-    'queue': 'second',
+    # 'queue': 'second',
 }
 
 dag = DAG('Scrapers_scrap_per_url', catchup=False, max_active_runs=2, default_args=default_args, schedule_interval=None)

@@ -20,7 +20,7 @@ default_args = {
     'priority_weight': 50,
     'pool': 'scraper_tasks',
     'execution_timeout': timedelta(hours=1),
-    'queue': 'second',
+    # 'queue': 'second',
     # 'priority_weight': 10,
     # 'end_date': datetime(2016, 1, 1),
 }

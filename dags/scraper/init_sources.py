@@ -22,7 +22,7 @@ default_args = {
     'retry_delay': timedelta(minutes=15),
     'priority_weight': 95,
     'pool': 'scraper_tasks',
-    'queue': 'second',
+    # 'queue': 'second',
     # 'priority_weight': 10,
     # 'end_date': datetime(2016, 1, 1),
 }
