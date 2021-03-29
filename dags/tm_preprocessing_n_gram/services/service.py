@@ -37,8 +37,8 @@ def ngramize(**kwargs):
     documents = documents.filter('exists', field=source_field)
     start = int(start / 100 * number_of_documents)
     end = int(end / 100 * number_of_documents) + 1
-    if start - end > 30_000:
-        end = start + 30_000
+    if start - end > 10_000:
+        end = start + 10_000
     documents = documents[start:end].execute()
     print('!!! len docs', len(documents))
 
