@@ -35,7 +35,11 @@ def ngramize(**kwargs):
     documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=(source_field,), sort=('id',), get_search_obj=True)
     documents = documents.exclude('exists', field=f'text_ngramized_{dict_name}')
     documents = documents.filter('exists', field=source_field)
-    documents = documents[int(start / 100 * number_of_documents):int(end / 100 * number_of_documents) + 1].execute()
+    start = int(start / 100 * number_of_documents)
+    end = int(end / 100 * number_of_documents) + 1
+    if start - end > 100_000:
+        end = start + 100_000
+    documents = documents[start:end].execute()
     print('!!! len docs', len(documents))
 
     print("!!!", "Getting dictionary", datetime.datetime.now())
