@@ -18,8 +18,8 @@ def fill_dags_scopus(actualizable_bigartms, comboable_bigartms):
             gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm_two_years_scopus_{num_topics}", description=f"scopus {num_topics} topics",
                                  number_of_topics=num_topics,
                                  filters={
-                                     "corpus": "scopus_real",
-                                     "corpus_datetime_ignore": ["scopus_real"],
+                                     "corpus": "scopus_real_real",
+                                     "corpus_datetime_ignore": ["scopus_real_real"],
                                      "source": None,
                                      "datetime_from": date(1900, 1, 1),
                                      "datetime_to": date(2050, 1, 1),
