@@ -57,10 +57,10 @@ def preprocessing_raw_data(**kwargs):
     failed = 0
     for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents),
                                      index=ES_INDEX_DOCUMENT,
-                                     chunk_size=5000, raise_on_дуьerror=True, max_retries=10):
+                                     chunk_size=1000, raise_on_error=True, max_retries=10):
         if not ok:
             failed += 1
-        if failed > 5:
+        if failed > 10:
             raise Exception("Too many failed ES!!!")
         documents_processed += 1
     return f"{documents_processed} Processed"
