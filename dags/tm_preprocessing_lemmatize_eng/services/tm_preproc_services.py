@@ -31,10 +31,10 @@ def preprocessing_raw_data(**kwargs):
     s = s.exclude('exists', field="is_english")
     start = int(start / 100 * number_of_documents)
     end = int(end / 100 * number_of_documents) + 1
-    if end - start < 10_000:
+    if end - start < 1_000:
         s = s[start:end]
     else:
-        s = s[start:start+10_000]
+        s = s[start:start+1_000]
     documents = s.execute()
 
     stopwords = set(get_stop_words('ru') + get_stop_words('en') + stopwords.words('english'))
@@ -57,7 +57,7 @@ def preprocessing_raw_data(**kwargs):
     failed = 0
     for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents),
                                      index=ES_INDEX_DOCUMENT,
-                                     chunk_size=1000, raise_on_error=True, max_retries=10):
+                                     chunk_size=100, raise_on_error=True, max_retries=10):
         if not ok:
             failed += 1
         if failed > 10:
