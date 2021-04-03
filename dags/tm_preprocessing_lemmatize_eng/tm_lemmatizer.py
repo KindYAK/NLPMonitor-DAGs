@@ -43,6 +43,7 @@ with dag:
             op_kwargs={
                 "start": (100 / concurrency) * i,
                 "end": (100 / concurrency) * (i + 1)
-            }
+            },
+            execution_timeout=timedelta(minutes=3)
         ))
     init_last_datetime >> lemmatize_operators
