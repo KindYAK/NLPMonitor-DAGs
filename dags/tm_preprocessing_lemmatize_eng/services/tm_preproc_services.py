@@ -31,10 +31,10 @@ def preprocessing_raw_data(**kwargs):
     s = s.exclude('exists', field="is_english")
     start = int(start / 100 * number_of_documents)
     end = int(end / 100 * number_of_documents) + 1
-    if end - start < 1_000:
+    if end - start < 500:
         s = s[start:end]
     else:
-        s = s[start:start+1_000]
+        s = s[start:start+500]
     documents = s.execute()
 
     stopwords = set(get_stop_words('ru') + get_stop_words('en') + stopwords.words('english'))
