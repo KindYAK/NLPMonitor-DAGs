@@ -39,6 +39,8 @@ def preprocessing_raw_data(**kwargs):
         success += 1
         if success > 10_000:
             break
+        if success % 1_000 == 0:
+            print(f"{success}/{10_000}")
         if not is_latin(doc.text):
             doc['is_english'] = False
             documents.append(doc)
