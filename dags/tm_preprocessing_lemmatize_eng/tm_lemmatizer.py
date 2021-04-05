@@ -27,12 +27,12 @@ default_args = {
 dag = DAG('Nlpmonitor_Lemmatization_eng', catchup=False, max_active_runs=1, concurrency=4, default_args=default_args, schedule_interval='* * * * *')
 
 with dag:
-    init_last_datetime = DjangoOperator(
-        task_id="init_last_datetime",
-        python_callable=init_last_datetime,
-        op_kwargs={
-        }
-    )
+    # init_last_datetime = DjangoOperator(
+    #     task_id="init_last_datetime",
+    #     python_callable=init_last_datetime,
+    #     op_kwargs={
+    #     }
+    # )
 
     concurrency = 4
     lemmatize_operators = []
@@ -41,9 +41,10 @@ with dag:
             task_id=f"lemmatize_{i}",
             python_callable=preprocessing_raw_data,
             op_kwargs={
-                "start": (100 / concurrency) * i,
-                "end": (100 / concurrency) * (i + 1)
+                # "start": (100 / concurrency) * i,
+                # "end": (100 / concurrency) * (i + 1),
+                "process_num": i
             },
-            execution_timeout=timedelta(minutes=3)
+            execution_timeout=timedelta(minutes=10)
         ))
-    init_last_datetime >> lemmatize_operators
+    # init_last_datetime >> lemmatize_operators
