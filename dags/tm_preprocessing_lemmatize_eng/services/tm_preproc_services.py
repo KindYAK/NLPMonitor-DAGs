@@ -33,7 +33,7 @@ def preprocessing_raw_data(**kwargs):
     stopwords = set(get_stop_words('ru') + get_stop_words('en') + stopwords.words('english'))
     success = 0
     documents = []
-    for doc in s.scan(raise_on_error=False):
+    for doc in s.params(raise_on_error=False).scan():
         if int(doc.id) % total_proc != process_num:
             continue
         success += 1
