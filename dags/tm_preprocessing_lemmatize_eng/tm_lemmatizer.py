@@ -43,7 +43,8 @@ with dag:
             op_kwargs={
                 # "start": (100 / concurrency) * i,
                 # "end": (100 / concurrency) * (i + 1),
-                "process_num": i
+                "process_num": i,
+                "total_proc": concurrency,
             },
             execution_timeout=timedelta(minutes=10)
         ))

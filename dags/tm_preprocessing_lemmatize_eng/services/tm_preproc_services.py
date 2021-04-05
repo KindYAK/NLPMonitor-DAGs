@@ -21,6 +21,7 @@ def preprocessing_raw_data(**kwargs):
     from util.util import is_latin
 
     process_num = kwargs['process_num']
+    total_proc = kwargs['total_proc']
 
     number_of_documents = int(Variable.get("lemmatize_number_of_documents_eng", default_var=None))
     if number_of_documents is None:
@@ -33,7 +34,7 @@ def preprocessing_raw_data(**kwargs):
     success = 0
     documents = []
     for doc in s.scan():
-        if int(doc.id) % process_num != 0:
+        if int(doc.id) % total_proc != process_num:
             continue
         success += 1
         if success > 10_000:
