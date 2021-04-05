@@ -45,7 +45,6 @@ with dag:
                 # "end": (100 / concurrency) * (i + 1),
                 "process_num": i,
                 "total_proc": concurrency,
-            },
-            execution_timeout=timedelta(minutes=10)
+            }
         ))
     # init_last_datetime >> lemmatize_operators
