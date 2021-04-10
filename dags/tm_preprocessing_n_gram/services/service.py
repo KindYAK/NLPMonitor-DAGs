@@ -33,6 +33,7 @@ def ngramize(**kwargs):
 
     print("!!!", "Processing documents", datetime.datetime.now())
     success = 0
+    documents_to_process = []
     for doc in documents.params(raise_on_error=False).scan():
         if int(doc.id) % total_proc != process_num:
             continue
@@ -51,12 +52,13 @@ def ngramize(**kwargs):
                 if word in dict_words:
                     n_grams_to_append.append(word)
         doc[f'text_ngramized_{dict_name}'] = text_ngramized + " ".join(n_grams_to_append)
+        documents_to_process.append(doc)
 
     print("!!!", "Writing to ES", datetime.datetime.now())
     documents_processed = 0
     success = 0
     failed = 0
-    for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents),
+    for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents_to_process),
                                      index=ES_INDEX_DOCUMENT,
                                      chunk_size=10_000, raise_on_error=True, max_retries=10):
         if not ok:
