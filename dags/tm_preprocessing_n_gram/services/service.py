@@ -20,8 +20,8 @@ def ngramize(**kwargs):
 
     from util.service_es import search, update_generator
 
-    start = kwargs['start']
-    end = kwargs['end']
+    process_num = kwargs['process_num']
+    total_proc = kwargs['total_proc']
     dict_name = kwargs['dict_name']
     source_field = kwargs['source_field']
     min_document_frequency_relative = kwargs['min_document_frequency_relative']
@@ -35,12 +35,6 @@ def ngramize(**kwargs):
     documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=(source_field,), sort=('id',), get_search_obj=True)
     documents = documents.exclude('exists', field=f'text_ngramized_{dict_name}')
     documents = documents.filter('exists', field=source_field)
-    start = int(start / 100 * number_of_documents)
-    end = int(end / 100 * number_of_documents) + 1
-    if start - end > 10_000:
-        end = start + 10_000
-    documents = documents[start:end].execute()
-    print('!!! len docs', len(documents))
 
     print("!!!", "Getting dictionary", datetime.datetime.now())
     s = Search(using=ES_CLIENT, index=f"{ES_INDEX_DICTIONARY_WORD}_{dict_name}")
@@ -51,7 +45,15 @@ def ngramize(**kwargs):
     print('!!! len dict', len(dict_words))
 
     print("!!!", "Processing documents", datetime.datetime.now())
-    for doc in documents:
+    success = 0
+    for doc in documents.params(raise_on_error=False).scan():
+        if int(doc.id) % total_proc != process_num:
+            continue
+        success += 1
+        if success > 10_000:
+            break
+        if success % 1_000 == 0:
+            print(f"{success}/{10_000}")
         text_ngramized = doc[source_field]
         text_ngramized_split = text_ngramized.split()
         n_grams_to_append = []

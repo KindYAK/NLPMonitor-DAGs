@@ -43,12 +43,12 @@ def create_tasks(dict_name, source_field, min_document_frequency_relative, max_n
             task_id=f"ngramize_{dict_name}_{i}",
             python_callable=ngramize,
             op_kwargs={
-                "start": (100 / concurrency) * i,
-                "end": (100 / concurrency) * (i + 1),
                 "dict_name": dict_name,
                 "source_field": source_field,
                 "max_n_gram_len": max_n_gram_len,
                 "min_document_frequency_relative": min_document_frequency_relative,
+                "process_num": i,
+                "total_proc": concurrency,
             }
         ))
     init_last_datetime_op >> lemmatize_operators
@@ -61,8 +61,8 @@ with dag:
                  min_document_frequency_relative=1 / 1000,
                  max_n_gram_len=3)
 
-    create_tasks(dict_name="en_lemminflect",
-                 source_field="text_lemmatized_eng_lemminflect",
-                 min_document_frequency_relative=1 / 1000,
-                 max_n_gram_len=3,
-                 concurrency=2)
+    # create_tasks(dict_name="en_lemminflect",
+    #              source_field="text_lemmatized_eng_lemminflect",
+    #              min_document_frequency_relative=1 / 1000,
+    #              max_n_gram_len=3,
+    #              concurrency=2)
