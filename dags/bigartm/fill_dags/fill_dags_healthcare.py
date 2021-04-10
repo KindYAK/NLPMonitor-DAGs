@@ -17,7 +17,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_2020_2021", description="2020-2021", number_of_topics=200,
                              filters={
-                                 "corpus": "main",
+                                 "corpus": ["main", "rus", "rus_propaganda"],
                                  "source": None,
                                  "datetime_from": date(2020, 1, 1),
                                  "datetime_to": date(2021, 4, 15),
