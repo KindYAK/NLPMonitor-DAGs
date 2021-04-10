@@ -37,10 +37,10 @@ def ngramize(**kwargs):
         if int(doc.id) % total_proc != process_num:
             continue
         success += 1
-        if success > 10_000:
+        if success > 100_000:
             break
-        if success % 1_000 == 0:
-            print(f"{success}/{10_000}")
+        if success % 10_000 == 0:
+            print(f"{success}/{100_000}")
         text_ngramized = doc[source_field]
         text_ngramized_split = text_ngramized.split()
         n_grams_to_append = []
@@ -58,7 +58,7 @@ def ngramize(**kwargs):
     failed = 0
     for ok, result in streaming_bulk(ES_CLIENT, update_generator(ES_INDEX_DOCUMENT, documents),
                                      index=ES_INDEX_DOCUMENT,
-                                     chunk_size=1000, raise_on_error=True, max_retries=10):
+                                     chunk_size=10_000, raise_on_error=True, max_retries=10):
         if not ok:
             failed += 1
         else:
