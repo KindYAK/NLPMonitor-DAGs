@@ -24,7 +24,7 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('Nlpmonitor_NGramize', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='15 * * * *')
+dag = DAG('Nlpmonitor_NGramize', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='* * * * *')
 
 
 def create_tasks(dict_name, source_field, min_document_frequency_relative, max_n_gram_len, corpus=None, concurrency=5):
