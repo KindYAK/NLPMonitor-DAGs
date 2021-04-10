@@ -24,7 +24,7 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('Nlpmonitor_NGramize', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='* * * * *')
+dag = DAG('Nlpmonitor_NGramize', catchup=False, max_active_runs=1, default_args=default_args, schedule_interval='15 * * * *')
 
 
 def create_tasks(dict_name, source_field, min_document_frequency_relative, max_n_gram_len, corpus=None, concurrency=5):
@@ -50,7 +50,7 @@ with dag:
     create_tasks(dict_name="kz_rus_yandex_ngrams_dict",
                  source_field="text_lemmatized_yandex",
                  min_document_frequency_relative=1 / 1000,
-                 max_n_gram_len=3,
+                 max_n_gram_len=4,
                  corpus=["main", "rus", "rus_propaganda"])
 
     # create_tasks(dict_name="en_lemminflect",
