@@ -18,7 +18,7 @@ def ngramize(**kwargs):
     max_n_gram_len = kwargs['max_n_gram_len']
 
     print("!!!", "Getting documents", datetime.datetime.now())
-    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=(source_field,), sort=('id',), get_search_obj=True)
+    documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=(source_field, 'id'), sort=('id',), get_search_obj=True)
     documents = documents.exclude('exists', field=f'text_ngramized_{dict_name}')
     documents = documents.filter('exists', field=source_field)
     documents = documents.filter('terms', corpus=corpus)
