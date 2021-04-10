@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from dags.bigartm.fill_dags.fill_dags_2019 import fill_dags_2019
 from dags.bigartm.fill_dags.fill_dags_2020 import fill_dags_2020
 from dags.bigartm.fill_dags.fill_dags_full import fill_dags_full
+from dags.bigartm.fill_dags.fill_dags_healthcare import fill_dags_healthcare
 from dags.bigartm.fill_dags.fill_dags_news_and_gos import fill_dags_news_and_gos
 from dags.bigartm.fill_dags.fill_dags_ngramized import fill_dags_ngramized
 from dags.bigartm.fill_dags.fill_dags_rus_corpora import fill_dags_rus_corpora
@@ -40,3 +41,4 @@ dag_scopus = fill_dags_scopus(actualizable_bigartms, comboable_bigartms)
 dag_ngramized = fill_dags_ngramized(actualizable_bigartms, comboable_bigartms)
 dag_rus_corpora = fill_dags_rus_corpora(actualizable_bigartms, comboable_bigartms)
 dag_kz = fill_dags_kz(actualizable_bigartms, comboable_bigartms)
+dag_healthcare = fill_dags_healthcare(actualizable_bigartms, comboable_bigartms)
