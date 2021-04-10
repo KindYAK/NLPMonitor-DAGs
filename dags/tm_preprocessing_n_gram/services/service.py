@@ -1,14 +1,3 @@
-def init_last_datetime(**kwargs):
-    from airflow.models import Variable
-    from elasticsearch_dsl import Search
-    from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT
-
-    dict_name = kwargs['dict_name']
-    s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT)
-    s = s.exclude('exists', field=f'text_ngramized_{dict_name}')
-    Variable.set(f"ngramize_number_of_documents_{dict_name}", s.count())
-
-
 def ngramize(**kwargs):
     import datetime
 
@@ -22,19 +11,17 @@ def ngramize(**kwargs):
 
     process_num = kwargs['process_num']
     total_proc = kwargs['total_proc']
+    corpus = kwargs['corpus']
     dict_name = kwargs['dict_name']
     source_field = kwargs['source_field']
     min_document_frequency_relative = kwargs['min_document_frequency_relative']
     max_n_gram_len = kwargs['max_n_gram_len']
 
-    number_of_documents = int(Variable.get(f"ngramize_number_of_documents_{dict_name}", default_var=None))
-    if number_of_documents is None:
-        raise Exception("No variable!")
-
     print("!!!", "Getting documents", datetime.datetime.now())
     documents = search(ES_CLIENT, ES_INDEX_DOCUMENT, query={}, source=(source_field,), sort=('id',), get_search_obj=True)
     documents = documents.exclude('exists', field=f'text_ngramized_{dict_name}')
     documents = documents.filter('exists', field=source_field)
+    documents = documents.filter('terms', corpus=corpus)
 
     print("!!!", "Getting dictionary", datetime.datetime.now())
     s = Search(using=ES_CLIENT, index=f"{ES_INDEX_DICTIONARY_WORD}_{dict_name}")
