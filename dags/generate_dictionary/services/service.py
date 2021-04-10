@@ -96,8 +96,8 @@ def generate_dictionary_batch(**kwargs):
     from nlpmonitor.settings import ES_INDEX_DOCUMENT, ES_INDEX_DICTIONARY_INDEX, ES_INDEX_DICTIONARY_WORD, ES_CLIENT
 
     name = kwargs['name']
-    start = kwargs['start']
-    end = kwargs['end']
+    process_num = kwargs['process_num']
+    total_proc = kwargs['total_proc']
     corpuses = kwargs['corpuses']
     max_n_gram_len = kwargs['max_n_gram_len']
     min_relative_document_frequency = kwargs['min_relative_document_frequency']
@@ -115,18 +115,18 @@ def generate_dictionary_batch(**kwargs):
     print("!!!", "Getting documents from ES", datetime.datetime.now())
     documents = search(ES_CLIENT, ES_INDEX_DOCUMENT,
                        query={"corpus": corpuses},
-                       source=[field_to_parse],
+                       source=[field_to_parse, 'id'],
                        sort=['id'],
-                       start=int(start / 100 * number_of_documents),
-                       end=int(end / 100 * number_of_documents) + 1,
                        get_search_obj=True,
                        )
-    documents = documents.filter("exists", field=field_to_parse).execute()
+    documents = documents.filter("exists", field=field_to_parse).params(raise_on_error=False).scan()
 
     stopwords = set(get_stop_words('ru') + get_stop_words('en') + stopwords.words('english'))
     dictionary_words = {}
     print("!!!", "Iterating through documents", datetime.datetime.now())
     for doc in documents:
+        if int(doc.id) % total_proc != process_num:
+            continue
         if len(doc[field_to_parse]) == 0:
             print("!!! WTF", doc.meta.id)
             continue
