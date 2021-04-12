@@ -51,7 +51,8 @@ with dag:
                  source_field="text_lemmatized_yandex",
                  min_document_frequency_relative=1 / 1000,
                  max_n_gram_len=4,
-                 corpus=["main", "rus", "rus_propaganda"])
+                 corpus=["main", "rus", "rus_propaganda"],
+                 concurrency=3)
 
     # create_tasks(dict_name="en_lemminflect",
     #              source_field="text_lemmatized_eng_lemminflect",
