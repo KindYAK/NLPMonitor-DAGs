@@ -15,7 +15,7 @@ def fill_dags_scopus(actualizable_bigartms, comboable_bigartms):
             python_callable=lambda: 0,
         )
         for num_topics in [25, 50, 100, 150, 200, 250, 350]:
-            gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm_two_years_scopus_{num_topics}", description=f"scopus {num_topics} topics",
+            gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm__scopus_{num_topics}", description=f"scopus {num_topics} topics",
                                  number_of_topics=num_topics,
                                  filters={
                                      "corpus": "scopus_real_real",
