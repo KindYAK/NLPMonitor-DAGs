@@ -204,7 +204,7 @@ def aggregate_dicts(**kwargs):
     import datetime
 
     from util.service_es import search
-    from elasticsearch.helpers import parallel_bulk
+    from elasticsearch.helpers import streaming_bulk
     from elasticsearch_dsl import Search, Index
     from nlpmonitor.settings import ES_INDEX_DICTIONARY_INDEX, ES_INDEX_DICTIONARY_WORD, ES_CLIENT, ES_INDEX_DOCUMENT
 
@@ -272,9 +272,9 @@ def aggregate_dicts(**kwargs):
     print("!!!", "Number of documents", number_of_documents)
     print("!!! Min documents threshold", number_of_documents * min_relative_document_frequency)
     dictionary_words_final = filter(lambda x: x['document_frequency'] > number_of_documents * min_relative_document_frequency, dictionary_words_final.values())
-    for ok, result in parallel_bulk(ES_CLIENT, dictionary_words_final,
+    for ok, result in streaming_bulk(ES_CLIENT, dictionary_words_final,
                                     index=f"{ES_INDEX_DICTIONARY_WORD}_{name}",
-                                    chunk_size=10000, raise_on_error=True, thread_count=6):
+                                    chunk_size=1000, raise_on_error=True, max_retries=10):
         if not ok:
             failed += 1
         else:
