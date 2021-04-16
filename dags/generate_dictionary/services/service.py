@@ -182,7 +182,7 @@ def generate_dictionary_batch(**kwargs):
     failed = 0
     print("!!!", "Writing to ES", datetime.datetime.now())
     for ok, result in parallel_bulk(ES_CLIENT, dictionary_words, index=f"{ES_INDEX_DICTIONARY_WORD}_{name}_temp",
-                                    chunk_size=10000, raise_on_error=True, thread_count=6):
+                                    chunk_size=1000, raise_on_error=True, thread_count=4):
         if not ok:
             failed += 1
         else:
