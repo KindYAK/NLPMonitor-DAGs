@@ -145,26 +145,32 @@ def generate_dictionary_batch(**kwargs):
                 word = "_".join(n_gram)
                 is_first_upper = word[0].isupper()
                 word = word.lower()
-                if lang == "eng":
-                    parse = lemmatize_eng(word)
-                elif lang == "kaz":
-                    continue # raise NotImplemented()
-                elif lang == "rus":
-                    parse = lemmatize_ru(word)
-                else:
-                    raise NotImplemented()
+                # TEMP - DISABLED lemmatization
+                # if lang == "eng":
+                #     parse = lemmatize_eng(word)
+                # elif lang == "kaz":
+                #     continue # raise NotImplemented()
+                # elif lang == "rus":
+                #     parse = lemmatize_ru(word)
+                # else:
+                #     raise NotImplemented()
                 if word not in dictionary_words:
                     dictionary_words[word] = {
                         "dictionary": name,
                         "word": word,
-                        "word_normal": parse["normal_form"],
-                        "is_in_pymorphy2_dict": parse["is_known"],
-                        "is_multiple_normals_in_pymorphy2": parse["is_multiple_forms"],
-                        "is_stop_word": word in stopwords or parse["normal_form"] in stopwords,
+                        # "word_normal": parse["normal_form"],
+                        "word_normal": word,
+                        # "is_in_pymorphy2_dict": parse["is_known"],
+                        "is_in_pymorphy2_dict": True,
+                        # "is_multiple_normals_in_pymorphy2": parse["is_multiple_forms"],
+                        "is_multiple_normals_in_pymorphy2": False,
+                        # "is_stop_word": word in stopwords or parse["normal_form"] in stopwords,
+                        "is_stop_word": False,
                         "is_latin": any([c in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" for c in word]),
                         "is_kazakh": any([c in "ӘәҒғҚқҢңӨөҰұҮүІі" for c in word]) or lang == "kaz",
                         "n_gram_len": n_gram_len,
-                        "pos_tag": parse["pos_tag"],
+                        # "pos_tag": parse["pos_tag"],
+                        "pos_tag": "NA",
                         "word_len": len(word),
                         "word_frequency": 1,
                         "document_frequency": 1,
