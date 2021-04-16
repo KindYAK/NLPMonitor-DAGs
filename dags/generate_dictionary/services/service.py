@@ -86,7 +86,7 @@ def generate_dictionary_batch(**kwargs):
     import datetime
     import re
 
-    from elasticsearch.helpers import parallel_bulk
+    from elasticsearch.helpers import streaming_bulk
     from stop_words import get_stop_words
     from nltk.corpus import stopwords
 
@@ -121,7 +121,7 @@ def generate_dictionary_batch(**kwargs):
                        )
     documents = documents.filter("exists", field=field_to_parse).params(raise_on_error=False).scan()
 
-    stopwords = set(get_stop_words('ru') + get_stop_words('en') + stopwords.words('english'))
+    # stopwords = set(get_stop_words('ru') + get_stop_words('en') + stopwords.words('english'))
     dictionary_words = {}
     print("!!!", "Iterating through documents", datetime.datetime.now())
     for doc in documents:
@@ -182,13 +182,14 @@ def generate_dictionary_batch(**kwargs):
                     if word not in word_in_doc:
                         dictionary_words[word]['document_frequency'] += 1
                 word_in_doc.add(word)
+
     len_dictionary = len(dictionary_words)
     dictionary_words = filter(lambda x: x['document_frequency'] > len(documents) * min_relative_document_frequency, dictionary_words.values())
     success = 0
     failed = 0
     print("!!!", "Writing to ES", datetime.datetime.now())
-    for ok, result in parallel_bulk(ES_CLIENT, dictionary_words, index=f"{ES_INDEX_DICTIONARY_WORD}_{name}_temp",
-                                    chunk_size=1000, raise_on_error=True, thread_count=4):
+    for ok, result in streaming_bulk(ES_CLIENT, dictionary_words, index=f"{ES_INDEX_DICTIONARY_WORD}_{name}_temp",
+                                    chunk_size=1000, raise_on_error=True, max_retries=10):
         if not ok:
             failed += 1
         else:
