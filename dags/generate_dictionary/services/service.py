@@ -123,12 +123,13 @@ def generate_dictionary_batch(**kwargs):
                        sort=['id'],
                        get_search_obj=True,
                        )
-    documents = documents.filter("exists", field=field_to_parse).params(raise_on_error=False).scan()
+    documents = documents.filter("exists", field=field_to_parse)
+    number_of_documents = documents.count()
 
     # stopwords = set(get_stop_words('ru') + get_stop_words('en') + stopwords.words('english'))
     dictionary_words = {}
     print("!!!", "Iterating through documents", datetime.datetime.now())
-    for i, doc in enumerate(documents):
+    for i, doc in enumerate(documents.params(raise_on_error=False).scan()):
         if i % 10000 == 0:
             print(f"Processed {i} documents")
             print(f"Dictionary length is {len(dictionary_words)}")
@@ -191,7 +192,7 @@ def generate_dictionary_batch(**kwargs):
                 word_in_doc.add(word)
 
     len_dictionary = len(dictionary_words)
-    dictionary_words = filter(lambda x: x['document_frequency'] > len(documents) * min_relative_document_frequency, dictionary_words.values())
+    dictionary_words = filter(lambda x: x['document_frequency'] > number_of_documents * min_relative_document_frequency, dictionary_words.values())
     success = 0
     failed = 0
     print("!!!", "Writing to ES", datetime.datetime.now())
@@ -205,7 +206,7 @@ def generate_dictionary_batch(**kwargs):
             print(f"{success}/{len_dictionary} processed, {datetime.datetime.now()}")
         if failed > 3:
             raise Exception("Too many failed!!")
-    return len(documents)
+    return number_of_documents
 
 
 def aggregate_dicts(**kwargs):
