@@ -191,8 +191,8 @@ def generate_dictionary_batch(**kwargs):
                         dictionary_words[word]['document_frequency'] += 1
                 word_in_doc.add(word)
 
-    dictionary_words = filter(lambda x: x['document_frequency'] > number_of_documents * min_relative_document_frequency, dictionary_words.values())
     len_dictionary = len(dictionary_words)
+    dictionary_words = filter(lambda x: x['document_frequency'] > number_of_documents * min_relative_document_frequency, dictionary_words.values())
     success = 0
     failed = 0
     print("!!!", "Writing to ES", datetime.datetime.now())
@@ -202,7 +202,7 @@ def generate_dictionary_batch(**kwargs):
             failed += 1
         else:
             success += 1
-        if success % 10000 == 0:
+        if success % 1000 == 0:
             print(f"{success}/{len_dictionary} processed, {datetime.datetime.now()}")
         if failed > 3:
             raise Exception("Too many failed!!")
