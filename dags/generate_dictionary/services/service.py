@@ -130,7 +130,7 @@ def generate_dictionary_batch(**kwargs):
     dictionary_words = {}
     print("!!!", "Iterating through documents", datetime.datetime.now())
     for i, doc in enumerate(documents.params(raise_on_error=False).scan()):
-        if i % 10000 == 0:
+        if i % 100_000 == 0:
             print(f"Processed {i} documents")
             print(f"Dictionary length is {len(dictionary_words)}")
         if int(doc.id) % total_proc != process_num:
