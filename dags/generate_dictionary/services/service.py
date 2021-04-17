@@ -192,7 +192,7 @@ def generate_dictionary_batch(**kwargs):
                 word_in_doc.add(word)
 
     len_dictionary = len(dictionary_words)
-    dictionary_words = filter(lambda x: x['document_frequency'] > number_of_documents * min_relative_document_frequency, dictionary_words.values())
+    dictionary_words = filter(lambda x: x['document_frequency'] > number_of_documents / total_proc * min_relative_document_frequency, dictionary_words.values())
     success = 0
     failed = 0
     print("!!!", "Writing to ES", datetime.datetime.now())
@@ -223,7 +223,10 @@ def aggregate_dicts(**kwargs):
 
     name = kwargs['name']
     corpuses = kwargs['corpuses']
+
     min_relative_document_frequency = kwargs['min_relative_document_frequency']
+    total_proc = kwargs['total_proc']
+
     query = {
         "dictionary": name,
     }
@@ -283,8 +286,8 @@ def aggregate_dicts(**kwargs):
     s = Search(using=ES_CLIENT, index=ES_INDEX_DOCUMENT).filter("terms", corpus=corpuses).source([])[:0]
     number_of_documents = s.count()
     print("!!!", "Number of documents", number_of_documents)
-    print("!!! Min documents threshold", number_of_documents * min_relative_document_frequency)
-    dictionary_words_final = filter(lambda x: x['document_frequency'] > number_of_documents * min_relative_document_frequency, dictionary_words_final.values())
+    print("!!! Min documents threshold", number_of_documents / total_proc * min_relative_document_frequency)
+    dictionary_words_final = filter(lambda x: x['document_frequency'] > number_of_documents / total_proc * min_relative_document_frequency, dictionary_words_final.values())
     for ok, result in streaming_bulk(ES_CLIENT, dictionary_words_final,
                                     index=f"{ES_INDEX_DICTIONARY_WORD}_{name}",
                                     chunk_size=1000, raise_on_error=True, max_retries=10):

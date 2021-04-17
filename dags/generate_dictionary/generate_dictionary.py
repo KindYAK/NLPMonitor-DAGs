@@ -68,6 +68,7 @@ with dag:
                 "name": name,
                 "corpuses": corpuses,
                 "min_relative_document_frequency": 1 / 1_000,
+                "total_proc": 1 / concurrency,
             }
         )
     init_dictionary_index >> dictionary_operators >> aggregate_dicts
