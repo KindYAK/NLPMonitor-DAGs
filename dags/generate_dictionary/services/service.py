@@ -95,6 +95,10 @@ def generate_dictionary_batch(**kwargs):
 
     from nlpmonitor.settings import ES_INDEX_DOCUMENT, ES_INDEX_DICTIONARY_INDEX, ES_INDEX_DICTIONARY_WORD, ES_CLIENT
 
+    import logging
+    es_logger = logging.getLogger('elasticsearch')
+    es_logger.setLevel(logging.ERROR)
+
     name = kwargs['name']
     process_num = kwargs['process_num']
     total_proc = kwargs['total_proc']
@@ -124,7 +128,7 @@ def generate_dictionary_batch(**kwargs):
     # stopwords = set(get_stop_words('ru') + get_stop_words('en') + stopwords.words('english'))
     dictionary_words = {}
     print("!!!", "Iterating through documents", datetime.datetime.now())
-    for doc in documents:
+    for i, doc in enumerate(documents):
         if int(doc.id) % total_proc != process_num:
             continue
         if len(doc[field_to_parse]) == 0:
@@ -132,6 +136,9 @@ def generate_dictionary_batch(**kwargs):
             continue
         if is_kazakh(doc[field_to_parse]):
             continue
+        if i % 10000 == 0:
+            print(f"Processed {i} documents")
+            print(f"Dictionary length is {len(dictionary_words)}")
         word_in_doc = set()
         cleaned_words = [x for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', doc[field_to_parse]).split()).split()]
         if is_latin(doc[field_to_parse]):
@@ -208,6 +215,10 @@ def aggregate_dicts(**kwargs):
     from elasticsearch.helpers import streaming_bulk
     from elasticsearch_dsl import Search, Index
     from nlpmonitor.settings import ES_INDEX_DICTIONARY_INDEX, ES_INDEX_DICTIONARY_WORD, ES_CLIENT, ES_INDEX_DOCUMENT
+
+    import logging
+    es_logger = logging.getLogger('elasticsearch')
+    es_logger.setLevel(logging.ERROR)
 
     name = kwargs['name']
     corpuses = kwargs['corpuses']
