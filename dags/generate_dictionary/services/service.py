@@ -206,7 +206,7 @@ def generate_dictionary_batch(**kwargs):
             print(f"{success}/{len_dictionary} processed, {datetime.datetime.now()}")
         if failed > 3:
             raise Exception("Too many failed!!")
-    return number_of_documents
+    return success
 
 
 def aggregate_dicts(**kwargs):
@@ -292,7 +292,7 @@ def aggregate_dicts(**kwargs):
             failed += 1
         else:
             success += 1
-        if success % 10000 == 0:
+        if success % 1000 == 0:
             print(f"{success}/{len_dictionary} processed, {datetime.datetime.now()}")
         if failed > 3:
             raise Exception("Too many failed!!")
