@@ -38,10 +38,10 @@ def ngramize(**kwargs):
         if int(doc.id) % total_proc != process_num:
             continue
         success += 1
-        if success > 10_000:
+        if success > 50_000:
             break
-        if success % 1_000 == 0:
-            print(f"{success}/{10_000}")
+        if success % 10_000 == 0:
+            print(f"{success}/{50_000}")
         text_ngramized = doc[source_field]
         text_ngramized_split = text_ngramized.split()
         n_grams_to_append = []

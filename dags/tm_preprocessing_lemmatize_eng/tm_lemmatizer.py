@@ -24,7 +24,7 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('Nlpmonitor_Lemmatization_eng', catchup=False, max_active_runs=1, concurrency=16, default_args=default_args, schedule_interval='20 * * * *')
+dag = DAG('Nlpmonitor_Lemmatization_eng', catchup=False, max_active_runs=1, concurrency=4, default_args=default_args, schedule_interval='20 * * * *')
 
 with dag:
     # init_last_datetime = DjangoOperator(
