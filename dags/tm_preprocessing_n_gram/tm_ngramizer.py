@@ -54,4 +54,9 @@ with dag:
                  corpus=["main", "rus", "rus_propaganda"],
                  concurrency=3)
 
-    # create_tasks(dict_nrrency=8)
+    # create_tasks(dict_name="en_scopus",
+    #              source_field="text_lemmatized_eng_lemminflect",
+    #              min_document_frequency_relative=1 / 1000,
+    #              max_n_gram_len=3,
+    #              corpus=["scopus_real_real"],
+    #              concurrency=8)
