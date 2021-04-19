@@ -67,7 +67,7 @@ with dag:
             op_kwargs={
                 "name": name,
                 "corpuses": corpuses,
-                "min_relative_document_frequency": 1 / 1_000,
+                "min_relative_document_frequency": 1 / 2_500,
                 "total_proc": 1 / concurrency,
             }
         )
