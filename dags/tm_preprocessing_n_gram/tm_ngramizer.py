@@ -49,14 +49,14 @@ with dag:
     # dict_name = "kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985"
     create_tasks(dict_name="kz_rus_yandex_ngrams_dict",
                  source_field="text_lemmatized_yandex",
-                 min_document_frequency_relative=1 / 2_500,
+                 min_document_frequency_relative=1 / 1000,
                  max_n_gram_len=4,
                  corpus=["main", "rus", "rus_propaganda"],
                  concurrency=3)
 
     # create_tasks(dict_name="en_scopus",
     #              source_field="text_lemmatized_eng_lemminflect",
-    #              min_document_frequency_relative=1 / 1000,
+    #              min_document_frequency_relative=1 / 2_500,
     #              max_n_gram_len=3,
     #              corpus=["scopus_real_real"],
     #              concurrency=8)
