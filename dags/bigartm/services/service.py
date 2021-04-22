@@ -134,14 +134,53 @@ def get_tm_index(**kwargs):
     raise TMNotFoundException("Topic Modelling index not found!")
 
 
+def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
+    from util.util import is_kazakh, is_latin
+    from dags.bigartm.services.cleaners import clean
+
+    ids = []
+    meta_ids_in_list = set()
+    ids_in_list = set()
+    for i, document in enumerate(s.scan()):
+        if i % 10_000 == 0:
+            print(f"Written {i} documents")
+        if len(document[text_field]) < 100 and not any(("hate" in c for c in corpus)):
+            continue
+        if document.meta.id in meta_ids_in_list or document.id in ids_in_list:
+            continue
+        if ids_to_skip is not None and document.meta.id in ids_to_skip:
+            continue
+        if group_document_es_ids is not None and document.meta.id not in group_document_es_ids:
+            continue
+        if "_kz_" not in text_field and is_kazakh(document.text + (document.title if document.title else "")):
+            continue
+        if "_en_" not in text_field and is_latin(document.text + (document.title if document.title else "")):
+            continue
+        ids.append(document.meta.id)
+        meta_ids_in_list.add(document.meta.id)
+        ids_in_list.add(document.id)
+        title = clean(document.title)
+        date = document.datetime if hasattr(document, "datetime") and document.datetime else ""
+        views = document.num_views if hasattr(document, "num_views") else -1
+        comments = document.num_comments if hasattr(document, "num_comments") else -1
+
+        # Clean junk
+        text = document[text_field]
+        if "_en_" not in text_field:
+            text = " ".join([w for w in text.split() if not is_latin(w, threshold=0.1)])
+        yield f'{id}*{document.source.replace(" ", "_")}*{date}*{document.corpus}*{views}*{comments}' + ' ' + \
+                             '|text' + ' ' + text + ' ' + \
+                             '|title' + ' ' + title + ' '
+
+
 def dataset_prepare(**kwargs):
     import os
+    import itertools
     import shutil
     import artm
     import datetime
     from elasticsearch_dsl import Search, Q
-    from util.util import is_kazakh, is_latin
-    from dags.bigartm.services.cleaners import return_cleaned_array, txt_writer
+    from dags.bigartm.services.cleaners import txt_writer
     from util.constants import BASE_DAG_DIR
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
@@ -221,51 +260,14 @@ def dataset_prepare(**kwargs):
         std = Search(using=ES_CLIENT, index=f"{uniq_topic_doc}_{name}").source(['document_es_id'])[:5000000]
         ids_to_skip = set((doc.document_es_id for doc in std.scan()))
 
-    ids = []
-    texts = []
-    titles = []
-    sources = []
-    dates = []
-    corpuses = []
-    num_views = []
-    num_comments = []
-    meta_ids_in_list = set()
-    ids_in_list = set()
-    for document in s.scan():
-        if len(document[text_field]) < 100 and not any(("hate" in c for c in corpus)):
-            continue
-        if document.meta.id in meta_ids_in_list or document.id in ids_in_list:
-            continue
-        if ids_to_skip is not None and document.meta.id in ids_to_skip:
-            continue
-        if group_document_es_ids is not None and document.meta.id not in group_document_es_ids:
-            continue
-        if "_kz_" not in text_field and is_kazakh(document.text + (document.title if document.title else "")):
-            continue
-        if "_en_" not in text_field and is_latin(document.text + (document.title if document.title else "")):
-            continue
-        ids.append(document.meta.id)
-        meta_ids_in_list.add(document.meta.id)
-        ids_in_list.add(document.id)
-        titles.append(document.title)
-        sources.append(document.source)
-        dates.append(document.datetime if hasattr(document, "datetime") and document.datetime else "")
-        corpuses.append(document.corpus)
-        num_views.append(document.num_views if hasattr(document, "num_views") else -1)
-        num_comments.append(document.num_comments if hasattr(document, "num_comments") else -1)
+    formated_data = document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids)
 
-        # Clean junk
-        text = document[text_field]
-        if "_en_" not in text_field:
-            text = " ".join([w for w in text.split() if not is_latin(w, threshold=0.1)])
-        texts.append(text)
-    titles = return_cleaned_array(titles)
-
-    formated_data = []
-    for id, text, title, source, date, corpus_d, views, comments in zip(ids, texts, titles, sources, dates, corpuses, num_views, num_comments):
-        formated_data.append(f'{id}*{source.replace(" ", "_")}*{date}*{corpus_d}*{views}*{comments}' + ' ' +
-                             '|text' + ' ' + text + ' ' +
-                             '|title' + ' ' + title + ' ')
+    try:
+        peek_doc = next(formated_data)
+    except:
+        peek_doc = False
+    if perform_actualize and not peek_doc:
+        return f"No documents to actualize"
 
     data_folder = os.path.join(BASE_DAG_DIR, temp_folder)
 
@@ -280,11 +282,9 @@ def dataset_prepare(**kwargs):
                                    f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
     shutil.rmtree(data_folder, ignore_errors=True)
     os.mkdir(data_folder)
-    if perform_actualize and len(formated_data) == 0:
-        return f"No documents to actualize"
-    print("!!!", f"Writing {len(formated_data)} documents")
 
-    txt_writer(data=formated_data, filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
+    print("!!!", f"Writing documents")
+    txt_writer(data=itertools.chain([peek_doc], formated_data), filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
     artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data.txt"),
                          data_format="vowpal_wabbit",
                          target_folder=os.path.join(data_folder, "batches"))

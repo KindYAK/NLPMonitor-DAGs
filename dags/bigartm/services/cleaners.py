@@ -7,6 +7,10 @@ def return_cleaned_array(documents):  # комбинирует наши веhх�
     return array
 
 
+def clean(text):
+    return " ".join(x.lower().strip() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
+
+
 def txt_writer(data, filename):  # ЗАПИСЫВАЕТ НАШИ МАССИВЫ В TXT FILE
     # saving collection in txt file
     out_file = open(filename, "w", encoding="utf-8")
