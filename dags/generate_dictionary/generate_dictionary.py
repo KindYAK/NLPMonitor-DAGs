@@ -28,7 +28,7 @@ with dag:
     # name = "kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985"
     # name = "kz_rus_yandex_ngrams_dict"
     # name = "en_lemminflect"
-    name = "en_scopus"
+    name = "en_scopus_extend"
     max_n_gram_len = 3
     field_to_parse = "text_lemmatized_eng_lemminflect"
 
@@ -57,7 +57,7 @@ with dag:
                 "corpuses": corpuses,
                 "max_n_gram_len": max_n_gram_len,
                 "field_to_parse": field_to_parse,
-                "min_relative_document_frequency": 1 / 2_500,
+                "min_relative_document_frequency": 1 / 40_000,
             }
         ))
 
@@ -67,7 +67,7 @@ with dag:
             op_kwargs={
                 "name": name,
                 "corpuses": corpuses,
-                "min_relative_document_frequency": 1 / 2_500,
+                "min_relative_document_frequency": 1 / 40_000,
             }
         )
     init_dictionary_index >> dictionary_operators >> aggregate_dicts
