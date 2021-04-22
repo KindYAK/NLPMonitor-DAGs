@@ -60,3 +60,10 @@ with dag:
                  max_n_gram_len=3,
                  corpus=["scopus_real_real"],
                  concurrency=3)
+
+    # create_tasks(dict_name="en_scopus_extend",
+    #              source_field="text_lemmatized_eng_lemminflect",
+    #              min_document_frequency_relative=1 / 40_000,
+    #              max_n_gram_len=3,
+    #              corpus=["scopus_real_real"],
+    #              concurrency=8)
