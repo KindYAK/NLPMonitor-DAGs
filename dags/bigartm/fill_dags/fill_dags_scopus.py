@@ -7,14 +7,14 @@ from dags.bigartm.fill_dags.utils import gen_bigartm_operator, default_args
 
 
 def fill_dags_scopus(actualizable_bigartms, comboable_bigartms):
-    dag = DAG('NLPmonitor_BigARTMs_Scopus', catchup=False, max_active_runs=1, concurrency=7,
+    dag = DAG('NLPmonitor_BigARTMs_Scopus', catchup=False, max_active_runs=1, concurrency=2,
                default_args=default_args, schedule_interval=None)
     with dag:
         wait_for_basic_tms = PythonOperator(
             task_id="wait_for_basic_tms",
             python_callable=lambda: 0,
         )
-        for num_topics in [25, 50, 100, 150, 200, 250, 350]:
+        for num_topics in [25, 50, 100, 250, 500, 1000, 1500, 2000, 5000, 10000, 30000]:
             gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm__scopus_{num_topics}", description=f"scopus {num_topics} topics",
                                  number_of_topics=num_topics,
                                  filters={
