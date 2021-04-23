@@ -8,6 +8,7 @@ def return_cleaned_array(documents):  # комбинирует наши веhх�
 
 
 def clean(text):
+    import re
     return " ".join(x.lower().strip() for x in ' '.join(re.sub('([^А-Яа-яa-zA-ZӘәҒғҚқҢңӨөҰұҮүІі-]|[^ ]*[*][^ ]*)', ' ', text).split()).split())
 
 
