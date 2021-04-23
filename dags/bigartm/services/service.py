@@ -138,7 +138,6 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
     from util.util import is_kazakh, is_latin
     from dags.bigartm.services.cleaners import clean
 
-    ids = []
     meta_ids_in_list = set()
     ids_in_list = set()
     for i, document in enumerate(s.scan()):
@@ -156,7 +155,6 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
             continue
         if "_en_" not in text_field and is_latin(document.text + (document.title if document.title else "")):
             continue
-        ids.append(document.meta.id)
         meta_ids_in_list.add(document.meta.id)
         ids_in_list.add(document.id)
         title = clean(document.title)
@@ -168,7 +166,7 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
         text = document[text_field]
         if "_en_" not in text_field:
             text = " ".join([w for w in text.split() if not is_latin(w, threshold=0.1)])
-        yield f'{id}*{document.source.replace(" ", "_")}*{date}*{document.corpus}*{views}*{comments}' + ' ' + \
+        yield f'{document.meta.id}*{document.source.replace(" ", "_")}*{date}*{document.corpus}*{views}*{comments}' + ' ' + \
                              '|text' + ' ' + text + ' ' + \
                              '|title' + ' ' + title + ' '
 
