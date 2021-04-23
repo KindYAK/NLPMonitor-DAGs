@@ -287,7 +287,7 @@ def dataset_prepare(**kwargs):
     artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data.txt"),
                          data_format="vowpal_wabbit",
                          target_folder=os.path.join(data_folder, "batches"))
-    return f"index.number_of_document={index.number_of_documents}, len(ids)={len(ids)}"
+    return f"index.number_of_document={index.number_of_documents}"
 
 
 def topic_modelling(**kwargs):
