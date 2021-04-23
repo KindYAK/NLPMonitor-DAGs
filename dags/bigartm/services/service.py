@@ -179,7 +179,6 @@ def dataset_prepare(**kwargs):
     import datetime
     from elasticsearch_dsl import Search, Q
     from dags.bigartm.services.cleaners import txt_writer
-    from util.constants import BASE_DAG_DIR
 
     from nlpmonitor.settings import ES_CLIENT, ES_INDEX_DOCUMENT, ES_INDEX_TOPIC_MODELLING
     from mainapp.models_user import TopicGroup
@@ -268,7 +267,7 @@ def dataset_prepare(**kwargs):
     if perform_actualize and not peek_doc:
         return f"No documents to actualize"
 
-    data_folder = os.path.join(BASE_DAG_DIR, temp_folder)
+    data_folder = os.path.join("/big_data/", temp_folder)
 
     if not os.path.exists(data_folder):
         os.mkdir(data_folder)
@@ -326,7 +325,7 @@ def topic_modelling(**kwargs):
     index_tm = kwargs['index_tm']
     tm_index = get_tm_index(**kwargs)
 
-    data_folder = os.path.join(BASE_DAG_DIR, temp_folder)
+    data_folder = os.path.join("/big_data/", temp_folder)
     if is_dynamic:
         data_folder = os.path.join(data_folder,
                                    f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
