@@ -260,10 +260,10 @@ def dataset_prepare(**kwargs):
 
     formated_data = document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids)
 
-    try:
-        peek_doc = next(formated_data)
-    except:
-        peek_doc = False
+    # try: # TEMP!!
+    peek_doc = next(formated_data)
+    # except:
+    #     peek_doc = False
     if perform_actualize and not peek_doc:
         return f"No documents to actualize"
 
