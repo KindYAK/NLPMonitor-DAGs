@@ -187,9 +187,11 @@ def model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
                            class_ids={"text": 1}, theta_columns_naming="title",
                            reuse_theta=True, cache_theta=True, num_processors=4)
     if not perform_actualize:
-        print("Getting dictionary")
         dictionary = artm.Dictionary()
-        dictionary.gather(batch_vectorizer.data_path)
+        print("Gathering dictionary")
+        dictionary.gather(batch_vectorizer.data_path, symmetric_cooc_values=True)
+        print("Filtering dictionary")
+        dictionary.filter(max_dictionary_size=1_000_000)
 
         print("Model - initial settings")
         model_artm.initialize(dictionary)
