@@ -179,6 +179,7 @@ def model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
 
     from nlpmonitor.settings import ES_CLIENT
 
+    print("Initializing vectorizer, model")
     batch_vectorizer = artm.BatchVectorizer(data_path=batches_folder,
                                             data_format='batches')
     model_folder = os.path.join(BASE_DAG_DIR, models_folder_name)
@@ -186,8 +187,11 @@ def model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
                            class_ids={"text": 1}, theta_columns_naming="title",
                            reuse_theta=True, cache_theta=True, num_processors=4)
     if not perform_actualize:
+        print("Getting dictionary")
         dictionary = artm.Dictionary()
         dictionary.gather(batch_vectorizer.data_path)
+
+        print("Model - initial settings")
         model_artm.initialize(dictionary)
         # Add scores
         model_artm.scores.add(artm.PerplexityScore(name='PerplexityScore'))
