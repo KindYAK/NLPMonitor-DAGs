@@ -192,6 +192,9 @@ def model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
         dictionary.gather(batch_vectorizer.data_path, symmetric_cooc_values=True)
         print("Filtering dictionary")
         dictionary.filter(max_dictionary_size=1_000_000)
+        print("Saving dictionary")
+        dictionary.save(os.path.join("/big_data/", f"{name if not name_translit else name_translit}.dict"))
+        dictionary.save_text(os.path.join("/big_data/", f"{name if not name_translit else name_translit}.txt"))
 
         print("Model - initial settings")
         model_artm.initialize(dictionary)
