@@ -7,7 +7,7 @@ from dags.bigartm.fill_dags.utils import gen_bigartm_operator, default_args
 
 
 def fill_dags_scopus(actualizable_bigartms, comboable_bigartms):
-    dag = DAG('NLPmonitor_BigARTMs_Scopus', catchup=False, max_active_runs=1, concurrency=2,
+    dag = DAG('NLPmonitor_BigARTMs_Scopus', catchup=False, max_active_runs=1, concurrency=1,
                default_args=default_args, schedule_interval=None)
     with dag:
         wait_for_basic_tms = PythonOperator(
