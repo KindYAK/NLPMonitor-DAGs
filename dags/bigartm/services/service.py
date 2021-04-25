@@ -272,20 +272,26 @@ def dataset_prepare(**kwargs):
     if not os.path.exists(data_folder):
         os.mkdir(data_folder)
 
-    if is_dynamic:
-        data_folder = os.path.join(data_folder,
-                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
+    if "scopus" in name and os.path.exists(os.path.join(data_folder, "scopus")):
+        return "Reading ready scopus batches"
     else:
-        data_folder = os.path.join(data_folder,
-                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
-    shutil.rmtree(data_folder, ignore_errors=True)
-    os.mkdir(data_folder)
+        if "scopus" in name:
+            os.path.join(data_folder, "scopus")
+        else:
+            if is_dynamic:
+                data_folder = os.path.join(data_folder,
+                                           f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
+            else:
+                data_folder = os.path.join(data_folder,
+                                           f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
+        shutil.rmtree(data_folder, ignore_errors=True)
+        os.mkdir(data_folder)
 
-    print("!!!", f"Writing documents")
-    txt_writer(data=itertools.chain([peek_doc], formated_data), filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
-    artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data.txt"),
-                         data_format="vowpal_wabbit",
-                         target_folder=os.path.join(data_folder, "batches"))
+        print("!!!", f"Writing documents")
+        txt_writer(data=itertools.chain([peek_doc], formated_data), filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
+        artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data.txt"),
+                             data_format="vowpal_wabbit",
+                             target_folder=os.path.join(data_folder, "batches"))
     return f"index.number_of_document={index.number_of_documents}"
 
 
@@ -326,12 +332,15 @@ def topic_modelling(**kwargs):
     tm_index = get_tm_index(**kwargs)
 
     data_folder = os.path.join("/big_data/", temp_folder)
-    if is_dynamic:
-        data_folder = os.path.join(data_folder,
-                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
+    if "scopus" in name:
+        os.path.join(data_folder, "scopus")
     else:
-        data_folder = os.path.join(data_folder,
-                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
+        if is_dynamic:
+            data_folder = os.path.join(data_folder,
+                                       f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
+        else:
+            data_folder = os.path.join(data_folder,
+                                       f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
 
     batches_folder = os.path.join(data_folder, "batches")
     if perform_actualize and not os.path.exists(batches_folder):
