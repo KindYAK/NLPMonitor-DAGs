@@ -276,7 +276,7 @@ def dataset_prepare(**kwargs):
         return "Reading ready scopus batches"
     else:
         if "scopus" in name:
-            os.path.join(data_folder, "scopus")
+            data_folder = os.path.join(data_folder, "scopus")
         else:
             if is_dynamic:
                 data_folder = os.path.join(data_folder,
@@ -333,7 +333,8 @@ def topic_modelling(**kwargs):
 
     data_folder = os.path.join("/big_data/", temp_folder)
     if "scopus" in name:
-        os.path.join(data_folder, "scopus")
+        print("Text is ready!")
+        data_folder = os.path.join(data_folder, "scopus")
     else:
         if is_dynamic:
             data_folder = os.path.join(data_folder,
