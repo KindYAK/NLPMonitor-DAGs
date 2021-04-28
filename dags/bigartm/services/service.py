@@ -1,6 +1,3 @@
-from itertools import chain
-
-
 def bigartm_calc(**kwargs):
     from dags.bigartm.services.calc_topics_info import calc_topics_info
 
@@ -174,12 +171,6 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
                              '|title' + ' ' + title + ' '
 
 
-def chunks(iterable, size=10):
-    iterator = iter(iterable)
-    for first in iterator:
-        yield chain([first], islice(iterator, size - 1))
-
-
 def dataset_prepare(**kwargs):
     import os
     import itertools
@@ -297,12 +288,10 @@ def dataset_prepare(**kwargs):
         os.mkdir(data_folder)
 
         print("!!!", f"Writing documents")
-
-        for i, chunk in chunks(itertools.chain([peek_doc], formated_data), size=1_000_000):
-            txt_writer(data=chunk, filename=os.path.join(data_folder, f"bigartm_formated_data_{i}.txt"))
-            artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data_{i}.txt"),
-                                 data_format="vowpal_wabbit",
-                                 target_folder=os.path.join(data_folder, f"batches_{i}"))
+        txt_writer(data=itertools.chain([peek_doc], formated_data), filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
+        artm.BatchVectorizer(data_path=os.path.join(data_folder, f"bigartm_formated_data.txt"),
+                             data_format="vowpal_wabbit",
+                             target_folder=os.path.join(data_folder, "batches"))
     return f"index.number_of_document={index.number_of_documents}"
 
 
