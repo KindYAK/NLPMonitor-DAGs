@@ -179,9 +179,6 @@ def model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
 
     from nlpmonitor.settings import ES_CLIENT
 
-    print("Initializing vectorizer, model")
-    batch_vectorizer = artm.BatchVectorizer(data_path=batches_folder,
-                                            data_format='batches')
     model_folder = os.path.join(BASE_DAG_DIR, models_folder_name)
     model_artm = artm.ARTM(num_topics=tm_index.number_of_topics,
                            class_ids={"text": 1}, theta_columns_naming="title",
@@ -217,7 +214,19 @@ def model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
 
         print("!!!", "Start model train", datetime.datetime.now())
         # Fit model
-        model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
+        batch_no = 0
+        collection_passes = 0
+        while True:
+            if not os.path.exists(os.path.join(batches_folder, f'batches_{batch_no}')):
+                collection_passes += 1
+                batch_no = 0
+                if collection_passes >= 10:
+                    break
+            print(f"Batch #{batch_no}")
+            batch_vectorizer = artm.BatchVectorizer(data_path=batches_folder,
+                                                    data_format=f'batches_{batch_no}')
+
+            model_artm.fit_online(batch_vectorizer=batch_vectorizer)
         if not os.path.exists(model_folder):
             os.mkdir(model_folder)
         model_artm.save(os.path.join(model_folder,
