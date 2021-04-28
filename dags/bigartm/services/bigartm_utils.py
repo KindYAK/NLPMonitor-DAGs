@@ -188,17 +188,17 @@ def model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
                            reuse_theta=True, cache_theta=True, num_processors=4)
     if not perform_actualize:
         dictionary = artm.Dictionary()
-        if "scopus" in name and os.path.exists(os.path.join("/big_data/", "scopus50k.dict")):
+        if "scopus" in name and os.path.exists(os.path.join("/big_data/", "scopus250k.dict")):
             print("Loading dictionary")
-            dictionary.load(os.path.join("/big_data/", "scopus50k.dict"))
+            dictionary.load(os.path.join("/big_data/", "scopus250k.dict"))
         else:
             print("Gathering dictionary")
             dictionary.gather(batch_vectorizer.data_path, symmetric_cooc_values=True)
             print("Filtering dictionary")
-            dictionary.filter(max_dictionary_size=50_000)
-            if "scopus" in name and not os.path.exists(os.path.join("/big_data/", "scopus50k.dict")):
+            dictionary.filter(max_dictionary_size=250_000)
+            if "scopus" in name and not os.path.exists(os.path.join("/big_data/", "scopus250k.dict")):
                 print("Saving dictionary")
-                dictionary.save(os.path.join("/big_data/", "scopus50k.dict"))
+                dictionary.save(os.path.join("/big_data/", "scopus250k.dict"))
 
         print("Model - initial settings")
         model_artm.initialize(dictionary)
