@@ -135,12 +135,17 @@ def get_tm_index(**kwargs):
 
 
 def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
+    import random
+
     from util.util import is_kazakh, is_latin
     from dags.bigartm.services.cleaners import clean
 
     meta_ids_in_list = set()
     ids_in_list = set()
     for i, document in enumerate(s.scan()):
+        ##### TEMP ######
+        if random.random() > 0.75:
+            continue
         if (i < 100_000 and i % 10_000 == 0) or (i < 10_000_000 and i % 100_000 == 0) or (i % 1_000_000 == 0):
             print(f"Written {i} documents")
         if len(document[text_field]) < 100 and not any(("hate" in c for c in corpus)):
