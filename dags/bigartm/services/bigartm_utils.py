@@ -217,9 +217,7 @@ def model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
 
         print("!!!", "Start model train", datetime.datetime.now())
         # Fit model
-        for i in range(10):
-            print(f"Pass #{i}")
-            model_artm.fit_online(batch_vectorizer=batch_vectorizer)
+        model_artm.fit_offline(batch_vectorizer=batch_vectorizer, num_collection_passes=10)
         if not os.path.exists(model_folder):
             os.mkdir(model_folder)
         model_artm.save(os.path.join(model_folder,
