@@ -144,7 +144,7 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
     ids_in_list = set()
     for i, document in enumerate(s.scan()):
         ##### TEMP ######
-        if random.random() > 0.75:
+        if random.random() > 0.9:
             continue
         if (i < 100_000 and i % 10_000 == 0) or (i < 10_000_000 and i % 100_000 == 0) or (i % 1_000_000 == 0):
             print(f"Written {i} documents")
