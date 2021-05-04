@@ -14,7 +14,7 @@ def fill_dags_scopus(actualizable_bigartms, comboable_bigartms):
             task_id="wait_for_basic_tms",
             python_callable=lambda: 0,
         )
-        for num_topics in [25, 50, 100, 250, 500, 1000, 1500, 2000, 5000, 10000, 30000]:
+        for num_topics in [25, 50, 100, 250, 500, 1000, 2500, 5000]:
             gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm__scopus_{num_topics}", description=f"scopus {num_topics} topics",
                                  number_of_topics=num_topics,
                                  filters={
