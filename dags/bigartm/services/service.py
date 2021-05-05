@@ -146,8 +146,8 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
         if (i < 100_000 and i % 10_000 == 0) or (i < 10_000_000 and i % 100_000 == 0) or (i % 1_000_000 == 0):
             print(f"Written {i} documents")
         ##### TEMP ######
-        if random.random() <= 0.9:
-            continue
+        # if random.random() <= 0.9:
+        #     continue
         ##### TEMP ######
         if len(document[text_field]) < 100 and not any(("hate" in c for c in corpus)):
             continue
