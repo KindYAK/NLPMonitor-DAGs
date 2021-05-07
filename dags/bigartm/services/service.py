@@ -147,8 +147,8 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
         if i % 10_000 == 0:
             print(f"Written {i} documents")
         ##### TEMP ######
-        # if random.random() <= 0.9:
-        #     continue
+        if random.random() <= 0.9:
+            continue
         ##### TEMP ######
         if len(document[text_field]) < 100 and not any(("hate" in c for c in corpus)):
             continue
@@ -163,8 +163,8 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
         if "_en_" not in text_field and is_latin(document.text + (document.title if document.title else "")):
             continue
         count += 1
-        if count >= 4_000_000:
-            break
+        # if count >= 4_000_000: # RETURN LATER
+        #     break
         meta_ids_in_list.add(document.meta.id)
         ids_in_list.add(document.id)
         title = clean(document.title)
@@ -372,5 +372,6 @@ def topic_modelling(**kwargs):
         except:
             print("!Someone already deleted file")
     # Remove batches and stuff
-    shutil.rmtree(data_folder, ignore_errors=True)
+    if "scopus" not in name:
+        shutil.rmtree(data_folder, ignore_errors=True)
     return theta_documents.shape[0]
