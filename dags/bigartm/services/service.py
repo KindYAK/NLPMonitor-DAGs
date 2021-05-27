@@ -241,7 +241,7 @@ def dataset_prepare(**kwargs):
     for corpus_to_ignore in corpus_datetime_ignore:
         q = q | (~Q('exists', field="datetime") & Q("term", corpus=corpus_to_ignore))
     s = s.query(q)
-    s = s.source(["id", "text", text_field, "title", "source", "num_views", "num_comments", "datetime", "corpus"])[:5000000]
+    s = s.source(["id", "text", text_field, "title", "source", "num_views", "num_comments", "datetime", "corpus"])[:50_000_000]
 
     group_document_es_ids = None
     print("!!! group_id", group_id) # TODO Remove prints
@@ -264,9 +264,11 @@ def dataset_prepare(**kwargs):
     # Exclude document already in TM if actualizing
     ids_to_skip = None
     if perform_actualize:
-        std = Search(using=ES_CLIENT, index=f"{uniq_topic_doc}_{name}").source(['document_es_id'])[:5000000]
+        std = Search(using=ES_CLIENT, index=f"{uniq_topic_doc}_{name}").source(['document_es_id'])[:50_000_000]
         ids_to_skip = set((doc.document_es_id for doc in std.scan()))
+        print("!!!", "Skipping", len(ids_to_skip))
 
+    print("!!!", "Potential docs", s.count())
     formated_data = document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids)
 
     try:
