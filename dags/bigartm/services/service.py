@@ -282,18 +282,12 @@ def dataset_prepare(**kwargs):
     if not os.path.exists(data_folder):
         os.mkdir(data_folder)
 
-    if "scopus" in name and os.path.exists(os.path.join(data_folder, "scopus")):
-        return "Reading ready scopus batches"
-    else:
-        if "scopus" in name:
-            data_folder = os.path.join(data_folder, "scopus")
+        if is_dynamic:
+            data_folder = os.path.join(data_folder,
+                                       f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
         else:
-            if is_dynamic:
-                data_folder = os.path.join(data_folder,
-                                           f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
-            else:
-                data_folder = os.path.join(data_folder,
-                                           f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
+            data_folder = os.path.join(data_folder,
+                                       f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
         shutil.rmtree(data_folder, ignore_errors=True)
         os.mkdir(data_folder)
 
@@ -342,16 +336,12 @@ def topic_modelling(**kwargs):
     tm_index = get_tm_index(**kwargs)
 
     data_folder = os.path.join("/big_data/", temp_folder)
-    if "scopus" in name:
-        print("Text is ready!")
-        data_folder = os.path.join(data_folder, "scopus")
+    if is_dynamic:
+        data_folder = os.path.join(data_folder,
+                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
     else:
-        if is_dynamic:
-            data_folder = os.path.join(data_folder,
-                                       f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from.date()}_{datetime_to.date()}")
-        else:
-            data_folder = os.path.join(data_folder,
-                                       f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
+        data_folder = os.path.join(data_folder,
+                                   f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
 
     batches_folder = os.path.join(data_folder, "batches")
     if perform_actualize and not os.path.exists(batches_folder):
@@ -372,6 +362,5 @@ def topic_modelling(**kwargs):
         except:
             print("!Someone already deleted file")
     # Remove batches and stuff
-    if "scopus" not in name:
-        shutil.rmtree(data_folder, ignore_errors=True)
+    shutil.rmtree(data_folder, ignore_errors=True)
     return theta_documents.shape[0]
