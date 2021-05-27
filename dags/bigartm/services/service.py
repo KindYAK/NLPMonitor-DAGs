@@ -277,8 +277,8 @@ def dataset_prepare(**kwargs):
     except Exception as e:
         print("!!! No docs", e)
         peek_doc = False
-    if perform_actualize and peek_doc == False:
-        return f"No documents to actualize"
+    # if perform_actualize and peek_doc == False:
+    #     return f"No documents to actualize"
 
     data_folder = os.path.join("/big_data/", temp_folder)
 
