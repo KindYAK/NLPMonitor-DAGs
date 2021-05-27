@@ -347,8 +347,8 @@ def topic_modelling(**kwargs):
                                    f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
 
     batches_folder = os.path.join(data_folder, "batches")
-    if perform_actualize and not os.path.exists(batches_folder):
-        return f"No documents to actualize"
+    # if perform_actualize and not os.path.exists(batches_folder):
+    #     return f"No documents to actualize"
 
     model_artm, batch_vectorizer = model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
                                                regularization_params, name, name_translit, index_tm)
