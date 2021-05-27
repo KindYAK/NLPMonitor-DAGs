@@ -144,8 +144,6 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
     ids_in_list = set()
     count = 0
     for i, document in enumerate(s.scan()):
-        if "scopus" in str(corpus):
-            print("!", i, document)
         if i % 10_000 == 0:
             print(f"Written {i} documents")
         # ##### TEMP ######
@@ -153,22 +151,16 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
         #     continue
         # ##### TEMP ######
         if len(document[text_field]) < 100 and not any(("hate" in c for c in corpus)):
-            print("!!!", "Skip", 1)
             continue
         if document.meta.id in meta_ids_in_list or document.id in ids_in_list:
-            print("!!!", "Skip", 2)
             continue
         if ids_to_skip is not None and document.meta.id in ids_to_skip:
-            print("!!!", "Skip", 3)
             continue
         if group_document_es_ids is not None and document.meta.id not in group_document_es_ids:
-            print("!!!", "Skip", 4)
             continue
         if "_kz_" not in text_field and is_kazakh(document.text + (document.title if document.title else "")):
-            print("!!!", "Skip", 5)
             continue
         if "_en_" not in text_field and is_latin(document.text + (document.title if document.title else "")):
-            print("!!!", "Skip", 6)
             continue
         count += 1
         if count >= 4_000_000: # RETURN LATER
@@ -285,7 +277,7 @@ def dataset_prepare(**kwargs):
     except Exception as e:
         print("!!! No docs", e)
         peek_doc = False
-    if perform_actualize and not peek_doc:
+    if perform_actualize and peek_doc == False:
         return f"No documents to actualize"
 
     data_folder = os.path.join("/big_data/", temp_folder)
