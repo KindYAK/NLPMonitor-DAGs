@@ -146,10 +146,10 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
     for i, document in enumerate(s.scan()):
         if i % 10_000 == 0:
             print(f"Written {i} documents")
-        ##### TEMP ######
-        if random.random() <= 0.9:
-            continue
-        ##### TEMP ######
+        # ##### TEMP ######
+        # if random.random() <= 0.9:
+        #     continue
+        # ##### TEMP ######
         if len(document[text_field]) < 100 and not any(("hate" in c for c in corpus)):
             continue
         if document.meta.id in meta_ids_in_list or document.id in ids_in_list:
@@ -163,8 +163,8 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
         if "_en_" not in text_field and is_latin(document.text + (document.title if document.title else "")):
             continue
         count += 1
-        # if count >= 4_000_000: # RETURN LATER
-        #     break
+        if count >= 4_000_000: # RETURN LATER
+            break
         meta_ids_in_list.add(document.meta.id)
         ids_in_list.add(document.id)
         title = clean(document.title)
