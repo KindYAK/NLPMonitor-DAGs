@@ -282,7 +282,10 @@ def dataset_prepare(**kwargs):
 
     data_folder = os.path.join("/big_data/", temp_folder)
 
-    os.mkdir(data_folder)
+    try:
+        os.mkdir(data_folder)
+    except:
+        pass
 
     if is_dynamic:
         data_folder = os.path.join(data_folder,
@@ -290,8 +293,11 @@ def dataset_prepare(**kwargs):
     else:
         data_folder = os.path.join(data_folder,
                                    f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
-    shutil.rmtree(data_folder, ignore_errors=True)
-    os.mkdir(data_folder)
+    try:
+        shutil.rmtree(data_folder, ignore_errors=True)
+        os.mkdir(data_folder)
+    except:
+        pass
 
     print("!!!", f"Writing documents")
     txt_writer(data=itertools.chain([peek_doc], formated_data), filename=os.path.join(data_folder, f"bigartm_formated_data.txt"))
