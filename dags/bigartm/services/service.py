@@ -144,6 +144,8 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
     ids_in_list = set()
     count = 0
     for i, document in enumerate(s.scan()):
+        if "scopus" in str(corpus):
+            print("DOC", i, document, s.count())
         if i % 10_000 == 0:
             print(f"Written {i} documents")
         # ##### TEMP ######
@@ -151,16 +153,28 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
         #     continue
         # ##### TEMP ######
         if len(document[text_field]) < 100 and not any(("hate" in c for c in corpus)):
+            if "scopus" in str(corpus):
+                print("Skip", 1)
             continue
         if document.meta.id in meta_ids_in_list or document.id in ids_in_list:
+            if "scopus" in str(corpus):
+                print("Skip", 2)
             continue
         if ids_to_skip is not None and document.meta.id in ids_to_skip:
+            if "scopus" in str(corpus):
+                print("Skip", 3)
             continue
         if group_document_es_ids is not None and document.meta.id not in group_document_es_ids:
+            if "scopus" in str(corpus):
+                print("Skip", 4)
             continue
         if "_kz_" not in text_field and is_kazakh(document.text + (document.title if document.title else "")):
+            if "scopus" in str(corpus):
+                print("Skip", 5)
             continue
         if "_en_" not in text_field and is_latin(document.text + (document.title if document.title else "")):
+            if "scopus" in str(corpus):
+                print("Skip", 6)
             continue
         count += 1
         if count >= 4_000_000: # RETURN LATER
@@ -177,6 +191,7 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
         text = document[text_field]
         if "_en_" not in text_field:
             text = " ".join([w for w in text.split() if not is_latin(w, threshold=0.1)])
+        print("YIELDING")
         yield f'{document.meta.id}*{document.source.replace(" ", "_")}*{date}*{document.corpus}*{views}*{comments}' + ' ' + \
                              '|text' + ' ' + text + ' ' + \
                              '|title' + ' ' + title + ' '
@@ -347,8 +362,8 @@ def topic_modelling(**kwargs):
                                    f"bigartm_formated_data_{name if not name_translit else name_translit}{'_actualize' if perform_actualize else ''}{'_fast' if fast else ''}_{datetime_from}_{datetime_to}")
 
     batches_folder = os.path.join(data_folder, "batches")
-    # if perform_actualize and not os.path.exists(batches_folder):
-    #     return f"No documents to actualize"
+    if perform_actualize and not os.path.exists(batches_folder):
+        return f"No documents to actualize"
 
     model_artm, batch_vectorizer = model_train(batches_folder, models_folder_name, perform_actualize, tm_index,
                                                regularization_params, name, name_translit, index_tm)
