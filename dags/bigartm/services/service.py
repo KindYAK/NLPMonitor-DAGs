@@ -163,8 +163,8 @@ def document_scanner(s, text_field, corpus, ids_to_skip, group_document_es_ids):
         if "_en_" not in text_field and is_latin(document.text + (document.title if document.title else "")):
             continue
         count += 1
-        if count >= 2_000_000: # RETURN LATER
-            print("!!!", "break on 2mln")
+        if count >= 1_000_000: # RETURN LATER
+            print("!!!", "break on 1mln")
             break
         meta_ids_in_list.add(document.meta.id)
         ids_in_list.add(document.id)
