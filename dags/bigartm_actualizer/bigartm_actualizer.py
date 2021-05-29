@@ -64,7 +64,7 @@ fast_tms = [
     "bigartm_education_2_2020",
     "bigartm_education_3_2020",
     "bigartm__scopus_100",
-    "bigartm__scopus_500",
+    # "bigartm__scopus_500",
 ]
 actualizers_calcs_fast = []
 with dag_fast:
