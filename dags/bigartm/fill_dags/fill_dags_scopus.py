@@ -31,7 +31,7 @@ def fill_dags_scopus(actualizable_bigartms, comboable_bigartms):
                                      "ImproveCoherencePhiRegularizer": 0.15
                                  },
                                  wait_for_basic_tms=wait_for_basic_tms,
-                                 is_actualizable=True,
+                                 is_actualizable=False,
                                  text_field="text_ngramized_en_scopus_extend"
                                  )
     return dag
