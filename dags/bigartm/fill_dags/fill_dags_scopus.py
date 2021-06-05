@@ -37,7 +37,7 @@ def fill_dags_scopus(actualizable_bigartms, comboable_bigartms):
                                  )
 
     groups = json.loads(Variable.get('topic_groups', default_var="[]"))
-    dag = DAG('NLPmonitor_BigARTMs_Scopus_hierarchy', catchup=False, max_active_runs=1, concurrency=5,
+    dag = DAG('NLPmonitor_BigARTMs_Scopus_hierarchy', catchup=False, max_active_runs=1, concurrency=3,
                default_args=default_args, schedule_interval=None)
     with dag:
         wait_for_basic_tms = PythonOperator(
