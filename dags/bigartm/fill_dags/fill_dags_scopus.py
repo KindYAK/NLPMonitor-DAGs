@@ -1,4 +1,5 @@
 def fill_dags_scopus(actualizable_bigartms, comboable_bigartms):
+    import datetime
     import json
     from datetime import date
 
@@ -37,8 +38,11 @@ def fill_dags_scopus(actualizable_bigartms, comboable_bigartms):
                                  )
 
     groups = json.loads(Variable.get('topic_groups', default_var="[]"))
+    default_args_retries = default_args.copy()
+    default_args_retries['retries'] = 4
+    default_args_retries['retry_delay'] = datetime.timedelta(minutes=30),
     dag = DAG('NLPmonitor_BigARTMs_Scopus_hierarchy', catchup=False, max_active_runs=1, concurrency=3,
-               default_args=default_args, schedule_interval=None)
+               default_args=default_args_retries, schedule_interval=None)
     with dag:
         wait_for_basic_tms = PythonOperator(
             task_id="wait_for_basic_tms",
