@@ -28,7 +28,7 @@ gensim==3.8.0
 scrapy==1.7.3
 bs4==0.0.1
 dateparser>=0.7.2
-scrapy-splash==0.7.2
+scrapy-splash==0.8.0
 pymorphy2==0.8
 stop_words==2018.7.23
 
