@@ -31,7 +31,7 @@ def fill_dags_news_and_gos(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm_two_years_main_and_gos2", description="Main and gos2 2 yearts",
                              number_of_topics=200,
@@ -49,7 +49,7 @@ def fill_dags_news_and_gos(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm_two_years_1000_main_and_gos2", description="Main and gos2 2 years, 1000 topics",
                              number_of_topics=1000,
@@ -67,5 +67,5 @@ def fill_dags_news_and_gos(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
     return dag

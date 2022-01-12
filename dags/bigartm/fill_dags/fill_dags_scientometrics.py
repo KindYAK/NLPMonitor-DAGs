@@ -29,7 +29,7 @@ def fill_dags_scientometrics(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm_two_years_scientometrics_25", description="scientometrics 17k 25 topics",
                              number_of_topics=25,
@@ -46,7 +46,7 @@ def fill_dags_scientometrics(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm_two_years_scientometrics_50", description="scientometrics 17k 50 topics",
                              number_of_topics=50,
@@ -63,7 +63,7 @@ def fill_dags_scientometrics(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm_two_years_scientometrics_75", description="scientometrics 17k 75 topics",
                              number_of_topics=75,
@@ -80,5 +80,5 @@ def fill_dags_scientometrics(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
     return dag

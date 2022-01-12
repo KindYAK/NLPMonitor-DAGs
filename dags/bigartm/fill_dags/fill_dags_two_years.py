@@ -32,7 +32,7 @@ def fill_dags_two_years(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_two_years_old_parse", description="Two last years old parse",
                              number_of_topics=200,
@@ -68,7 +68,7 @@ def fill_dags_two_years(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_education_one_year", description="One last year education",
                              number_of_topics=100,
@@ -87,7 +87,7 @@ def fill_dags_two_years(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_education_half_year", description="One half year education",
                              number_of_topics=100,
@@ -106,7 +106,7 @@ def fill_dags_two_years(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_science_two_years", description="Two last years science",
                              number_of_topics=150,
@@ -125,7 +125,7 @@ def fill_dags_two_years(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_science_one_year", description="One last year science", number_of_topics=100,
                              filters={
@@ -143,7 +143,7 @@ def fill_dags_two_years(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_science_half_year", description="One half year science",
                              number_of_topics=100,
@@ -162,7 +162,7 @@ def fill_dags_two_years(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         # BigARTMs for two_year Zhazira's folders
         groups_bigartm_two_years = filter(lambda x: x['topic_modelling_name'] == "bigartm_two_years", groups)
@@ -184,7 +184,7 @@ def fill_dags_two_years(actualizable_bigartms, comboable_bigartms):
                                      "ImproveCoherencePhiRegularizer": 0.15
                                  },
                                  wait_for_basic_tms=wait_for_basic_tms,
-                                 is_actualizable=True,
+                                 is_actualizable=False,
                                  name_translit=f"bigartm_{group['name_translit']}_two_years",
                                  topic_modelling_translit=group['topic_modelling_name_translit'],
                                  )
@@ -209,7 +209,7 @@ def fill_dags_two_years(actualizable_bigartms, comboable_bigartms):
                                      "ImproveCoherencePhiRegularizer": 0.15
                                  },
                                  wait_for_basic_tms=wait_for_basic_tms,
-                                 is_actualizable=True,
+                                 is_actualizable=False,
                                  name_translit=f"bigartm_{group['name_translit']}_it_two_years",
                                  topic_modelling_translit=group['topic_modelling_name_translit'],
                                  )
@@ -234,7 +234,7 @@ def fill_dags_two_years(actualizable_bigartms, comboable_bigartms):
                                      "ImproveCoherencePhiRegularizer": 0.15
                                  },
                                  wait_for_basic_tms=wait_for_basic_tms,
-                                 is_actualizable=True,
+                                 is_actualizable=False,
                                  name_translit=f"bigartm_{group['name_translit']}_2_level_it_two_years",
                                  topic_modelling_translit=group['topic_modelling_name_translit'],
                                  )

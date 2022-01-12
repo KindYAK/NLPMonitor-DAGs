@@ -29,7 +29,7 @@ def fill_dags_2020(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_education_2019", description="2019 education", number_of_topics=75,
                              filters={
@@ -46,7 +46,7 @@ def fill_dags_2020(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_education_2_2020", description="2020 education 2 distilled",
                              number_of_topics=60,
@@ -65,7 +65,7 @@ def fill_dags_2020(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_education_3_2020",
                              description="2020 education 3 distilled",
@@ -85,5 +85,5 @@ def fill_dags_2020(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True)
+                             is_actualizable=False)
     return dag

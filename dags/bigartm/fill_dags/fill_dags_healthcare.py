@@ -30,7 +30,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
 
@@ -48,7 +48,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
 
@@ -66,7 +66,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
 
@@ -87,7 +87,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_2020_2021_kaz_health_1",
@@ -106,7 +106,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_2020_2021_rus_kaz_health_1",
@@ -125,7 +125,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
         # SECOND LEVEL
@@ -146,7 +146,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_2020_2021_kaz_health_2",
@@ -166,7 +166,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_2020_2021_rus_kaz_health_2",
@@ -186,7 +186,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
         # SECOND LEVEL
@@ -207,7 +207,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_2020_2021_kaz_health_3",
@@ -227,7 +227,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name="bigartm_2020_2021_rus_kaz_health_3",
@@ -247,7 +247,7 @@ def fill_dags_healthcare(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict")
 
     return dag

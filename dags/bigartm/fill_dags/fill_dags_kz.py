@@ -29,7 +29,7 @@ def fill_dags_kz(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_lemmatized_kz_apertium",
                              )
 
@@ -47,7 +47,7 @@ def fill_dags_kz(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_lemmatized_kz_apertium",
                              )
 
@@ -65,7 +65,7 @@ def fill_dags_kz(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_lemmatized_kz_apertium",
                              )
     return dag

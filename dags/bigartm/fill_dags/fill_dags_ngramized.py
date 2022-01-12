@@ -29,7 +29,7 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
                              )
 
@@ -47,7 +47,7 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
                              )
 
@@ -68,7 +68,7 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_ngrams_dict_pymorphy_2_4_393442_3710985",
                              )
 
@@ -87,7 +87,7 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_en_lemminflect",
                              )
 
@@ -113,7 +113,7 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict",
                              )
 
@@ -131,7 +131,7 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict",
                              )
 
@@ -152,7 +152,7 @@ def fill_dags_ngramized(actualizable_bigartms, comboable_bigartms):
                                  "ImproveCoherencePhiRegularizer": 0.15
                              },
                              wait_for_basic_tms=wait_for_basic_tms,
-                             is_actualizable=True,
+                             is_actualizable=False,
                              text_field="text_ngramized_kz_rus_yandex_ngrams_dict",
                              )
     return dag
