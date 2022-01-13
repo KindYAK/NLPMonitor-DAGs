@@ -17,6 +17,7 @@ def pre_cache(**kwargs):
         calculated_widgets = calculated_widgets.union(widgets_ids)
 
         for widget_id in updated_widget_ids:
+            print("Widget id =", widget_id)
             key = make_template_fragment_key("widget", [widget_id])
             cache.delete(key)
 
