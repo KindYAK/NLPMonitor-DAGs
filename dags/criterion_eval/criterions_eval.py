@@ -45,14 +45,14 @@ with dag:
                 }
             )
             )
-            # actualizable_criterion_evals.append(
-            #     {
-            #         "criterion_id": criterion['id'],
-            #         "criterion_name": filtered_criterion_name,
-            #         "topic_modelling": tm['name'],
-            #         "topic_modelling_translit": filtered_topic_modelling,
-            #     }
-            # )
+            actualizable_criterion_evals.append(
+                {
+                    "criterion_id": criterion['id'],
+                    "criterion_name": filtered_criterion_name,
+                    "topic_modelling": tm['name'],
+                    "topic_modelling_translit": filtered_topic_modelling,
+                }
+            )
             if criterion['calc_virt_negative']:
                 evaluators.append(DjangoOperator(
                     task_id=f"eval_{filtered_criterion_name}_{filtered_topic_modelling}_neg",
