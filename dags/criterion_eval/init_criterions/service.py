@@ -5,7 +5,7 @@ def init_criterions(**kwargs):
     import json
     from transliterate import translit
 
-    criterions = EvalCriterion.objects.all()
+    criterions = EvalCriterion.objects.filter(id__in=[1])
     Variable.set("criterions",
                      json.dumps(
                          [{
@@ -21,7 +21,7 @@ def init_criterions(**kwargs):
                                  {
                                      "name": topic_id.topic_modelling_name,
                                      "name_translit": translit(topic_id.topic_modelling_name, 'ru', reversed=True)
-                                 } for topic_id in TopicID.objects.filter(topicseval__criterion=criterion).distinct('topic_modelling_name')
+                                 } for topic_id in TopicID.objects.filter(topicseval__criterion=criterion).distinct('topic_modelling_name') if topic_id.topic_modelling_name.startswith('bigartm_2020_2022')
                              ]
                          } for criterion in criterions]
                      )
