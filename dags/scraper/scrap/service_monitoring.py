@@ -20,7 +20,10 @@ def report_subscriptions(source, news):
 
         print("!!!! Processing,", subscription.user.email, len(news), "news")
         criterions_evals_dict = get_criterions_dict(subscription)
-        tm_index = get_tm_index(subscription.topic_modelling_name)
+        try:
+            tm_index = get_tm_index(subscription.topic_modelling_name)
+        except:
+            continue
         data_folder = get_data_folder(source)
 
         texts, urls, titles, datetimes = write_batches(news, subscription, data_folder, stopwords_ru, morph, custom_dict)
@@ -30,7 +33,10 @@ def report_subscriptions(source, news):
         if subscription.parent_group:
             print("!!!", "Filtering parent")
             print("!!!", "Before", len(texts))
-            tm_index_parent = get_tm_index(subscription.parent_group.topic_modelling_name)
+            try:
+                tm_index_parent = get_tm_index(subscription.parent_group.topic_modelling_name)
+            except:
+                continue
             print("! parent index", tm_index_parent)
             theta_values, theta_topics, theta_documents = get_topic_weights(data_folder, tm_index_parent)
             good_indices = set()
