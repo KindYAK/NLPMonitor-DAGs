@@ -58,7 +58,7 @@ def fill_dags_healthcare_2022(actualizable_bigartms, comboable_bigartms):
                                  "corpus": "main",
                                  "source": None,
                                  "datetime_from": date(2020, 1, 1),
-                                 "datetime_to": date(2021, 4, 15),
+                                 "datetime_to": date(2022, 3, 1),
                                  "group_id": 211,
                              },
                              regularization_params={
@@ -78,7 +78,7 @@ def fill_dags_healthcare_2022(actualizable_bigartms, comboable_bigartms):
                                  "corpus": "main",
                                  "source": None,
                                  "datetime_from": date(2020, 1, 1),
-                                 "datetime_to": date(2021, 4, 15),
+                                 "datetime_to": date(2022, 3, 1),
                                  "group_id": 212,
                              },
                              regularization_params={
