@@ -79,7 +79,7 @@ def fill_dags_healthcare_2022(actualizable_bigartms, comboable_bigartms):
                                  "source": None,
                                  "datetime_from": date(2020, 1, 1),
                                  "datetime_to": date(2022, 3, 1),
-                                 "group_id": 212,
+                                 "group_id": 213,
                              },
                              regularization_params={
                                  "SmoothSparseThetaRegularizer": 0.15,
