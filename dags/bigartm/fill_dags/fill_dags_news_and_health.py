@@ -6,7 +6,7 @@ from airflow.operators.python_operator import PythonOperator
 from dags.bigartm.fill_dags.utils import gen_bigartm_operator, default_args
 
 
-def fill_dags_news_and_gos(actualizable_bigartms, comboable_bigartms):
+def fill_dags_news_and_health(actualizable_bigartms, comboable_bigartms):
     dag = DAG('NLPmonitor_BigARTMs_codex', catchup=False, max_active_runs=1, concurrency=7,
                default_args=default_args, schedule_interval=None)
     with dag:
