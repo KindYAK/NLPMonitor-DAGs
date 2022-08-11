@@ -7,7 +7,7 @@ from dags.bigartm.fill_dags.utils import gen_bigartm_operator, default_args
 
 
 def fill_dags_healthcare_2022(actualizable_bigartms, comboable_bigartms):
-    dag = DAG('NLPmonitor_BigARTMs_Healthcare_2022', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args,
+    dag = DAG('NLPmonitor_BigARTMs_Healthcare_codex_2022', catchup=False, max_active_runs=1, concurrency=7, default_args=default_args,
                schedule_interval=None)
     with dag:
         wait_for_basic_tms = PythonOperator(
