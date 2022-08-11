@@ -33,6 +33,24 @@ def fill_dags_news_and_gos(actualizable_bigartms, comboable_bigartms):
                              wait_for_basic_tms=wait_for_basic_tms,
                              is_actualizable=False)
 
+        gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm_two_years_main_and_health_only_old", description="Main and gos 2 yearts",
+                             number_of_topics=300,
+                             filters={
+                                 "corpus": ["main", "gos"],
+                                 "corpus_datetime_ignore": ["gos"],
+                                 "source": None,
+                                 "datetime_from": date(2020, 1, 1),
+                                 "datetime_to": date(2022, 3, 1),
+                             },
+                             regularization_params={
+                                 "SmoothSparseThetaRegularizer": 0.15,
+                                 "SmoothSparsePhiRegularizer": 0.15,
+                                 "DecorrelatorPhiRegularizer": 0.15,
+                                 "ImproveCoherencePhiRegularizer": 0.15
+                             },
+                             wait_for_basic_tms=wait_for_basic_tms,
+                             is_actualizable=False)
+
         gen_bigartm_operator(actualizable_bigartms, comboable_bigartms, name=f"bigartm_two_years_health_news_and_health",
                              description="Main and gos 2 yearts",
                              number_of_topics=150,
