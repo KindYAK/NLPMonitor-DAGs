@@ -255,8 +255,7 @@ def dataset_prepare(**kwargs):
         st = Search(using=ES_CLIENT, index=f"{topic_doc}_{topic_modelling_name}") \
                  .filter("terms", **{"topic_id": topic_ids}) \
                  .filter("range", topic_weight={"gte": topic_weight_threshold}) \
-                 .filter("range", datetime={"gte": datetime.date(2000, 1, 1)}) \
-                 .source(('document_es_id'))[:5000000]
+                 .source(('document_es_id'))[:5_000_000]
         print("!!!", f"{topic_doc}_{topic_modelling_name}", topic_ids, topic_weight_threshold)
         r = st.scan()
         group_document_es_ids = set([doc.document_es_id for doc in r])

@@ -61,6 +61,7 @@ def fill_dags_news_and_health(actualizable_bigartms, comboable_bigartms):
                                  "datetime_from": date(2020, 1, 1),
                                  "datetime_to": date(2022, 7, 28),
                                  "group_id": 214,
+                                 "topic_weight_threshold": 0.075,
                              },
                              regularization_params={
                                  "SmoothSparseThetaRegularizer": 0.15,
